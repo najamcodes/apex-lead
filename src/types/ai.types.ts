@@ -1,0 +1,29 @@
+// src/types/ai.types.ts
+
+export interface SiteScoreResult {
+  score: number           // 0–100 (0 = no site, 100 = excellent modern site)
+  verdict: 'none' | 'poor' | 'outdated' | 'average' | 'good' | 'excellent'
+  summary: string         // One sentence e.g. "Site loads slowly, no mobile version, built circa 2015"
+  issues: string[]        // e.g. ["No SSL", "Not mobile responsive", "Outdated design"]
+  opportunity: string     // One sentence pitch hook e.g. "This business would benefit from a modern landing page"
+  model_used: string
+}
+
+export interface OutreachDraft {
+  subject: string
+  email_body: string
+  linkedin_dm: string
+  model_used: string
+}
+
+export interface AiTaskRequest {
+  lead_id: number
+  task: 'score_site' | 'draft_email'
+}
+
+export interface AiTaskProgress {
+  lead_id: number
+  task: string
+  status: 'pending' | 'running' | 'done' | 'error'
+  error?: string
+}

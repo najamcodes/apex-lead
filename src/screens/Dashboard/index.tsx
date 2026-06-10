@@ -1,0 +1,56 @@
+// src/screens/Dashboard/index.tsx
+import { useEffect, useState } from 'react'
+import { Users, Globe, AlertTriangle, CheckCircle, DollarSign, Clock } from 'lucide-react'
+import { StatCard } from './StatCard'
+import { WeeklyChart } from './WeeklyChart'
+import { PipelineChart } from './PipelineChart'
+import { ActivityFeed } from './ActivityFeed'
+import type { DashboardStats } from '../../types'
+
+export function Dashboard() {
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+
+  useEffect(() => {
+    window.api.stats.getDashboard().then(setStats)
+  }, [])
+
+  if (!stats) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-zinc-500 font-sans text-sm">Loading dashboard stats...</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="font-sans">
+        <h2 className="text-lg font-semibold text-zinc-100">Overview</h2>
+        <p className="text-sm text-zinc-500 mt-0.5">Your lead pipeline at a glance</p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <StatCard label="Total Leads"    value={stats.total_leads}       icon={Users}         />
+        <StatCard label="No Website"     value={stats.no_website}        icon={Globe}         accent="text-red-400" />
+        <StatCard label="Outdated Site"  value={stats.outdated_website}  icon={AlertTriangle} accent="text-amber-400" />
+        <StatCard label="In Review"      value={stats.in_review}         icon={Clock}         accent="text-blue-400" />
+        <StatCard label="Approved"       value={stats.approved}          icon={CheckCircle}   accent="text-emerald-400" />
+        <StatCard label="Closed"         value={stats.closed}            icon={DollarSign}    accent="text-green-400" />
+      </div>
+
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 font-sans">
+        <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">This week</p>
+        <p className="text-4xl font-semibold text-zinc-100">{stats.this_week}</p>
+        <p className="text-sm text-zinc-500 mt-1">new leads scraped</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <WeeklyChart />
+          <PipelineChart />
+        </div>
+        <ActivityFeed />
+      </div>
+    </div>
+  )
+}

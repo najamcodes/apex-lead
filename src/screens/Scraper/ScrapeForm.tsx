@@ -1,0 +1,111 @@
+// src/screens/Scraper/ScrapeForm.tsx
+import { useState } from 'react'
+import { Play } from 'lucide-react'
+import { Input } from '../../components/ui/Input'
+import { Button } from '../../components/ui/Button'
+import { useScraperStore } from '../../store/scraper.store'
+import type { ScrapeJobConfig } from '../../types/scraper.types'
+
+const QUICK_QUERIES = [
+  'restaurants', 'hair salons', 'dental clinics',
+  'law firms', 'auto repair shops', 'real estate agents',
+  'gyms', 'pharmacies', 'clothing stores', 'hotels',
+]
+
+export function ScrapeForm() {
+  const { startJob, loading, activeJobId } = useScraperStore()
+  const isRunning = !!activeJobId
+
+  const [form, setForm] = useState<ScrapeJobConfig>({
+    query: '',
+    city: '',
+    country: 'Pakistan',
+    max_results: 50,
+    use_proxy: false,
+  })
+
+  const set = (patch: Partial<ScrapeJobConfig>) =>
+    setForm((f) => ({ ...f, ...patch }))
+
+  const handleStart = async () => {
+    if (!form.query || !form.city) return
+    await startJob(form)
+  }
+
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-5 font-sans">
+      <h3 className="text-sm font-medium text-zinc-300">New scrape run</h3>
+
+      {/* Quick query chips */}
+      <div>
+        <p className="text-xs text-zinc-500 mb-2">Quick select</p>
+        <div className="flex flex-wrap gap-1.5">
+          {QUICK_QUERIES.map((q) => (
+            <button
+              key={q}
+              onClick={() => set({ query: q })}
+              className={`px-2.5 py-1 rounded-md text-xs transition-colors ${
+                form.query === q
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700'
+              }`}
+            >
+              {q}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Input
+          label="Business type / query"
+          placeholder="e.g. hair salons"
+          value={form.query}
+          onChange={(e) => set({ query: e.target.value })}
+        />
+        <Input
+          label="City"
+          placeholder="e.g. Rawalpindi"
+          value={form.city}
+          onChange={(e) => set({ city: e.target.value })}
+        />
+        <Input
+          label="Country"
+          placeholder="e.g. Pakistan"
+          value={form.country}
+          onChange={(e) => set({ country: e.target.value })}
+        />
+        <Input
+          label="Max results"
+          type="number"
+          value={form.max_results}
+          onChange={(e) => set({ max_results: parseInt(e.target.value) || 50 })}
+        />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="use_proxy"
+          checked={form.use_proxy}
+          onChange={(e) => set({ use_proxy: e.target.checked })}
+          className="rounded border-zinc-600 bg-zinc-800 text-emerald-500"
+        />
+        <label htmlFor="use_proxy" className="text-sm text-zinc-400">
+          Use proxy (configure in Settings)
+        </label>
+      </div>
+
+      <Button
+        variant="primary"
+        onClick={handleStart}
+        loading={loading}
+        disabled={isRunning || !form.query || !form.city}
+        className="w-full justify-center"
+      >
+        <Play className="w-3.5 h-3.5" />
+        {isRunning ? 'Running…' : 'Start scrape'}
+      </Button>
+    </div>
+  )
+}
