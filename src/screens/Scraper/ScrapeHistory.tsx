@@ -1,5 +1,5 @@
 // src/screens/Scraper/ScrapeHistory.tsx
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { CheckCircle, XCircle, Clock, AlertCircle, Trash2, RefreshCw } from 'lucide-react'
 import { useScraperStore } from '../../store/scraper.store'
 import { Pagination } from '../../components/ui/Pagination'
@@ -24,7 +24,8 @@ function formatDuration(start: string | null, end: string | null): string {
 }
 
 export function ScrapeHistory() {
-  const { jobs, fetchJobs, deleteJob, startJob, loading } = useScraperStore()
+  const { jobs, fetchJobs, deleteJob, deleteJobs, startJob, loading } = useScraperStore()
+  const [selected, setSelected] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetchJobs()
@@ -32,14 +33,51 @@ export function ScrapeHistory() {
 
   if (jobs.length === 0) return null
 
+  const toggleSelect = (id: string) => {
+    const next = new Set(selected)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    setSelected(next)
+  }
+
+  const toggleAll = () => {
+    if (selected.size === jobs.length) setSelected(new Set())
+    else setSelected(new Set(jobs.map((j) => j.id)))
+  }
+
+  const handleDeleteSelected = async () => {
+    if (selected.size === 0) return
+    if (confirm(`Are you sure you want to delete ${selected.size} jobs?`)) {
+      await deleteJobs(Array.from(selected))
+      setSelected(new Set())
+    }
+  }
+
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden font-sans">
-      <div className="px-5 py-3 border-b border-zinc-800">
+      <div className="px-5 py-3 border-b border-zinc-800 flex justify-between items-center">
         <h3 className="text-sm font-medium text-zinc-300">Recent runs</h3>
+        {selected.size > 0 && (
+          <button
+            onClick={handleDeleteSelected}
+            className="text-xs flex items-center gap-1.5 text-red-400 hover:text-red-300 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Delete Selected ({selected.size})
+          </button>
+        )}
       </div>
       <table className="w-full text-left">
         <thead>
           <tr className="border-b border-zinc-800 bg-zinc-950/20">
+            <th className="px-4 py-2.5 w-10 text-center">
+              <input
+                type="checkbox"
+                className="rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-emerald-500/20"
+                checked={jobs.length > 0 && selected.size === jobs.length}
+                onChange={toggleAll}
+              />
+            </th>
             {['', 'Query', 'City', 'Found', 'Duration', 'Status', ''].map((h, i) => (
               <th
                 key={i}
@@ -54,8 +92,16 @@ export function ScrapeHistory() {
           {jobs.map((job) => (
             <tr
               key={job.id}
-              className="border-b border-zinc-805 hover:bg-zinc-800/20 transition-colors"
+              className={`group border-b border-zinc-805 transition-colors ${selected.has(job.id) ? 'bg-emerald-900/10 hover:bg-emerald-900/20' : 'hover:bg-zinc-800/20'}`}
             >
+              <td className="px-4 py-3 text-center">
+                <input
+                  type="checkbox"
+                  className="rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-emerald-500/20"
+                  checked={selected.has(job.id)}
+                  onChange={() => toggleSelect(job.id)}
+                />
+              </td>
               <td className="px-4 py-3">{STATUS_ICON[job.status]}</td>
               <td className="px-4 py-3 text-sm text-zinc-300 capitalize">{job.query}</td>
               <td className="px-4 py-3 text-sm text-zinc-400">{job.city}</td>

@@ -17,15 +17,19 @@ async function fetchStrategy(
   lcp: number | null
   cls: number | null
   tbt: number | null
+  failedMetrics: string[]
 }> {
   const params = new URLSearchParams({
     url,
     strategy,
-    category: 'performance',
     ...(apiKey ? { key: apiKey } : {})
   })
+  params.append('category', 'performance')
+  params.append('category', 'seo')
+  params.append('category', 'accessibility')
 
-  const res = await fetch(`${PSI_BASE}?${params}`, { signal: AbortSignal.timeout(30000) })
+  const urlStr = `${PSI_BASE}?${params.toString()}`
+  const res = await fetch(urlStr, { signal: AbortSignal.timeout(30000) })
   if (!res.ok) throw new Error(`PageSpeed API error: ${res.status}`)
 
   const data = await res.json()
@@ -38,7 +42,17 @@ async function fetchStrategy(
   const cls = audits?.['cumulative-layout-shift']?.numericValue ?? null
   const tbt = audits?.['total-blocking-time']?.numericValue ?? null
 
-  return { score, fcp, lcp, cls, tbt }
+  const failedMetrics: string[] = []
+  if (audits) {
+    for (const key of Object.keys(audits)) {
+      const audit = audits[key]
+      if (audit.score !== null && audit.score < 0.5 && audit.details?.type !== 'opportunity') {
+        failedMetrics.push(audit.title)
+      }
+    }
+  }
+
+  return { score, fcp, lcp, cls, tbt, failedMetrics }
 }
 
 export async function runPageSpeed(websiteUrl: string, apiKey: string): Promise<PageSpeedResult> {
@@ -48,6 +62,12 @@ export async function runPageSpeed(websiteUrl: string, apiKey: string): Promise<
     fetchStrategy(websiteUrl, 'desktop', apiKey).catch(() => null)
   ])
 
+  // Combine failed metrics from both mobile and desktop (unique)
+  const allFailed = Array.from(new Set([
+    ...(mobile?.failedMetrics || []),
+    ...(desktop?.failedMetrics || [])
+  ]))
+
   return {
     mobile_score: mobile?.score ?? 0,
     desktop_score: desktop?.score ?? 0,
@@ -55,6 +75,7 @@ export async function runPageSpeed(websiteUrl: string, apiKey: string): Promise<
     lcp_ms: mobile?.lcp ?? null,
     cls: mobile?.cls ?? null,
     tbt_ms: mobile?.tbt ?? null,
+    seo_metrics: allFailed.length > 0 ? JSON.stringify(allFailed.slice(0, 5)) : null,
     fetched_at: new Date().toISOString()
   }
 }

@@ -26,7 +26,9 @@ export const SCHEMA_SQL = `
     outreach_channel  TEXT,
     source            TEXT NOT NULL DEFAULT 'manual',
     scraped_at        TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at        TEXT NOT NULL DEFAULT (datetime('now'))
+    updated_at        TEXT NOT NULL DEFAULT (datetime('now')),
+    ai_personalized_hook TEXT,
+    contact_name      TEXT
   );
 
   CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);

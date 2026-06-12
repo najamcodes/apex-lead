@@ -12,12 +12,16 @@ contextBridge.exposeInMainWorld('api', {
     delete: (id: number) => ipcRenderer.invoke(IPC.LEADS_DELETE, id)
   },
   stats: {
-    getDashboard: () => ipcRenderer.invoke(IPC.STATS_GET_DASHBOARD)
+    getDashboard: () => ipcRenderer.invoke(IPC.STATS_GET_DASHBOARD),
+    getCityRoi: () => ipcRenderer.invoke(IPC.STATS_GET_CITY_ROI)
   },
   scraper: {
     start: (config: unknown) => ipcRenderer.invoke(IPC.SCRAPER_START, config),
     cancel: (jobId: string) => ipcRenderer.invoke(IPC.SCRAPER_CANCEL, jobId),
+    pause: (jobId: string) => ipcRenderer.invoke(IPC.SCRAPER_PAUSE, jobId),
+    resume: (jobId: string) => ipcRenderer.invoke(IPC.SCRAPER_RESUME, jobId),
     delete: (jobId: string) => ipcRenderer.invoke(IPC.SCRAPER_DELETE, jobId),
+    deleteBatch: (jobIds: string[]) => ipcRenderer.invoke(IPC.SCRAPER_DELETE_BATCH, jobIds),
     getJobs: (pagination?: unknown) => ipcRenderer.invoke(IPC.SCRAPER_GET_JOBS, pagination),
     onProgress: (cb: (event: any) => void) => {
       const listener = (_event: any, data: any) => cb(data)
@@ -91,6 +95,16 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.on('emailFinder:progress', handler)
       return () => {
         ipcRenderer.removeListener('emailFinder:progress', handler)
+      }
+    }
+  },
+  emailVerifier: {
+    runBatch: (leadIds: number[]) => ipcRenderer.invoke(IPC.EMAIL_VERIFIER_RUN_BATCH, leadIds),
+    onProgress: (callback: (data: { done: number; total: number; leadId: number }) => void) => {
+      const handler = (_event: any, data: any) => callback(data)
+      ipcRenderer.on('emailVerifier:progress', handler)
+      return () => {
+        ipcRenderer.removeListener('emailVerifier:progress', handler)
       }
     }
   }

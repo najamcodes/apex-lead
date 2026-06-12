@@ -8,7 +8,7 @@ import {
   updateLeadStatus,
   deleteLead
 } from '../../src/db/queries/leads.queries'
-import { getDashboardStats } from '../../src/db/queries/stats.queries'
+import { getDashboardStats, getCityRoiStats } from '../../src/db/queries/stats.queries'
 import { logActivity } from '../../src/db/queries/activity.queries'
 
 export function registerLeadIpcHandlers(): void {
@@ -24,4 +24,5 @@ export function registerLeadIpcHandlers(): void {
   })
   ipcMain.handle(IPC.LEADS_DELETE, (_event, id) => deleteLead(id))
   ipcMain.handle(IPC.STATS_GET_DASHBOARD, () => getDashboardStats())
+  ipcMain.handle(IPC.STATS_GET_CITY_ROI, () => getCityRoiStats())
 }

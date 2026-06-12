@@ -1,55 +1,58 @@
-// src/db/queries/scrape-jobs.queries.ts
-import { getDb } from '../index'
+import { getDataSource } from '../index'
+import { ScrapeJobEntity } from '../entities/ScrapeJobEntity'
 import type { ScrapeJob } from '../../types/scraper.types'
 
-export function insertScrapeJob(
+export async function insertScrapeJob(
   job: Omit<
     ScrapeJob,
     'progress' | 'found' | 'errors' | 'started_at' | 'completed_at' | 'error_message'
   >
-): void {
-  getDb()
-    .prepare(
-      `
-    INSERT INTO scrape_jobs (id, query, city, country, max_results, status)
-    VALUES (@id, @query, @city, @country, @max_results, @status)
-  `
-    )
-    .run(job)
+): Promise<void> {
+  const repo = getDataSource().getRepository(ScrapeJobEntity)
+  await repo.save(repo.create({
+    id: job.id,
+    query: job.query,
+    city: job.city,
+    country: job.country,
+    max_results: job.max_results,
+    status: job.status
+  }))
 }
 
-export function updateScrapeJob(id: string, patch: Partial<ScrapeJob>): void {
-  const fields = Object.keys(patch)
-    .map((k) => `${k} = @${k}`)
-    .join(', ')
-  getDb()
-    .prepare(`UPDATE scrape_jobs SET ${fields} WHERE id = ?`)
-    .run({ ...patch }, id)
+export async function updateScrapeJob(id: string, patch: Partial<ScrapeJob>): Promise<void> {
+  const repo = getDataSource().getRepository(ScrapeJobEntity)
+  await repo.update(id, patch)
 }
 
-export function getAllScrapeJobs(
+export async function getAllScrapeJobs(
   pagination?: import('../../types').PaginationParams
-): import('../../types').PaginatedResponse<ScrapeJob> {
-  const db = getDb()
+): Promise<import('../../types').PaginatedResponse<ScrapeJob>> {
+  const repo = getDataSource().getRepository(ScrapeJobEntity)
   const page = pagination?.page || 1
   const pageSize = pagination?.pageSize || 50
   const offset = (page - 1) * pageSize
 
-  const totalRes = db.prepare('SELECT COUNT(*) as count FROM scrape_jobs').get() as {
-    count: number
-  }
+  const [data, total] = await repo.findAndCount({
+    order: { started_at: 'DESC' },
+    skip: offset,
+    take: pageSize
+  })
 
-  const data = db
-    .prepare('SELECT * FROM scrape_jobs ORDER BY started_at DESC LIMIT @limit OFFSET @offset')
-    .all({ limit: pageSize, offset }) as ScrapeJob[]
-
-  return { data, total: totalRes.count }
+  return { data: data as ScrapeJob[], total }
 }
 
-export function getScrapeJobById(id: string): ScrapeJob | null {
-  return getDb().prepare('SELECT * FROM scrape_jobs WHERE id = ?').get(id) as ScrapeJob | null
+export async function getScrapeJobById(id: string): Promise<ScrapeJob | null> {
+  const repo = getDataSource().getRepository(ScrapeJobEntity)
+  const res = await repo.findOne({ where: { id } })
+  return (res as ScrapeJob) || null
 }
 
-export function deleteScrapeJob(id: string): void {
-  getDb().prepare('DELETE FROM scrape_jobs WHERE id = ?').run(id)
+export async function deleteScrapeJob(id: string): Promise<void> {
+  const repo = getDataSource().getRepository(ScrapeJobEntity)
+  await repo.delete(id)
+}
+
+export async function deleteScrapeJobs(ids: string[]): Promise<void> {
+  const repo = getDataSource().getRepository(ScrapeJobEntity)
+  await repo.delete(ids)
 }

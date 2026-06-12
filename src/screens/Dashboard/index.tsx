@@ -1,10 +1,11 @@
 // src/screens/Dashboard/index.tsx
 import { useEffect, useState } from 'react'
-import { Users, Globe, AlertTriangle, CheckCircle, DollarSign, Clock } from 'lucide-react'
+import { Users, Globe, AlertTriangle, CheckCircle, DollarSign, Clock, MailCheck, Link as LinkIcon } from 'lucide-react'
 import { StatCard } from './StatCard'
 import { WeeklyChart } from './WeeklyChart'
 import { PipelineChart } from './PipelineChart'
 import { ActivityFeed } from './ActivityFeed'
+import { CityRoiStats } from './CityRoiStats'
 import type { DashboardStats } from '../../types'
 
 export function Dashboard() {
@@ -29,7 +30,7 @@ export function Dashboard() {
         <p className="text-sm text-zinc-500 mt-0.5">Your lead pipeline at a glance</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         <StatCard label="Total Leads" value={stats.total_leads} icon={Users} />
         <StatCard label="No Website" value={stats.no_website} icon={Globe} accent="text-red-400" />
         <StatCard
@@ -46,6 +47,8 @@ export function Dashboard() {
           accent="text-emerald-400"
         />
         <StatCard label="Closed" value={stats.closed} icon={DollarSign} accent="text-green-400" />
+        <StatCard label="Verified Emails" value={stats.verified_emails} icon={MailCheck} accent="text-pink-400" />
+        <StatCard label="Socials Found" value={stats.social_links_found} icon={LinkIcon} accent="text-purple-400" />
       </div>
 
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 font-sans">
@@ -59,7 +62,10 @@ export function Dashboard() {
           <WeeklyChart />
           <PipelineChart />
         </div>
-        <ActivityFeed />
+        <div className="space-y-4">
+          <CityRoiStats />
+          <ActivityFeed />
+        </div>
       </div>
     </div>
   )

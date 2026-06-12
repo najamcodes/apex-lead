@@ -1,12 +1,14 @@
 // electron/main.ts
+import 'reflect-metadata'
 import { app, BrowserWindow, shell } from 'electron'
 import path from 'path'
-import { getDb } from '../src/db'
+import { initDb } from '../src/db'
 import { registerAllIpcHandlers } from './ipc'
 import { initScheduler } from './scheduler'
 import { startLocalServer, stopLocalServer } from './local-server'
+import { initSmtp } from './outreach'
 
-function createWindow(): void {
+async function createWindow(): Promise<void> {
   const win = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -25,7 +27,7 @@ function createWindow(): void {
   registerAllIpcHandlers(win)
 
   // Initialize Scheduler
-  initScheduler(win)
+  await initScheduler(win)
 
   if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
     win.loadURL('http://localhost:5173')
@@ -41,10 +43,11 @@ function createWindow(): void {
   })
 }
 
-app.whenReady().then(() => {
-  getDb() // Initialize DB on startup
+app.whenReady().then(async () => {
+  await initDb() // Initialize DB on startup
+  await initSmtp() // Initialize SMTP transporter
   startLocalServer() // Start local HTTP server for Chrome extension
-  createWindow()
+  await createWindow()
 })
 
 app.on('will-quit', () => {

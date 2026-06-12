@@ -59,6 +59,13 @@ export interface Lead {
   source: string // e.g. "google_maps", "yelp", "manual"
   scraped_at: string // ISO timestamp
   updated_at: string // ISO timestamp
+  ai_personalized_hook: string | null
+  contact_name: string | null
+  review_rating: number | null
+  review_count: number | null
+  social_links: string | null
+  seo_metrics: string | null
+  email_verified: boolean | null
 }
 
 export interface LeadInsert {
@@ -73,15 +80,26 @@ export interface LeadInsert {
   source: string
   website_status?: WebsiteStatus | null
   ssl_valid?: boolean | null
+  ai_personalized_hook?: string | null
+  contact_name?: string | null
+  review_rating?: number | null
+  review_count?: number | null
+  tech_stack?: string | null
+  social_links?: string | null
+  seo_metrics?: string | null
+  email_verified?: boolean | null
 }
 
 export interface LeadFilters extends Partial<PaginationParams> {
   status?: LeadStatus | 'all'
   website_status?: WebsiteStatus | 'all'
+  has_email?: boolean | 'all'
   city?: string
   category?: string
   search?: string
   source?: string
+  sortBy?: 'scraped_at' | 'ai_site_score' | 'pagespeed_mobile' | 'site_built_year'
+  sortDir?: 'asc' | 'desc'
 }
 
 export interface DashboardStats {
@@ -92,6 +110,22 @@ export interface DashboardStats {
   approved: number
   closed: number
   this_week: number
+  verified_emails: number
+  social_links_found: number
+}
+
+export interface ChartDataPoint {
+  date: string
+  scraped: number
+  analyzed: number
+  approved: number
+  closed: number
+}
+
+export interface CityRoiStat {
+  city: string
+  lead_count: number
+  avg_ai_score: number
 }
 
 export interface AppSettings {
@@ -105,6 +139,7 @@ export interface AppSettings {
   max_results_per_run: number
   default_country: string
   default_city: string
+  seo_audit_engine: 'pagespeed' | 'lighthouse' | 'none'
   developer_name?: string
   openrouter_api_key: string
   ai_model_site_scoring: string
@@ -126,6 +161,12 @@ export interface AppSettings {
   auto_send_enabled: boolean
   auto_send_cron: string
   theme: 'dark' | 'light'
+
+  // Advanced Scraper
+  captcha_strategy: string
+  two_captcha_key: string
+  captcha_timeout_s: number
+  scraper_headful: boolean
 }
 
 // IPC channel names — typed constants, never magic strings
@@ -136,11 +177,15 @@ export const IPC = {
   LEADS_UPDATE_STATUS: 'leads:updateStatus',
   LEADS_DELETE: 'leads:delete',
   STATS_GET_DASHBOARD: 'stats:getDashboard',
+  STATS_GET_CITY_ROI: 'stats:getCityRoi',
   SETTINGS_GET: 'settings:get',
   SETTINGS_SAVE: 'settings:save',
   SCRAPER_START: 'scraper:start',
   SCRAPER_CANCEL: 'scraper:cancel',
+  SCRAPER_PAUSE: 'scraper:pause',
+  SCRAPER_RESUME: 'scraper:resume',
   SCRAPER_DELETE: 'scraper:delete',
+  SCRAPER_DELETE_BATCH: 'scraper:deleteBatch',
   SCRAPER_GET_JOBS: 'scraper:getJobs',
   SCRAPER_PROGRESS: 'scraper:progress',
   AI_SCORE_SITE: 'ai:scoreSite',
@@ -162,6 +207,7 @@ export const IPC = {
   // Phase 5
   EMAIL_FINDER_RUN: 'emailFinder:run',
   EMAIL_FINDER_RUN_BATCH: 'emailFinder:runBatch',
+  EMAIL_VERIFIER_RUN_BATCH: 'emailVerifier:runBatch',
   NOTES_GET: 'notes:get',
   NOTES_SAVE: 'notes:save',
   ACTIVITY_GET: 'activity:get',

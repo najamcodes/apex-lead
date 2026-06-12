@@ -4,7 +4,7 @@
 import { randomUUID as uuid } from 'crypto'
 import { createStealthContext } from './stealth'
 import { scrapeGoogleMaps } from './google-maps'
-import { proxyManager } from './proxy-manager'
+import { proxyRotator } from './engine/proxy-rotator'
 import { insertLead } from '../../src/db/queries/leads.queries'
 import { insertScrapeJob, updateScrapeJob } from '../../src/db/queries/scrape-jobs.queries'
 import { analyzeBatch } from '../analysis'
@@ -14,14 +14,25 @@ import type { ScrapeJobConfig, ScrapeProgressEvent } from '../../src/types/scrap
 
 type ProgressCallback = (event: ScrapeProgressEvent) => void
 
-const activeJobs = new Map<string, { cancelled: boolean }>()
+export interface ScrapeControlToken {
+  cancelled: boolean
+  paused: boolean
+}
+
+const activeJobs = new Map<string, ScrapeControlToken>()
+
+export async function checkPause(token: ScrapeControlToken) {
+  while (token.paused && !token.cancelled) {
+    await new Promise(r => setTimeout(r, 1000))
+  }
+}
 
 export async function startScrapeJob(
   config: ScrapeJobConfig,
   onProgress: ProgressCallback
 ): Promise<string> {
   const jobId = uuid()
-  const cancelToken = { cancelled: false }
+  const cancelToken: ScrapeControlToken = { cancelled: false, paused: false }
   activeJobs.set(jobId, cancelToken)
 
   insertScrapeJob({
@@ -42,21 +53,22 @@ export async function startScrapeJob(
     let found = 0
 
     try {
-      // Build proxy config if enabled
-      const proxyConfig = config.use_proxy
-        ? (() => {
-            const p = proxyManager.next()
-            if (!p) return null
-            return {
-              server:   p.url,
-              username: p.username || undefined,
-              password: p.password || undefined,
-            }
-          })()
-        : null
+      const settings = await getSettings()
+      let proxyConfig: import('./stealth').ProxyConfig | null = null
 
-      // Create stealth browser context
-      const context = await createStealthContext(proxyConfig)
+      if (config.use_proxy && proxyRotator.hasProxies()) {
+        const proxy = proxyRotator.next()
+        if (proxy) {
+          proxyConfig = {
+            server:   proxy.server,
+            username: proxy.username,
+            password: proxy.password,
+          }
+          console.log(`[Job] Using proxy: ${proxy.server}`)
+        }
+      }
+
+      const { context } = await createStealthContext(proxyConfig, !settings.scraper_headful)
 
       // Run the scraper
       const listings = await scrapeGoogleMaps(
@@ -99,7 +111,7 @@ export async function startScrapeJob(
 
         try {
           const websiteStatus = listing.website_status ?? classifyWebsiteStatus(listing.website_url)
-          const inserted = insertLead({
+          const inserted = await insertLead({
             business_name:   listing.business_name,
             category:        listing.category || '',
             city:            listing.city || '',
@@ -110,14 +122,16 @@ export async function startScrapeJob(
             email:           null,
             website_status:  websiteStatus as any,
             ssl_valid:       listing.ssl_valid ?? null,
+            tech_stack:      listing.tech_stack ?? null,
             source:          'google_maps',
+            review_rating:   listing.rating ?? null,
+            review_count:    listing.review_count ?? null,
           })
           if (inserted?.id) insertedIds.push(inserted.id)
         } catch { /* duplicate or insert error — skip */ }
       }
 
       // Auto-trigger analysis pipeline if AI is enabled
-      const settings = getSettings()
       if (settings.ai_enabled && insertedIds.length > 0) {
         onProgress({
           job_id:           jobId,
@@ -185,5 +199,21 @@ export function cancelScrapeJob(jobId: string): void {
       status:       'cancelled',
       completed_at: new Date().toISOString(),
     })
+  }
+}
+
+export function pauseScrapeJob(jobId: string): void {
+  const token = activeJobs.get(jobId)
+  if (token) {
+    token.paused = true
+    updateScrapeJob(jobId, { status: 'paused' })
+  }
+}
+
+export function resumeScrapeJob(jobId: string): void {
+  const token = activeJobs.get(jobId)
+  if (token) {
+    token.paused = false
+    updateScrapeJob(jobId, { status: 'running' })
   }
 }

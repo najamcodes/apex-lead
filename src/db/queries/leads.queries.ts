@@ -1,97 +1,112 @@
-// src/db/queries/leads.queries.ts
-import { getDb } from '../index'
-import type { Lead, LeadInsert, LeadFilters, LeadStatus } from '../../types'
+import { getDataSource } from '../index'
+import { LeadEntity } from '../entities/LeadEntity'
+import type { LeadInsert, LeadFilters, LeadStatus } from '../../types'
 
-export function insertLead(data: LeadInsert): Lead | null {
-  const db = getDb()
-  const stmt = db.prepare(`
-    INSERT OR IGNORE INTO leads
-      (business_name, category, city, country, phone, email,
-       website_url, google_maps_url, website_status, ssl_valid, source)
-    VALUES
-      (@business_name, @category, @city, @country, @phone, @email,
-       @website_url, @google_maps_url, COALESCE(@website_status, 'unchecked'), @ssl_valid, @source)
-  `)
-  const result = stmt.run({
-    phone: null,
-    email: null,
-    website_url: null,
-    google_maps_url: null,
-    website_status: null,
-    ssl_valid: null,
-    ...data
-  })
-  // lastInsertRowid is 0 if row was ignored (duplicate)
-  if (!result.lastInsertRowid) return null
-  return getLeadById(result.lastInsertRowid as number)
+export async function insertLead(data: LeadInsert): Promise<LeadEntity | null> {
+  const repo = getDataSource().getRepository(LeadEntity)
+  
+  // Try to insert
+  try {
+    const lead = repo.create({
+      business_name: data.business_name,
+      category: data.category,
+      city: data.city,
+      country: data.country,
+      phone: data.phone ?? null,
+      email: data.email ?? null,
+      website_url: data.website_url ?? null,
+      google_maps_url: data.google_maps_url ?? null,
+      website_status: data.website_status ?? 'unchecked',
+      ssl_valid: data.ssl_valid ?? null,
+      source: data.source,
+      ai_personalized_hook: data.ai_personalized_hook ?? null,
+      contact_name: data.contact_name ?? null,
+      review_rating: data.review_rating ?? null,
+      review_count: data.review_count ?? null,
+      tech_stack: data.tech_stack ?? null,
+      social_links: data.social_links ?? null,
+      seo_metrics: data.seo_metrics ?? null,
+      email_verified: data.email_verified ?? null
+    })
+
+    const result = await repo.createQueryBuilder()
+      .insert()
+      .into(LeadEntity)
+      .values(lead)
+      .orIgnore() // SQLite ON CONFLICT DO NOTHING
+      .execute()
+
+    if (!result.identifiers[0]) {
+      // It means it was ignored
+      return null
+    }
+
+    return await getLeadById(result.identifiers[0].id)
+  } catch (err) {
+    return null
+  }
 }
 
-export function getLeadById(id: number): Lead | null {
-  return getDb().prepare('SELECT * FROM leads WHERE id = ?').get(id) as Lead | null
+export async function getLeadById(id: number): Promise<LeadEntity | null> {
+  const repo = getDataSource().getRepository(LeadEntity)
+  return await repo.findOne({ where: { id } })
 }
 
-export function getAllLeads(filters: LeadFilters = {}): import('../../types').PaginatedResponse<Lead> {
-  const conditions: string[] = []
-  const params: Record<string, any> = {}
+export async function getAllLeads(filters: LeadFilters = {}): Promise<import('../../types').PaginatedResponse<LeadEntity>> {
+  const repo = getDataSource().getRepository(LeadEntity)
+  const qb = repo.createQueryBuilder('lead')
 
   if (filters.status && filters.status !== 'all') {
-    conditions.push('status = @status')
-    params.status = filters.status
+    qb.andWhere('lead.status = :status', { status: filters.status })
   }
   if (filters.website_status && filters.website_status !== 'all') {
-    conditions.push('website_status = @website_status')
-    params.website_status = filters.website_status
+    qb.andWhere('lead.website_status = :website_status', { website_status: filters.website_status })
+  }
+  if (filters.has_email === true) {
+    qb.andWhere("lead.email IS NOT NULL AND lead.email != ''")
+  } else if (filters.has_email === false) {
+    qb.andWhere("(lead.email IS NULL OR lead.email = '')")
   }
   if (filters.city) {
-    conditions.push('city LIKE @city')
-    params.city = `%${filters.city}%`
+    qb.andWhere('lead.city LIKE :city', { city: `%${filters.city}%` })
   }
   if (filters.category) {
-    conditions.push('category LIKE @category')
-    params.category = `%${filters.category}%`
+    qb.andWhere('lead.category LIKE :category', { category: `%${filters.category}%` })
   }
   if (filters.search) {
-    conditions.push('(business_name LIKE @search OR email LIKE @search OR phone LIKE @search)')
-    params.search = `%${filters.search}%`
+    qb.andWhere('(lead.business_name LIKE :search OR lead.email LIKE :search OR lead.phone LIKE :search)', { search: `%${filters.search}%` })
   }
   if (filters.source && filters.source !== 'all') {
-    conditions.push('source = @source')
-    params.source = filters.source
+    qb.andWhere('lead.source = :source', { source: filters.source })
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
-  
-  // Get total count
-  const countSql = `SELECT COUNT(*) as count FROM leads ${where}`
-  const totalRes = getDb().prepare(countSql).get(params) as { count: number }
-  const total = totalRes.count
-
-  // Apply pagination
   const page = filters.page || 1
   const pageSize = filters.pageSize || 50
   const offset = (page - 1) * pageSize
-  
-  params.limit = pageSize
-  params.offset = offset
 
-  const sql = `SELECT * FROM leads ${where} ORDER BY scraped_at DESC LIMIT @limit OFFSET @offset`
-  const data = getDb().prepare(sql).all(params) as Lead[]
-  
+  if (filters.sortBy) {
+    const dir = filters.sortDir === 'asc' ? 'ASC' : 'DESC'
+    qb.orderBy(`lead.${filters.sortBy}`, dir)
+  } else {
+    qb.orderBy('lead.scraped_at', 'DESC')
+  }
+
+  qb.skip(offset).take(pageSize)
+
+  const [data, total] = await qb.getManyAndCount()
   return { data, total }
 }
 
-export function updateLeadStatus(id: number, status: LeadStatus, notes?: string): void {
-  getDb()
-    .prepare(
-      `
-    UPDATE leads
-    SET status = ?, reviewer_notes = COALESCE(?, reviewer_notes), updated_at = datetime('now')
-    WHERE id = ?
-  `
-    )
-    .run(status, notes ?? null, id)
+export async function updateLeadStatus(id: number, status: LeadStatus, notes?: string): Promise<void> {
+  const repo = getDataSource().getRepository(LeadEntity)
+  const updateData: any = { status, updated_at: () => "datetime('now')" }
+  if (notes !== undefined) {
+    updateData.reviewer_notes = notes
+  }
+  await repo.update(id, updateData)
 }
 
-export function deleteLead(id: number): void {
-  getDb().prepare('DELETE FROM leads WHERE id = ?').run(id)
+export async function deleteLead(id: number): Promise<void> {
+  const repo = getDataSource().getRepository(LeadEntity)
+  await repo.delete(id)
 }

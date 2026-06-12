@@ -2,7 +2,7 @@
 import { getAiClient } from '../openrouter-client'
 import { EMAIL_DRAFTER_SYSTEM, buildEmailDrafterPrompt } from '../prompts/email-drafter'
 import { DEFAULT_MODELS } from '../models'
-import { getDb } from '../../../src/db'
+import { getDataSource } from '../../../src/db'
 import type { OutreachDraft } from '../../../src/types/ai.types'
 
 export async function draftOutreach(
@@ -11,18 +11,18 @@ export async function draftOutreach(
   developerName: string,
   modelOverride?: string
 ): Promise<OutreachDraft> {
-  const lead = getDb().prepare('SELECT * FROM leads WHERE id = ?').get(leadId) as any
+  const leads = await getDataSource().query('SELECT * FROM leads WHERE id = ?', [leadId])
+  const lead = leads[0]
   if (!lead) throw new Error(`Lead ${leadId} not found`)
 
   const client = getAiClient(apiKey)
   const model = modelOverride ?? DEFAULT_MODELS.email_draft
 
-  // Parse stored issues from ai result (stored as JSON string or comma list)
-  let issues: string[] = []
+  let seoIssues: string[] = []
   try {
-    issues = lead.tech_stack ? JSON.parse(lead.tech_stack) : []
+    seoIssues = lead.seo_metrics ? JSON.parse(lead.seo_metrics) : []
   } catch {
-    issues = []
+    seoIssues = []
   }
 
   const result = await client.completeJson<Omit<OutreachDraft, 'model_used'>>({
@@ -38,9 +38,10 @@ export async function draftOutreach(
           website_url: lead.website_url,
           site_score: lead.ai_site_score,
           site_summary: lead.ai_site_summary,
-          site_issues: issues,
-          opportunity: null,
-          developer_name: developerName
+          site_issues: seoIssues,
+          opportunity: lead.ai_personalized_hook || null,
+          developer_name: developerName,
+          contact_name: lead.contact_name || null
         })
       }
     ],

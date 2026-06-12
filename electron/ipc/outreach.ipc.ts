@@ -17,7 +17,7 @@ import { getChartData, getFunnelData } from '../../src/db/queries/stats.queries'
 import { logActivity } from '../../src/db/queries/activity.queries'
 import { verifySmtp } from '../outreach/smtp-sender'
 import type { SequenceInput } from '../outreach/sequence-engine'
-import { getDb } from '../../src/db'
+import { getDataSource } from '../../src/db'
 
 export function registerOutreachIpcHandlers(): void {
   // Send a single outreach record
@@ -31,59 +31,54 @@ export function registerOutreachIpcHandlers(): void {
   })
 
   // Get all outreach records
-  ipcMain.handle(IPC.OUTREACH_GET_ALL, (_event, status?: string, pagination?: import('../../src/types').PaginationParams) => {
-    return getAllOutreach(status as any, pagination)
+  ipcMain.handle(IPC.OUTREACH_GET_ALL, async (_event, status?: string, pagination?: import('../../src/types').PaginationParams) => {
+    return await getAllOutreach(status as any, pagination)
   })
 
   // Mark a lead as replied
-  ipcMain.handle(IPC.OUTREACH_MARK_REPLIED, (_event, outreachId: number) => {
-    updateOutreachStatus(outreachId, 'replied', { replied_at: new Date().toISOString() })
-    const record = getDb()
-      .prepare('SELECT lead_id FROM outreach WHERE id = ?')
-      .get(outreachId) as any
+  ipcMain.handle(IPC.OUTREACH_MARK_REPLIED, async (_event, outreachId: number) => {
+    await updateOutreachStatus(outreachId, 'replied', { replied_at: new Date().toISOString() })
+    const records = await getDataSource().query('SELECT lead_id FROM outreach WHERE id = ?', [outreachId])
+    const record = records[0]
     if (record) {
-      getDb()
-        .prepare(
-          `
-        UPDATE leads SET status = 'replied', updated_at = datetime('now') WHERE id = ?
-      `
-        )
-        .run(record.lead_id)
-      logActivity(record.lead_id, 'email_replied')
+      await getDataSource().query(
+        `UPDATE leads SET status = 'replied', updated_at = datetime('now') WHERE id = ?`,
+        [record.lead_id]
+      )
+      await logActivity(record.lead_id, 'email_replied')
     }
   })
 
   // Mark as bounced
-  ipcMain.handle(IPC.OUTREACH_MARK_BOUNCED, (_event, outreachId: number) => {
-    updateOutreachStatus(outreachId, 'bounced')
-    const record = getDb()
-      .prepare('SELECT lead_id FROM outreach WHERE id = ?')
-      .get(outreachId) as any
-    if (record) logActivity(record.lead_id, 'email_bounced')
+  ipcMain.handle(IPC.OUTREACH_MARK_BOUNCED, async (_event, outreachId: number) => {
+    await updateOutreachStatus(outreachId, 'bounced')
+    const records = await getDataSource().query('SELECT lead_id FROM outreach WHERE id = ?', [outreachId])
+    const record = records[0]
+    if (record) await logActivity(record.lead_id, 'email_bounced')
   })
 
   // Schedule full 3-step sequence for a lead
   ipcMain.handle(
     IPC.OUTREACH_SCHEDULE_SEQ,
-    (_event, input: SequenceInput, businessName: string) => {
-      const res = createSequenceForLead(input, businessName)
-      logActivity(input.lead_id, 'sequence_started', 'Scheduled 3-step sequence')
+    async (_event, input: SequenceInput, businessName: string) => {
+      const res = await createSequenceForLead(input, businessName)
+      await logActivity(input.lead_id, 'sequence_started', 'Scheduled 3-step sequence')
       return res
     }
   )
 
   // Get sequence summaries for all leads
-  ipcMain.handle(IPC.OUTREACH_GET_SEQUENCES, (_event, pagination?: import('../../src/types').PaginationParams) => {
-    return getSequenceSummaries(pagination)
+  ipcMain.handle(IPC.OUTREACH_GET_SEQUENCES, async (_event, pagination?: import('../../src/types').PaginationParams) => {
+    return await getSequenceSummaries(pagination)
   })
 
   // Export leads to CSV
   ipcMain.handle(IPC.OUTREACH_EXPORT_CSV, async () => exportLeadsToCsv())
 
   // Chart data
-  ipcMain.handle(IPC.STATS_GET_CHART_DATA, () => ({
-    weekly: getChartData(14),
-    funnel: getFunnelData()
+  ipcMain.handle(IPC.STATS_GET_CHART_DATA, async () => ({
+    weekly: await getChartData(14),
+    funnel: await getFunnelData()
   }))
 
   // Verify SMTP connection

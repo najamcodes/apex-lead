@@ -1,6 +1,6 @@
 // electron/outreach/index.ts
 import { getSettings } from '../../src/db/queries/settings.queries'
-import { getDb } from '../../src/db'
+import { getDataSource } from '../../src/db'
 import {
   getDueOutreach,
   updateOutreachStatus,
@@ -12,8 +12,8 @@ import { logActivity } from '../../src/db/queries/activity.queries'
 import type { SendResult } from '../../src/types/outreach.types'
 
 // Initialize SMTP from saved settings — call on app start and after settings change
-export function initSmtp(): void {
-  const s = getSettings()
+export async function initSmtp(): Promise<void> {
+  const s = await getSettings()
   if (s.smtp_host && s.smtp_username) {
     configureSmtp({
       host: s.smtp_host,
@@ -29,38 +29,33 @@ export function initSmtp(): void {
 
 // Send a single outreach record
 export async function sendOutreachRecord(recordId: number): Promise<SendResult> {
-  const record = getOutreachById(recordId)
+  const record = await getOutreachById(recordId)
   if (!record) return { success: false, message_id: null, error: 'Record not found' }
 
   // Get lead email
-  const lead = getDb()
-    .prepare('SELECT email, business_name FROM leads WHERE id = ?')
-    .get(record.lead_id) as any
+  const leads = await getDataSource().query('SELECT email, business_name FROM leads WHERE id = ?', [record.lead_id])
+  const lead = leads[0]
   if (!lead?.email) {
-    updateOutreachStatus(recordId, 'failed', { error_message: 'No email address for lead' })
+    await updateOutreachStatus(recordId, 'failed', { error_message: 'No email address for lead' })
     return { success: false, message_id: null, error: 'No email address on record' }
   }
 
   const result = await sendEmail(lead.email, record.subject ?? '(no subject)', record.body)
 
   if (result.success) {
-    updateOutreachStatus(recordId, 'sent', {
+    await updateOutreachStatus(recordId, 'sent', {
       sent_at: new Date().toISOString(),
       smtp_message_id: result.message_id ?? undefined
     })
-    logActivity(record.lead_id, 'email_sent', `Step ${record.step} — ${record.subject}`)
+    await logActivity(record.lead_id, 'email_sent', `Step ${record.step} — ${record.subject}`)
 
     // Advance lead status to 'outreach' if it's still 'approved'
-    getDb()
-      .prepare(
-        `
-      UPDATE leads SET status = 'outreach', updated_at = datetime('now')
-      WHERE id = ? AND status = 'approved'
-    `
-      )
-      .run(record.lead_id)
+    await getDataSource().query(
+      `UPDATE leads SET status = 'outreach', updated_at = datetime('now') WHERE id = ? AND status = 'approved'`,
+      [record.lead_id]
+    )
   } else {
-    updateOutreachStatus(recordId, 'failed', { error_message: result.error ?? undefined })
+    await updateOutreachStatus(recordId, 'failed', { error_message: result.error ?? undefined })
   }
 
   return result
@@ -68,7 +63,7 @@ export async function sendOutreachRecord(recordId: number): Promise<SendResult> 
 
 // Send all due outreach records (called by scheduler or manually)
 export async function processDueOutreach(): Promise<{ sent: number; failed: number }> {
-  const due = getDueOutreach()
+  const due = await getDueOutreach()
   let sent = 0
   let failed = 0
 

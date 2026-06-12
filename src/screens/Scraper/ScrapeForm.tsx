@@ -1,9 +1,11 @@
 // src/screens/Scraper/ScrapeForm.tsx
 import { useState } from 'react'
-import { Play } from 'lucide-react'
+import Papa from 'papaparse'
+import { Play, Upload } from 'lucide-react'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { useScraperStore } from '../../store/scraper.store'
+import { useSettingsStore } from '../../store/settings.store'
 import type { ScrapeJobConfig } from '../../types/scraper.types'
 
 const QUICK_QUERIES = [
@@ -21,13 +23,14 @@ const QUICK_QUERIES = [
 
 export function ScrapeForm() {
   const { startJob, loading, activeJobId } = useScraperStore()
+  const { settings } = useSettingsStore()
   const isRunning = !!activeJobId
 
   const [form, setForm] = useState<ScrapeJobConfig>({
     query: '',
-    city: '',
-    country: 'Pakistan',
-    max_results: 50,
+    city: settings?.default_city || '',
+    country: settings?.default_country || 'Pakistan',
+    max_results: settings?.max_results_per_run || 50,
     use_proxy: false
   })
 
@@ -36,6 +39,39 @@ export function ScrapeForm() {
   const handleStart = async () => {
     if (!form.query || !form.city) return
     await startJob(form)
+  }
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const queue: ScrapeJobConfig[] = results.data
+          .map((row: any) => ({
+            query: row.query || '',
+            city: row.city || '',
+            country: row.country || form.country,
+            max_results: parseInt(row.max_results) || form.max_results,
+            use_proxy: form.use_proxy,
+            website_filter: row.website_filter || form.website_filter,
+            phone_filter: row.phone_filter || form.phone_filter,
+            email_filter: row.email_filter || form.email_filter
+          }))
+          .filter((q) => q.query && q.city)
+
+        if (queue.length > 0) {
+          useScraperStore.getState().startCsvQueue(file.name, queue)
+        } else {
+          alert('No valid rows found. Ensure CSV has "query" and "city" columns.')
+        }
+
+        // Reset input
+        e.target.value = ''
+      }
+    })
   }
 
   return (
@@ -138,16 +174,35 @@ export function ScrapeForm() {
         </label>
       </div>
 
-      <Button
-        variant="primary"
-        onClick={handleStart}
-        loading={loading}
-        disabled={isRunning || !form.query || !form.city}
-        className="w-full justify-center"
-      >
-        <Play className="w-3.5 h-3.5" />
-        {isRunning ? 'Running…' : 'Start scrape'}
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          variant="primary"
+          onClick={handleStart}
+          loading={loading && !useScraperStore.getState().csvQueue.length}
+          disabled={isRunning || !form.query || !form.city}
+          className="flex-1 justify-center"
+        >
+          <Play className="w-3.5 h-3.5" />
+          {isRunning && !useScraperStore.getState().csvQueue.length ? 'Running…' : 'Start scrape'}
+        </Button>
+        <div className="relative flex-1">
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleFileUpload}
+            disabled={isRunning}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+          />
+          <Button
+            variant="secondary"
+            disabled={isRunning}
+            className="w-full justify-center pointer-events-none"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            Upload CSV Batch
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 // src/screens/Leads/BulkActionsBar.tsx
 import { motion, AnimatePresence } from 'framer-motion'
-import { Zap, CheckCircle2, Send, MailSearch, X } from 'lucide-react'
+import { Zap, CheckCircle2, Send, MailSearch, X, UserCheck } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { useLeadsStore } from '../../store/leads.store'
 import { useState } from 'react'
@@ -83,6 +83,18 @@ export function BulkActionsBar({ selectedCount, onClear, leadIds }: Props) {
             >
               <MailSearch className="w-4 h-4 text-purple-400" />
               Find Emails
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={loadingAction === 'email_verifier'}
+              disabled={loadingAction !== null && loadingAction !== 'email_verifier'}
+              onClick={() =>
+                handleAction('email_verifier', () => window.api.emailVerifier.runBatch(leadIds))
+              }
+            >
+              <UserCheck className="w-4 h-4 text-pink-400" />
+              Verify Emails
             </Button>
             <Button
               variant="secondary"

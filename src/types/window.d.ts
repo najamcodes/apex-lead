@@ -10,11 +10,15 @@ interface Window {
     }
     stats: {
       getDashboard: () => Promise<import('./index').DashboardStats>
+      getCityRoi: () => Promise<import('./index').CityRoiStat[]>
     }
     scraper: {
-      start: (config: unknown) => Promise<string>
+      start: (config: import('./scraper.types').ScrapeJobConfig) => Promise<string>
       cancel: (jobId: string) => Promise<void>
+      pause: (jobId: string) => Promise<void>
+      resume: (jobId: string) => Promise<void>
       delete: (jobId: string) => Promise<void>
+      deleteBatch: (jobIds: string[]) => Promise<void>
       getJobs: (pagination?: import('./index').PaginationParams) => Promise<import('./index').PaginatedResponse<import('./scraper.types').ScrapeJob>>
       onProgress: (cb: (event: import('./scraper.types').ScrapeProgressEvent) => void) => () => void
     }
@@ -72,6 +76,12 @@ interface Window {
     }
     emailFinder: {
       run: (leadId: number) => Promise<string | null>
+      runBatch: (leadIds: number[]) => Promise<void>
+      onProgress: (
+        cb: (data: { done: number; total: number; leadId: number }) => void
+      ) => () => void
+    }
+    emailVerifier: {
       runBatch: (leadIds: number[]) => Promise<void>
       onProgress: (
         cb: (data: { done: number; total: number; leadId: number }) => void

@@ -37,9 +37,27 @@ If the timing isn't right, no worries at all. Feel free to reach out whenever it
 Wishing you a great week.`
 }
 
-export function scheduleSequence(input: SequenceInput, businessName: string): OutreachRecord[] {
+export async function scheduleSequence(input: SequenceInput, businessName: string): Promise<OutreachRecord[]> {
+  // Fetch full lead to populate template variables
+  const leads = await require('../../src/db').getDataSource().query('SELECT * FROM leads WHERE id = ?', [input.lead_id])
+  const lead = leads[0]
+  if (!lead) throw new Error(`Lead ${input.lead_id} not found`)
+  
+  // Replace variables in templates
+  const aiHook = lead.ai_personalized_hook ? lead.ai_personalized_hook : ''
+  const city = lead.city ? lead.city : ''
+  
+  const parsedSubject = input.subject
+    .replace(/\\{\\{business_name\\}\\}/gi, businessName)
+    .replace(/\\{\\{city\\}\\}/gi, city)
+  
+  const parsedBody = input.email_body
+    .replace(/\\{\\{business_name\\}\\}/gi, businessName)
+    .replace(/\\{\\{city\\}\\}/gi, city)
+    .replace(/\\{\\{ai_hook\\}\\}/gi, aiHook)
+
   // Check if sequence already exists for this lead
-  const existing = getOutreachByLead(input.lead_id)
+  const existing = await getOutreachByLead(input.lead_id)
   if (existing.length > 0) {
     throw new Error(`Sequence already exists for lead ${input.lead_id}`)
   }
@@ -53,36 +71,36 @@ export function scheduleSequence(input: SequenceInput, businessName: string): Ou
 
   // Step 1 — initial email
   records.push(
-    insertOutreach({
+    await insertOutreach({
       lead_id: input.lead_id,
       step: 1,
       channel: 'email',
-      subject: input.subject,
-      body: input.email_body,
+      subject: parsedSubject,
+      body: parsedBody,
       scheduled_at: formatISO(step1Date)
     })
   )
 
   // Step 2 — day 3 follow-up
   records.push(
-    insertOutreach({
+    await insertOutreach({
       lead_id: input.lead_id,
       step: 2,
       channel: 'email',
-      subject: `Re: ${input.subject}`,
-      body: buildFollowUp(2, businessName, input.subject),
+      subject: `Re: ${parsedSubject}`,
+      body: buildFollowUp(2, businessName, parsedSubject),
       scheduled_at: formatISO(step2Date)
     })
   )
 
   // Step 3 — day 14 final touch
   records.push(
-    insertOutreach({
+    await insertOutreach({
       lead_id: input.lead_id,
       step: 3,
       channel: 'email',
-      subject: `Re: ${input.subject}`,
-      body: buildFollowUp(3, businessName, input.subject),
+      subject: `Re: ${parsedSubject}`,
+      body: buildFollowUp(3, businessName, parsedSubject),
       scheduled_at: formatISO(step3Date)
     })
   )

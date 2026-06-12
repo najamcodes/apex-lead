@@ -45,6 +45,21 @@ export function ApiKeySettings({ settings, onSave }: Props) {
         — free tier available, no credit card required.
       </p>
 
+      <div className="pt-2 border-t border-zinc-800">
+        <label className="text-xs font-medium text-zinc-400 block mb-1.5">
+          SEO Audit Engine
+        </label>
+        <select
+          className="w-full px-3 py-2 rounded-md text-sm bg-zinc-800 border border-zinc-700 text-zinc-300 outline-none focus:border-emerald-500 transition-colors"
+          defaultValue={settings.seo_audit_engine}
+          onChange={(e) => onSave({ seo_audit_engine: e.target.value as any })}
+        >
+          <option value="pagespeed">Google PageSpeed API (Fast/Lightweight)</option>
+          <option value="lighthouse">Local Lighthouse (Heavy/Requires Chrome)</option>
+          <option value="none">Disabled</option>
+        </select>
+      </div>
+
       <div>
         <label className="text-xs font-medium text-zinc-400 block mb-1.5">
           Model for site scoring

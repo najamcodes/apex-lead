@@ -1,33 +1,37 @@
-// src/db/queries/activity.queries.ts
-import { getDb } from '../index'
-import type { ActivityRecord, ActivityEvent } from '../../types/activity.types'
+import { getDataSource } from '../index'
+import { ActivityEntity } from '../entities/ActivityEntity'
+import type { ActivityEvent, ActivityRecord } from '../../types/activity.types'
 
-export function logActivity(leadId: number, event: ActivityEvent, detail?: string): void {
-  getDb()
-    .prepare('INSERT INTO activity (lead_id, event, detail) VALUES (?, ?, ?)')
-    .run(leadId, event, detail ?? null)
+export async function logActivity(leadId: number, event: ActivityEvent, detail?: string): Promise<void> {
+  const repo = getDataSource().getRepository(ActivityEntity)
+  const activity = repo.create({
+    lead_id: leadId,
+    event,
+    detail: detail ?? null
+  })
+  await repo.save(activity)
 }
 
-export function getActivityByLead(leadId: number, limit = 20): ActivityRecord[] {
-  return getDb()
-    .prepare(
-      `
-    SELECT * FROM activity WHERE lead_id = ? ORDER BY created_at DESC LIMIT ?
-  `
-    )
-    .all(leadId, limit) as ActivityRecord[]
+export async function getActivityByLead(leadId: number, limit = 20): Promise<ActivityRecord[]> {
+  const repo = getDataSource().getRepository(ActivityEntity)
+  const rows = await repo.find({
+    where: { lead_id: leadId },
+    order: { created_at: 'DESC' },
+    take: limit
+  })
+  return rows as ActivityRecord[]
 }
 
-export function getRecentActivity(limit = 30): (ActivityRecord & { business_name: string })[] {
-  return getDb()
-    .prepare(
-      `
-    SELECT a.*, l.business_name
-    FROM activity a
-    JOIN leads l ON l.id = a.lead_id
-    ORDER BY a.created_at DESC
-    LIMIT ?
-  `
-    )
-    .all(limit) as (ActivityRecord & { business_name: string })[]
+export async function getRecentActivity(limit = 30): Promise<(ActivityRecord & { business_name: string })[]> {
+  const repo = getDataSource().getRepository(ActivityEntity)
+  const rows = await repo.createQueryBuilder('activity')
+    .innerJoinAndSelect('activity.lead', 'lead')
+    .orderBy('activity.created_at', 'DESC')
+    .take(limit)
+    .getMany()
+  
+  return rows.map(r => ({
+    ...r,
+    business_name: r.lead.business_name
+  })) as (ActivityRecord & { business_name: string })[]
 }

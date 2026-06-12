@@ -2,7 +2,7 @@
 import { getSettings } from '../../src/db/queries/settings.queries'
 
 export async function findEmailWithHunter(domain: string): Promise<string | null> {
-  const settings = getSettings()
+  const settings = await getSettings()
   if (!settings.hunter_api_key) return null
 
   try {
@@ -22,4 +22,26 @@ export async function findEmailWithHunter(domain: string): Promise<string | null
   }
 
   return null
+}
+
+export async function verifyEmailWithHunter(email: string): Promise<boolean | null> {
+  const settings = await getSettings()
+  if (!settings.hunter_api_key) return null
+
+  try {
+    const url = `https://api.hunter.io/v2/email-verifier?email=${encodeURIComponent(email)}&api_key=${settings.hunter_api_key}`
+    const res = await fetch(url)
+    if (!res.ok) return null
+
+    const data = await res.json()
+    const status = data?.data?.status
+    
+    // Hunter returns status: 'valid', 'invalid', 'accept_all', 'webmail', 'disposable', 'unknown'
+    // Let's consider valid and accept_all as fine.
+    if (status === 'valid' || status === 'accept_all') return true
+    if (status === 'invalid' || status === 'disposable') return false
+    return null // unknown
+  } catch {
+    return null
+  }
 }

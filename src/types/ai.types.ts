@@ -5,7 +5,8 @@ export interface SiteScoreResult {
   verdict: 'none' | 'poor' | 'outdated' | 'average' | 'good' | 'excellent'
   summary: string // One sentence e.g. "Site loads slowly, no mobile version, built circa 2015"
   issues: string[] // e.g. ["No SSL", "Not mobile responsive", "Outdated design"]
-  opportunity: string // One sentence pitch hook e.g. "This business would benefit from a modern landing page"
+  opportunity_hook: string // One sentence pitch hook e.g. "This business would benefit from a modern landing page"
+  decision_maker_name: string | null
   model_used: string
 }
 

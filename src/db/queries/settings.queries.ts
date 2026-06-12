@@ -1,25 +1,23 @@
-// src/db/queries/settings.queries.ts
-// Settings stored as key-value pairs in the `settings` table (created in Phase 1 schema).
-
-import { getDb } from '../index'
+import { getDataSource } from '../index'
+import { SettingsEntity } from '../entities/SettingsEntity'
 import type { AppSettings } from '../../types'
 
-const DEFAULTS: AppSettings = {
+export const DEFAULTS: AppSettings = {
   proxy_enabled: false,
   proxy_url: '',
   proxy_username: '',
   proxy_password: '',
-  claude_api_key: '', // legacy — not used, OpenRouter replaces this
+  claude_api_key: '',
   pagespeed_api_key: '',
-  scrape_delay_ms: 1500,
+  scrape_delay_ms: 1200,
   max_results_per_run: 100,
-  default_country: 'Pakistan',
+  default_country: '',
   default_city: '',
+  seo_audit_engine: 'pagespeed',
   openrouter_api_key: '',
-  ai_model_site_scoring: 'deepseek/deepseek-v4-flash',
-  ai_model_email_draft: 'deepseek/deepseek-v4-flash',
-  ai_enabled: true,
-  developer_name: '',
+  ai_model_site_scoring: 'anthropic/claude-3-haiku',
+  ai_model_email_draft: 'anthropic/claude-3-5-sonnet',
+  ai_enabled: false,
   smtp_host: '',
   smtp_port: 587,
   smtp_secure: false,
@@ -30,20 +28,20 @@ const DEFAULTS: AppSettings = {
   hunter_api_key: '',
   email_finder_enabled: false,
   auto_send_enabled: false,
-  auto_send_cron: '0 * * * *',
-  theme: 'dark'
+  auto_send_cron: '0 9 * * *',
+  theme: 'dark',
+  captcha_strategy: 'pause',
+  two_captcha_key: '',
+  captcha_timeout_s: 120,
+  scraper_headful: false
 }
 
-export function getSettings(): AppSettings {
-  const db = getDb()
-  const rows = db.prepare('SELECT key, value FROM settings').all() as {
-    key: string
-    value: string
-  }[]
+export async function getSettings(): Promise<AppSettings> {
+  const repo = getDataSource().getRepository(SettingsEntity)
+  const rows = await repo.find()
   const stored: Record<string, string> = {}
   for (const row of rows) stored[row.key] = row.value
 
-  // Merge stored values over defaults, handling type coercion
   return {
     ...DEFAULTS,
     ...Object.fromEntries(
@@ -58,15 +56,11 @@ export function getSettings(): AppSettings {
   } as AppSettings
 }
 
-export function saveSettings(settings: Partial<AppSettings>): void {
-  const db = getDb()
-  const upsert = db.prepare(
-    'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
-  )
-  const tx = db.transaction((data: Record<string, unknown>) => {
-    for (const [key, value] of Object.entries(data)) {
-      upsert.run(key, String(value))
-    }
+export async function saveSettings(settings: Partial<AppSettings>): Promise<void> {
+  const repo = getDataSource().getRepository(SettingsEntity)
+  const entities = Object.entries(settings).map(([key, value]) => {
+    return repo.create({ key, value: String(value) })
   })
-  tx(settings as Record<string, unknown>)
+
+  await repo.save(entities)
 }

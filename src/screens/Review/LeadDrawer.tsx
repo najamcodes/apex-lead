@@ -1,6 +1,6 @@
 // src/screens/Review/LeadDrawer.tsx
 import { useEffect, useState } from 'react'
-import { X, Globe, Phone, MapPin, Shield, Copy, Check, Loader2 } from 'lucide-react'
+import { X, Globe, Phone, MapPin, Shield, Copy, Check, Loader2, Users, Sparkles, Star, MessageSquare, Server, Mail, CheckCircle2, AlertCircle, AlertTriangle, Link as LinkIcon } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
 import { useAiStore } from '../../store/ai.store'
@@ -133,8 +133,56 @@ export function LeadDrawer({ lead, onClose }: LeadDrawerProps) {
                   </span>
                 </div>
               )}
+              {lead.contact_name && (
+                <div className="flex items-center gap-2 text-sm text-zinc-300">
+                  <Users className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
+                  <span>{lead.contact_name} (Extracted)</span>
+                </div>
+              )}
+              {lead.email && (
+                <div className="flex items-center gap-2 text-sm text-zinc-300">
+                  <Mail className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
+                  <span className="truncate">{lead.email}</span>
+                  {lead.email_verified === true && (
+                    <div title="Verified" className="flex">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                    </div>
+                  )}
+                  {lead.email_verified === false && (
+                    <div title="Bounced / Invalid" className="flex">
+                      <AlertCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Social Links */}
+          {lead.social_links && (
+            <div className="space-y-2">
+              <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Social Links</h3>
+              <div className="flex flex-wrap gap-2">
+                {(() => {
+                  try {
+                    const socials = JSON.parse(lead.social_links);
+                    return Object.entries(socials).map(([platform, url]) => (
+                      <a
+                        key={platform}
+                        href={url as string}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-zinc-900 border border-zinc-800 text-zinc-300 rounded hover:bg-zinc-800 transition-colors capitalize"
+                      >
+                        <LinkIcon className="w-3 h-3 text-zinc-500" />
+                        {platform}
+                      </a>
+                    ));
+                  } catch { return null }
+                })()}
+              </div>
+            </div>
+          )}
 
           {/* Site analysis */}
           <div className="space-y-3">
@@ -179,10 +227,83 @@ export function LeadDrawer({ lead, onClose }: LeadDrawerProps) {
               </div>
             )}
 
+            {lead.ai_personalized_hook && (
+              <div className="bg-emerald-950/20 border border-emerald-900/50 rounded-lg p-3">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  <p className="text-xs font-medium text-emerald-400">AI Personalized Hook</p>
+                </div>
+                <p className="text-sm text-zinc-300 leading-relaxed italic">
+                  "{lead.ai_personalized_hook}"
+                </p>
+              </div>
+            )}
+
             {lead.site_built_year && (
               <p className="text-xs text-zinc-500">
                 Estimated build year: <span className="text-zinc-400">{lead.site_built_year}</span>
               </p>
+            )}
+
+            {lead.seo_metrics && (
+              <div className="bg-red-950/20 border border-red-900/50 rounded-lg p-3">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
+                  <p className="text-xs font-medium text-red-400">Failed SEO / Accessibility Audits</p>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {(() => {
+                    try {
+                      const audits = JSON.parse(lead.seo_metrics);
+                      return audits.map((audit: string) => (
+                        <span key={audit} className="px-2 py-0.5 text-xs font-medium bg-red-500/10 text-red-300 rounded border border-red-500/20">
+                          {audit}
+                        </span>
+                      ));
+                    } catch { return null }
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {(lead.review_rating != null || lead.tech_stack) && (
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                {lead.review_rating != null && (
+                  <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                        <p className="text-sm font-semibold text-zinc-100">{lead.review_rating.toFixed(1)}</p>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-zinc-500">
+                        <MessageSquare className="w-3 h-3" />
+                        {lead.review_count}
+                      </div>
+                    </div>
+                    <p className="text-xs text-zinc-500">Google Reputation</p>
+                  </div>
+                )}
+                {lead.tech_stack && (
+                  <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 col-span-2">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <Server className="w-3.5 h-3.5 text-blue-400" />
+                      <p className="text-xs font-medium text-blue-400">Detected Tech Stack</p>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(() => {
+                        try {
+                          const tech = JSON.parse(lead.tech_stack);
+                          return tech.map((t: string) => (
+                            <span key={t} className="px-2 py-0.5 text-xs font-medium bg-blue-500/10 text-blue-300 rounded border border-blue-500/20">
+                              {t}
+                            </span>
+                          ));
+                        } catch { return null }
+                      })()}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 

@@ -61,6 +61,42 @@ export function LeadFilters() {
         <option value="extension">Chrome Extension</option>
         <option value="manual">Manual</option>
       </select>
+
+      <select
+        value={filters.has_email === true ? 'yes' : filters.has_email === false ? 'no' : 'all'}
+        onChange={(e) => {
+          const val = e.target.value;
+          update({ has_email: val === 'yes' ? true : val === 'no' ? false : 'all' })
+        }}
+        className="px-3 py-2 rounded-md text-sm bg-zinc-800 border border-zinc-700
+          text-zinc-300 outline-none focus:border-emerald-500 transition-colors"
+      >
+        <option value="all">Email: All</option>
+        <option value="yes">Has Email</option>
+        <option value="no">No Email</option>
+      </select>
+
+      <div className="w-px h-6 bg-zinc-800 mx-1" />
+
+      <select
+        value={filters.sortBy ?? 'scraped_at'}
+        onChange={(e) => update({ sortBy: e.target.value as Filters['sortBy'] })}
+        className="px-3 py-2 rounded-md text-sm bg-zinc-800 border border-zinc-700
+          text-zinc-300 outline-none focus:border-emerald-500 transition-colors"
+      >
+        <option value="scraped_at">Date Scraped</option>
+        <option value="ai_site_score">AI Score</option>
+        <option value="pagespeed_mobile">PageSpeed Mobile</option>
+        <option value="site_built_year">Build Year</option>
+      </select>
+
+      <button
+        onClick={() => update({ sortDir: filters.sortDir === 'asc' ? 'desc' : 'asc' })}
+        className="px-3 py-2 rounded-md text-sm bg-zinc-800 border border-zinc-700
+          text-zinc-300 hover:bg-zinc-750 transition-colors"
+      >
+        {filters.sortDir === 'asc' ? '↑ Asc' : '↓ Desc'}
+      </button>
     </div>
   )
 }

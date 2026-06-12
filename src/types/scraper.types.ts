@@ -49,6 +49,7 @@ export interface RawMapListing {
   website_url: string | null
   website_status?: string | null
   ssl_valid?: boolean | null
+  tech_stack?: string | null
   google_maps_url: string | null
   rating: number | null
   review_count: number | null

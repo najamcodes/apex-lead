@@ -7,7 +7,7 @@ import cors from 'cors'
 import type { Server } from 'http'
 import { insertLead } from '../../src/db/queries/leads.queries'
 import { logActivity } from '../../src/db/queries/activity.queries'
-import { getDb } from '../../src/db'
+import { getDataSource } from '../../src/db'
 
 const PORT = 39521
 let _server: Server | null = null
@@ -49,7 +49,7 @@ export function startLocalServer(): void {
     }
 
     try {
-      const lead = insertLead({
+      insertLead({
         business_name: String(business_name).trim(),
         category: String(category ?? '').trim(),
         city: String(city ?? '').trim(),
@@ -60,33 +60,36 @@ export function startLocalServer(): void {
         google_maps_url: google_maps_url ? String(google_maps_url) : undefined,
         website_status: 'unchecked',
         source: 'extension'
+      }).then(lead => {
+        if (lead) {
+          logActivity(lead.id, 'lead_scraped', 'Added via Chrome extension')
+        }
+        res.json({ ok: true, lead: lead ?? null, duplicate: lead === null })
+      }).catch(err => {
+        res.status(500).json({ error: String(err) })
       })
-
-      if (lead) {
-        logActivity(lead.id, 'lead_scraped', 'Added via Chrome extension')
-      }
-
-      res.json({ ok: true, lead: lead ?? null, duplicate: lead === null })
     } catch (err) {
       res.status(500).json({ error: String(err) })
     }
   })
 
   // ─── Get recent extension-added leads ──────────────────────────
-  app.get('/leads', (_req, res) => {
-    const leads = getDb()
-      .prepare(
+  app.get('/leads', async (_req, res) => {
+    try {
+      const leads = await getDataSource().query(
         `
-      SELECT id, business_name, category, city, website_url,
-             website_status, status, ai_site_score, scraped_at
-      FROM leads
-      WHERE source = 'extension'
-      ORDER BY scraped_at DESC
-      LIMIT 10
-    `
+        SELECT id, business_name, category, city, website_url,
+               website_status, status, ai_site_score, scraped_at
+        FROM leads
+        WHERE source = 'extension'
+        ORDER BY scraped_at DESC
+        LIMIT 10
+        `
       )
-      .all()
-    res.json({ leads })
+      res.json({ leads })
+    } catch (err) {
+      res.status(500).json({ error: String(err) })
+    }
   })
 
   _server = app.listen(PORT, '127.0.0.1', () => {

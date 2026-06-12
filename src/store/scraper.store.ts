@@ -10,13 +10,26 @@ interface ScraperState {
   activeJobId: string | null
   progress: ScrapeProgressEvent | null
   loading: boolean
+  
+  // CSV Batch state
+  csvQueue: ScrapeJobConfig[]
+  csvIndex: number
+  csvFilename: string | null
+
   // Actions
   setPagination: (page: number, pageSize?: number) => void
   fetchJobs: () => Promise<void>
   startJob: (config: ScrapeJobConfig) => Promise<void>
   cancelJob: (jobId: string) => Promise<void>
+  pauseJob: (jobId: string) => Promise<void>
+  resumeJob: (jobId: string) => Promise<void>
   deleteJob: (jobId: string) => Promise<void>
+  deleteJobs: (jobIds: string[]) => Promise<void>
   setProgress: (event: ScrapeProgressEvent) => void
+  
+  // CSV Actions
+  startCsvQueue: (filename: string, queue: ScrapeJobConfig[]) => Promise<void>
+  cancelCsvQueue: () => void
 }
 
 export const useScraperStore = create<ScraperState>((set, get) => ({
@@ -27,6 +40,10 @@ export const useScraperStore = create<ScraperState>((set, get) => ({
   activeJobId: null,
   progress: null,
   loading: false,
+
+  csvQueue: [],
+  csvIndex: 0,
+  csvFilename: null,
 
   setPagination: (page, pageSize) => {
     set({ page, pageSize: pageSize || get().pageSize })
@@ -51,8 +68,23 @@ export const useScraperStore = create<ScraperState>((set, get) => ({
     await get().fetchJobs()
   },
 
+  pauseJob: async (jobId) => {
+    await window.api.scraper.pause(jobId)
+    await get().fetchJobs()
+  },
+
+  resumeJob: async (jobId) => {
+    await window.api.scraper.resume(jobId)
+    await get().fetchJobs()
+  },
+
   deleteJob: async (jobId) => {
     await window.api.scraper.delete(jobId)
+    await get().fetchJobs()
+  },
+
+  deleteJobs: async (jobIds) => {
+    await window.api.scraper.deleteBatch(jobIds)
     await get().fetchJobs()
   },
 
@@ -61,6 +93,38 @@ export const useScraperStore = create<ScraperState>((set, get) => ({
     if (event.status === 'completed' || event.status === 'failed' || event.status === 'cancelled') {
       set({ activeJobId: null })
       get().fetchJobs()
+
+      // Handle CSV Queue progression
+      const { csvQueue, csvIndex, startJob } = get()
+      if (csvQueue.length > 0 && event.status !== 'cancelled') {
+        const nextIndex = csvIndex + 1
+        if (nextIndex < csvQueue.length) {
+          set({ csvIndex: nextIndex })
+          startJob(csvQueue[nextIndex])
+        } else {
+          // Finished entire queue
+          set({ csvQueue: [], csvIndex: 0, csvFilename: null })
+        }
+      } else if (event.status === 'cancelled') {
+        // If the user cancelled a job, abort the entire queue
+        set({ csvQueue: [], csvIndex: 0, csvFilename: null })
+      }
+    }
+  },
+
+  startCsvQueue: async (filename, queue) => {
+    if (queue.length === 0) return
+    set({ csvFilename: filename, csvQueue: queue, csvIndex: 0 })
+    await get().startJob(queue[0])
+  },
+
+  cancelCsvQueue: () => {
+    const { activeJobId, cancelJob } = get()
+    if (activeJobId) {
+      // Cancelling the active job will also clear the queue in setProgress
+      cancelJob(activeJobId)
+    } else {
+      set({ csvQueue: [], csvIndex: 0, csvFilename: null })
     }
   }
 }))

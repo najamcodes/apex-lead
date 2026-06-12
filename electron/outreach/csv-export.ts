@@ -43,9 +43,10 @@ export async function exportLeadsToCsv(): Promise<string | null> {
 
   if (canceled || !filePath) return null
 
-  const { data: leads } = getAllLeads({ page: 1, pageSize: 1000000 })
+  const res = await getAllLeads({ page: 1, pageSize: 999999, status: 'all' })
+  const data = res.data
   const header = CSV_HEADERS.join(',')
-  const rows = leads.map((lead) => CSV_HEADERS.map((col) => escapeCsv(lead[col])).join(','))
+  const rows = data.map((lead) => CSV_HEADERS.map((col) => escapeCsv(lead[col])).join(','))
 
   const csv = [header, ...rows].join('\n')
   fs.writeFileSync(filePath, csv, 'utf8')

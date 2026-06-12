@@ -1,8 +1,8 @@
 // electron/ipc/scraper.ipc.ts
 import { ipcMain, BrowserWindow } from 'electron'
 import { IPC } from '../../src/types'
-import { startScrapeJob, cancelScrapeJob } from '../scraper'
-import { getAllScrapeJobs, deleteScrapeJob } from '../../src/db/queries/scrape-jobs.queries'
+import { startScrapeJob, cancelScrapeJob, pauseScrapeJob, resumeScrapeJob } from '../scraper'
+import { getAllScrapeJobs, deleteScrapeJob, deleteScrapeJobs } from '../../src/db/queries/scrape-jobs.queries'
 import type { ScrapeJobConfig } from '../../src/types/scraper.types'
 
 export function registerScraperIpcHandlers(win: BrowserWindow): void {
@@ -16,12 +16,24 @@ export function registerScraperIpcHandlers(win: BrowserWindow): void {
     return jobId
   })
 
-  ipcMain.handle(IPC.SCRAPER_CANCEL, (_event, jobId: string) => {
-    cancelScrapeJob(jobId)
+  ipcMain.handle(IPC.SCRAPER_CANCEL, async (_event, jobId: string) => {
+    await cancelScrapeJob(jobId)
   })
 
-  ipcMain.handle(IPC.SCRAPER_DELETE, (_event, jobId: string) => {
-    deleteScrapeJob(jobId)
+  ipcMain.handle(IPC.SCRAPER_PAUSE, async (_event, jobId: string) => {
+    pauseScrapeJob(jobId)
+  })
+
+  ipcMain.handle(IPC.SCRAPER_RESUME, async (_event, jobId: string) => {
+    resumeScrapeJob(jobId)
+  })
+
+  ipcMain.handle(IPC.SCRAPER_DELETE, async (_event, jobId: string) => {
+    await deleteScrapeJob(jobId)
+  })
+
+  ipcMain.handle(IPC.SCRAPER_DELETE_BATCH, async (_event, jobIds: string[]) => {
+    await deleteScrapeJobs(jobIds)
   })
 
   ipcMain.handle(IPC.SCRAPER_GET_JOBS, (_event, pagination?: import('../../src/types').PaginationParams) => {

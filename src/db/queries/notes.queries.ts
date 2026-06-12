@@ -1,26 +1,25 @@
-// src/db/queries/notes.queries.ts
-import { getDb } from '../index'
+import { getDataSource } from '../index'
+import { NoteEntity } from '../entities/NoteEntity'
 import type { NoteRecord } from '../../types/activity.types'
 
-export function getNoteByLead(leadId: number): NoteRecord | null {
-  return getDb()
-    .prepare('SELECT * FROM notes WHERE lead_id = ? ORDER BY updated_at DESC LIMIT 1')
-    .get(leadId) as NoteRecord | null
+export async function getNoteByLead(leadId: number): Promise<NoteRecord | null> {
+  const repo = getDataSource().getRepository(NoteEntity)
+  const res = await repo.findOne({
+    where: { lead_id: leadId },
+    order: { updated_at: 'DESC' }
+  })
+  return (res as NoteRecord) || null
 }
 
-export function saveNote(leadId: number, body: string): NoteRecord {
-  const db = getDb()
-  const existing = getNoteByLead(leadId)
+export async function saveNote(leadId: number, body: string): Promise<NoteRecord> {
+  const repo = getDataSource().getRepository(NoteEntity)
+  const existing = await getNoteByLead(leadId)
 
   if (existing) {
-    db.prepare(
-      `
-      UPDATE notes SET body = ?, updated_at = datetime('now') WHERE id = ?
-    `
-    ).run(body, existing.id)
-    return getNoteByLead(leadId)!
+    await repo.update(existing.id, { body, updated_at: () => "datetime('now')" })
+    return (await getNoteByLead(leadId))!
   }
 
-  const result = db.prepare('INSERT INTO notes (lead_id, body) VALUES (?, ?)').run(leadId, body)
-  return db.prepare('SELECT * FROM notes WHERE id = ?').get(result.lastInsertRowid) as NoteRecord
+  const result = await repo.save(repo.create({ lead_id: leadId, body }))
+  return result as NoteRecord
 }

@@ -2,16 +2,19 @@
 import { getAiClient } from '../openrouter-client'
 import { SITE_SCORER_SYSTEM, buildSiteScorerPrompt } from '../prompts/site-scorer'
 import { DEFAULT_MODELS } from '../models'
-import { getDb } from '../../../src/db'
+import { getDataSource } from '../../../src/db'
 import type { SiteScoreResult } from '../../../src/types/ai.types'
+import type { SslResult } from '../../../src/types/analysis.types'
 
 export async function scoreSite(
   apiKey: string,
   leadId: number,
-  modelOverride?: string
+  modelOverride?: string,
+  sslResult?: SslResult | null
 ): Promise<SiteScoreResult> {
   // Fetch lead data
-  const lead = getDb().prepare('SELECT * FROM leads WHERE id = ?').get(leadId) as any
+  const leads = await getDataSource().query('SELECT * FROM leads WHERE id = ?', [leadId])
+  const lead = leads[0]
   if (!lead) throw new Error(`Lead ${leadId} not found`)
 
   const client = getAiClient(apiKey)
@@ -30,7 +33,10 @@ export async function scoreSite(
           pagespeed_desktop: lead.pagespeed_desktop,
           ssl_valid: lead.ssl_valid,
           tech_stack: lead.tech_stack,
-          site_built_year: lead.site_built_year
+          site_built_year: lead.site_built_year,
+          seo_metrics: lead.seo_metrics,
+          site_content: sslResult?.site_content,
+          contact_page_content: sslResult?.contact_page_content
         })
       }
     ],
@@ -42,9 +48,8 @@ export async function scoreSite(
   const score = Math.min(100, Math.max(0, result.score ?? 0))
 
   // Persist result to DB
-  getDb()
-    .prepare(
-      `
+  await getDataSource().query(
+    `
     UPDATE leads SET
       ai_site_score = ?,
       ai_site_summary = ?,
@@ -54,11 +59,22 @@ export async function scoreSite(
         WHEN ? < 70 THEN 'outdated'
         ELSE 'modern'
       END,
+      ai_personalized_hook = ?,
+      contact_name = COALESCE(contact_name, ?),
       updated_at = datetime('now')
     WHERE id = ?
-  `
-    )
-    .run(score, result.summary, score, score, score, leadId)
+  `,
+    [
+      score,
+      result.summary,
+      score,
+      score,
+      score,
+      result.opportunity_hook ?? null,
+      result.decision_maker_name ?? null,
+      leadId
+    ]
+  )
 
   return {
     ...result,

@@ -14,6 +14,7 @@ export function buildEmailDrafterPrompt(data: {
   site_issues: string[]
   opportunity: string | null
   developer_name: string
+  contact_name: string | null
 }): string {
   const hasWebsite = !!data.website_url
   const siteContext = hasWebsite
@@ -26,6 +27,7 @@ Type: ${data.category} in ${data.city}
 Website situation: ${siteContext}
 Opportunity: ${data.opportunity ?? 'Needs a modern website'}
 Developer name: ${data.developer_name}
+${data.contact_name ? `Recipient name: ${data.contact_name} (Address them by this name)` : ''}
 
 Return JSON only:
 {

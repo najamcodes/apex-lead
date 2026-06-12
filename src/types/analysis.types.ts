@@ -7,6 +7,7 @@ export interface PageSpeedResult {
   lcp_ms: number | null // Largest Contentful Paint
   cls: number | null // Cumulative Layout Shift
   tbt_ms: number | null // Total Blocking Time
+  seo_metrics: string | null
   fetched_at: string
 }
 
@@ -28,6 +29,9 @@ export interface SslResult {
   last_modified: string | null // from HTTP header
   status_code: number | null
   is_reachable: boolean
+  site_content?: string | null
+  contact_page_content?: string | null
+  social_links?: Record<string, string> | null
 }
 
 export interface AnalysisResult {

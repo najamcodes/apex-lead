@@ -6,8 +6,8 @@ import { BrowserWindow } from 'electron'
 
 let activeTask: cron.ScheduledTask | null = null
 
-export function initScheduler(mainWindow: BrowserWindow): void {
-  const settings = getSettings()
+export async function initScheduler(mainWindow: BrowserWindow): Promise<void> {
+  const settings = await getSettings()
 
   if (activeTask) {
     activeTask.stop()
