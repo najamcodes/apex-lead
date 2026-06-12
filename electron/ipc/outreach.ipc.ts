@@ -5,12 +5,12 @@ import {
   sendOutreachRecord,
   processDueOutreach,
   createSequenceForLead,
-  initSmtp,
+  initSmtp
 } from '../outreach'
 import {
   getAllOutreach,
   updateOutreachStatus,
-  getSequenceSummaries,
+  getSequenceSummaries
 } from '../../src/db/queries/outreach.queries'
 import { exportLeadsToCsv } from '../outreach/csv-export'
 import { getChartData, getFunnelData } from '../../src/db/queries/stats.queries'
@@ -31,18 +31,24 @@ export function registerOutreachIpcHandlers(): void {
   })
 
   // Get all outreach records
-  ipcMain.handle(IPC.OUTREACH_GET_ALL, (_event, status?: string) => {
-    return getAllOutreach(status as any)
+  ipcMain.handle(IPC.OUTREACH_GET_ALL, (_event, status?: string, pagination?: import('../../src/types').PaginationParams) => {
+    return getAllOutreach(status as any, pagination)
   })
 
   // Mark a lead as replied
   ipcMain.handle(IPC.OUTREACH_MARK_REPLIED, (_event, outreachId: number) => {
     updateOutreachStatus(outreachId, 'replied', { replied_at: new Date().toISOString() })
-    const record = getDb().prepare('SELECT lead_id FROM outreach WHERE id = ?').get(outreachId) as any
+    const record = getDb()
+      .prepare('SELECT lead_id FROM outreach WHERE id = ?')
+      .get(outreachId) as any
     if (record) {
-      getDb().prepare(`
+      getDb()
+        .prepare(
+          `
         UPDATE leads SET status = 'replied', updated_at = datetime('now') WHERE id = ?
-      `).run(record.lead_id)
+      `
+        )
+        .run(record.lead_id)
       logActivity(record.lead_id, 'email_replied')
     }
   })
@@ -50,27 +56,34 @@ export function registerOutreachIpcHandlers(): void {
   // Mark as bounced
   ipcMain.handle(IPC.OUTREACH_MARK_BOUNCED, (_event, outreachId: number) => {
     updateOutreachStatus(outreachId, 'bounced')
-    const record = getDb().prepare('SELECT lead_id FROM outreach WHERE id = ?').get(outreachId) as any
+    const record = getDb()
+      .prepare('SELECT lead_id FROM outreach WHERE id = ?')
+      .get(outreachId) as any
     if (record) logActivity(record.lead_id, 'email_bounced')
   })
 
   // Schedule full 3-step sequence for a lead
-  ipcMain.handle(IPC.OUTREACH_SCHEDULE_SEQ, (_event, input: SequenceInput, businessName: string) => {
-    const res = createSequenceForLead(input, businessName)
-    logActivity(input.lead_id, 'sequence_started', 'Scheduled 3-step sequence')
-    return res
-  })
+  ipcMain.handle(
+    IPC.OUTREACH_SCHEDULE_SEQ,
+    (_event, input: SequenceInput, businessName: string) => {
+      const res = createSequenceForLead(input, businessName)
+      logActivity(input.lead_id, 'sequence_started', 'Scheduled 3-step sequence')
+      return res
+    }
+  )
 
   // Get sequence summaries for all leads
-  ipcMain.handle(IPC.OUTREACH_GET_SEQUENCES, () => getSequenceSummaries())
+  ipcMain.handle(IPC.OUTREACH_GET_SEQUENCES, (_event, pagination?: import('../../src/types').PaginationParams) => {
+    return getSequenceSummaries(pagination)
+  })
 
   // Export leads to CSV
   ipcMain.handle(IPC.OUTREACH_EXPORT_CSV, async () => exportLeadsToCsv())
 
   // Chart data
   ipcMain.handle(IPC.STATS_GET_CHART_DATA, () => ({
-    weekly:  getChartData(14),
-    funnel:  getFunnelData(),
+    weekly: getChartData(14),
+    funnel: getFunnelData()
   }))
 
   // Verify SMTP connection

@@ -6,9 +6,7 @@ export function ScrapeProgress() {
   const { activeJobId, progress, cancelJob } = useScraperStore()
   if (!activeJobId || !progress) return null
 
-  const pct = progress.total > 0
-    ? Math.round((progress.found / progress.total) * 100)
-    : 0
+  const pct = progress.total > 0 ? Math.round((progress.found / progress.total) * 100) : 0
 
   return (
     <div className="bg-zinc-900 border border-emerald-800/50 rounded-xl p-5 space-y-4 font-sans">

@@ -4,6 +4,7 @@ import path from 'path'
 import { getDb } from '../src/db'
 import { registerAllIpcHandlers } from './ipc'
 import { initScheduler } from './scheduler'
+import { startLocalServer, stopLocalServer } from './local-server'
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -16,8 +17,8 @@ function createWindow(): void {
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
-      nodeIntegration: false,
-    },
+      nodeIntegration: false
+    }
   })
 
   // Initialize IPC handlers
@@ -42,7 +43,12 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   getDb() // Initialize DB on startup
+  startLocalServer() // Start local HTTP server for Chrome extension
   createWindow()
+})
+
+app.on('will-quit', () => {
+  stopLocalServer()
 })
 
 app.on('window-all-closed', () => {

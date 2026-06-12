@@ -77,7 +77,9 @@ export function BulkActionsBar({ selectedCount, onClear, leadIds }: Props) {
               size="sm"
               loading={loadingAction === 'email_finder'}
               disabled={loadingAction !== null && loadingAction !== 'email_finder'}
-              onClick={() => handleAction('email_finder', () => window.api.emailFinder.runBatch(leadIds))}
+              onClick={() =>
+                handleAction('email_finder', () => window.api.emailFinder.runBatch(leadIds))
+              }
             >
               <MailSearch className="w-4 h-4 text-purple-400" />
               Find Emails
@@ -87,7 +89,9 @@ export function BulkActionsBar({ selectedCount, onClear, leadIds }: Props) {
               size="sm"
               loading={loadingAction === 'schedule'}
               disabled={loadingAction !== null && loadingAction !== 'schedule'}
-              onClick={() => handleAction('schedule', () => window.api.bulk.scheduleSequences(leadIds, 1))} // Defaulting templateId 1 for now
+              onClick={() =>
+                handleAction('schedule', () => window.api.bulk.scheduleSequences(leadIds, 1))
+              } // Defaulting templateId 1 for now
             >
               <Send className="w-4 h-4 text-rose-400" />
               Schedule Seq

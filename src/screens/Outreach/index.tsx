@@ -28,7 +28,9 @@ export function Outreach() {
   const handleSendDue = async () => {
     setSending(true)
     const result = await sendBatch()
-    toast.success(`Sent ${result.sent} emails${result.failed > 0 ? `, ${result.failed} failed` : ''}`)
+    toast.success(
+      `Sent ${result.sent} emails${result.failed > 0 ? `, ${result.failed} failed` : ''}`
+    )
     setSending(false)
     fetchLeads()
     fetchSequences()
@@ -54,7 +56,14 @@ export function Outreach() {
             <Download className="w-3.5 h-3.5" />
             Export CSV
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => { fetchLeads(); fetchSequences() }}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              fetchLeads()
+              fetchSequences()
+            }}
+          >
             <RefreshCw className="w-3.5 h-3.5" />
           </Button>
           <Button variant="primary" size="sm" loading={sending} onClick={handleSendDue}>
@@ -71,12 +80,12 @@ export function Outreach() {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${
-              activeTab === tab
-                ? 'bg-zinc-700 text-zinc-100'
-                : 'text-zinc-500 hover:text-zinc-300'
+              activeTab === tab ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
-            {tab === 'queue' ? `Queue (${approvedLeads.length})` : `Sequences (${sequences.length})`}
+            {tab === 'queue'
+              ? `Queue (${approvedLeads.length})`
+              : `Sequences (${sequences.length})`}
           </button>
         ))}
       </div>
@@ -93,7 +102,10 @@ export function Outreach() {
               <thead>
                 <tr className="border-b border-zinc-800">
                   {['Business', 'City', 'Email', 'AI Score', 'Website', ''].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                    <th
+                      key={h}
+                      className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider"
+                    >
                       {h}
                     </th>
                   ))}
@@ -101,7 +113,10 @@ export function Outreach() {
               </thead>
               <tbody>
                 {approvedLeads.map((lead) => (
-                  <tr key={lead.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/20 group">
+                  <tr
+                    key={lead.id}
+                    className="border-b border-zinc-800/50 hover:bg-zinc-800/20 group"
+                  >
                     <td className="px-4 py-3">
                       <p className="text-sm font-medium text-zinc-200">{lead.business_name}</p>
                     </td>
@@ -111,24 +126,27 @@ export function Outreach() {
                     </td>
                     <td className="px-4 py-3">
                       {lead.ai_site_score !== null ? (
-                        <span className={`text-sm font-medium ${
-                          lead.ai_site_score < 40 ? 'text-red-400' :
-                          lead.ai_site_score < 65 ? 'text-amber-400' : 'text-emerald-400'
-                        }`}>
+                        <span
+                          className={`text-sm font-medium ${
+                            lead.ai_site_score < 40
+                              ? 'text-red-400'
+                              : lead.ai_site_score < 65
+                                ? 'text-amber-400'
+                                : 'text-emerald-400'
+                          }`}
+                        >
                           {lead.ai_site_score}
                         </span>
-                      ) : <span className="text-zinc-600">—</span>}
+                      ) : (
+                        <span className="text-zinc-600">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <Badge type="website_status" value={lead.website_status} />
                     </td>
                     <td className="px-4 py-3">
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          onClick={() => setSelectedLead(lead)}
-                        >
+                        <Button variant="primary" size="sm" onClick={() => setSelectedLead(lead)}>
                           <Send className="w-3 h-3" />
                           Send
                         </Button>
@@ -146,9 +164,7 @@ export function Outreach() {
       {activeTab === 'sequences' && <SequencePanel />}
 
       {/* Send modal */}
-      {selectedLead && (
-        <SendModal lead={selectedLead} onClose={() => setSelectedLead(null)} />
-      )}
+      {selectedLead && <SendModal lead={selectedLead} onClose={() => setSelectedLead(null)} />}
     </div>
   )
 }

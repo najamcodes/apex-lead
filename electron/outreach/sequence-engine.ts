@@ -37,10 +37,7 @@ If the timing isn't right, no worries at all. Feel free to reach out whenever it
 Wishing you a great week.`
 }
 
-export function scheduleSequence(
-  input: SequenceInput,
-  businessName: string
-): OutreachRecord[] {
+export function scheduleSequence(input: SequenceInput, businessName: string): OutreachRecord[] {
   // Check if sequence already exists for this lead
   const existing = getOutreachByLead(input.lead_id)
   if (existing.length > 0) {
@@ -55,34 +52,40 @@ export function scheduleSequence(
   const records: OutreachRecord[] = []
 
   // Step 1 — initial email
-  records.push(insertOutreach({
-    lead_id:      input.lead_id,
-    step:         1,
-    channel:      'email',
-    subject:      input.subject,
-    body:         input.email_body,
-    scheduled_at: formatISO(step1Date),
-  }))
+  records.push(
+    insertOutreach({
+      lead_id: input.lead_id,
+      step: 1,
+      channel: 'email',
+      subject: input.subject,
+      body: input.email_body,
+      scheduled_at: formatISO(step1Date)
+    })
+  )
 
   // Step 2 — day 3 follow-up
-  records.push(insertOutreach({
-    lead_id:      input.lead_id,
-    step:         2,
-    channel:      'email',
-    subject:      `Re: ${input.subject}`,
-    body:         buildFollowUp(2, businessName, input.subject),
-    scheduled_at: formatISO(step2Date),
-  }))
+  records.push(
+    insertOutreach({
+      lead_id: input.lead_id,
+      step: 2,
+      channel: 'email',
+      subject: `Re: ${input.subject}`,
+      body: buildFollowUp(2, businessName, input.subject),
+      scheduled_at: formatISO(step2Date)
+    })
+  )
 
   // Step 3 — day 14 final touch
-  records.push(insertOutreach({
-    lead_id:      input.lead_id,
-    step:         3,
-    channel:      'email',
-    subject:      `Re: ${input.subject}`,
-    body:         buildFollowUp(3, businessName, input.subject),
-    scheduled_at: formatISO(step3Date),
-  }))
+  records.push(
+    insertOutreach({
+      lead_id: input.lead_id,
+      step: 3,
+      channel: 'email',
+      subject: `Re: ${input.subject}`,
+      body: buildFollowUp(3, businessName, input.subject),
+      scheduled_at: formatISO(step3Date)
+    })
+  )
 
   return records
 }

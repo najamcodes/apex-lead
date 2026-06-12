@@ -10,8 +10,10 @@ import { Skeleton } from '../../components/ui/Skeleton'
 import { BulkActionsBar } from './BulkActionsBar'
 import { useState } from 'react'
 
+import { Pagination } from '../../components/ui/Pagination'
+
 export function Leads() {
-  const { leads, loading, fetchLeads } = useLeadsStore()
+  const { leads, loading, fetchLeads, total, filters, setFilters } = useLeadsStore()
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
 
   const toggleSelect = (id: number) => {
@@ -25,7 +27,7 @@ export function Leads() {
 
   const toggleAll = () => {
     if (selectedIds.size === leads.length) setSelectedIds(new Set())
-    else setSelectedIds(new Set(leads.map(l => l.id)))
+    else setSelectedIds(new Set(leads.map((l) => l.id)))
   }
 
   useEffect(() => {
@@ -37,7 +39,7 @@ export function Leads() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-zinc-100">Leads</h2>
-          <p className="text-sm text-zinc-500 mt-0.5">{leads.length} total</p>
+          <p className="text-sm text-zinc-500 mt-0.5">{total} total</p>
         </div>
         <Button variant="primary" size="sm">
           + Add manually
@@ -85,8 +87,11 @@ export function Leads() {
                     className="rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary/20 cursor-pointer"
                   />
                 </th>
-                {['Business', 'City', 'Website', 'Status', 'Phone', ''].map((h) => (
-                  <th key={h} className="px-4 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                {['Business', 'City', 'Has Website', 'Has Phone', 'Web Status', 'Lead Status', ''].map((h) => (
+                  <th
+                    key={h}
+                    className="px-4 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider"
+                  >
                     {h}
                   </th>
                 ))}
@@ -103,6 +108,14 @@ export function Leads() {
               ))}
             </tbody>
           </table>
+          
+          <Pagination
+            page={filters.page || 1}
+            pageSize={filters.pageSize || 50}
+            total={total}
+            onPageChange={(page) => setFilters({ page })}
+            onPageSizeChange={(pageSize) => setFilters({ pageSize, page: 1 })}
+          />
         </div>
       )}
     </div>

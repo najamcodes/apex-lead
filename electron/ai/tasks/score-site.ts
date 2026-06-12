@@ -21,25 +21,30 @@ export async function scoreSite(
     model,
     messages: [
       { role: 'system', content: SITE_SCORER_SYSTEM },
-      { role: 'user', content: buildSiteScorerPrompt({
-        business_name: lead.business_name,
-        website_url: lead.website_url,
-        pagespeed_mobile: lead.pagespeed_mobile,
-        pagespeed_desktop: lead.pagespeed_desktop,
-        ssl_valid: lead.ssl_valid,
-        tech_stack: lead.tech_stack,
-        site_built_year: lead.site_built_year,
-      })},
+      {
+        role: 'user',
+        content: buildSiteScorerPrompt({
+          business_name: lead.business_name,
+          website_url: lead.website_url,
+          pagespeed_mobile: lead.pagespeed_mobile,
+          pagespeed_desktop: lead.pagespeed_desktop,
+          ssl_valid: lead.ssl_valid,
+          tech_stack: lead.tech_stack,
+          site_built_year: lead.site_built_year
+        })
+      }
     ],
     max_tokens: 512,
-    temperature: 0.2,
+    temperature: 0.2
   })
 
   // Validate score range
   const score = Math.min(100, Math.max(0, result.score ?? 0))
 
   // Persist result to DB
-  getDb().prepare(`
+  getDb()
+    .prepare(
+      `
     UPDATE leads SET
       ai_site_score = ?,
       ai_site_summary = ?,
@@ -51,11 +56,13 @@ export async function scoreSite(
       END,
       updated_at = datetime('now')
     WHERE id = ?
-  `).run(score, result.summary, score, score, score, leadId)
+  `
+    )
+    .run(score, result.summary, score, score, score, leadId)
 
   return {
     ...result,
     score,
-    model_used: model,
+    model_used: model
   }
 }

@@ -4,7 +4,7 @@ import { getDb } from '../../src/db'
 import {
   getDueOutreach,
   updateOutreachStatus,
-  getOutreachById,
+  getOutreachById
 } from '../../src/db/queries/outreach.queries'
 import { configureSmtp, sendEmail } from './smtp-sender'
 import { scheduleSequence, type SequenceInput } from './sequence-engine'
@@ -16,13 +16,13 @@ export function initSmtp(): void {
   const s = getSettings()
   if (s.smtp_host && s.smtp_username) {
     configureSmtp({
-      host:        s.smtp_host,
-      port:        s.smtp_port || 587,
-      secure:      s.smtp_secure ?? false,
-      username:    s.smtp_username,
-      password:    s.smtp_password,
-      from_name:   s.smtp_from_name || s.developer_name || 'LeadHunter',
-      from_email:  s.smtp_from_email || s.smtp_username,
+      host: s.smtp_host,
+      port: s.smtp_port || 587,
+      secure: s.smtp_secure ?? false,
+      username: s.smtp_username,
+      password: s.smtp_password,
+      from_name: s.smtp_from_name || s.developer_name || 'LeadHunter',
+      from_email: s.smtp_from_email || s.smtp_username
     })
   }
 }
@@ -33,7 +33,9 @@ export async function sendOutreachRecord(recordId: number): Promise<SendResult> 
   if (!record) return { success: false, message_id: null, error: 'Record not found' }
 
   // Get lead email
-  const lead = getDb().prepare('SELECT email, business_name FROM leads WHERE id = ?').get(record.lead_id) as any
+  const lead = getDb()
+    .prepare('SELECT email, business_name FROM leads WHERE id = ?')
+    .get(record.lead_id) as any
   if (!lead?.email) {
     updateOutreachStatus(recordId, 'failed', { error_message: 'No email address for lead' })
     return { success: false, message_id: null, error: 'No email address on record' }
@@ -43,16 +45,20 @@ export async function sendOutreachRecord(recordId: number): Promise<SendResult> 
 
   if (result.success) {
     updateOutreachStatus(recordId, 'sent', {
-      sent_at:         new Date().toISOString(),
-      smtp_message_id: result.message_id ?? undefined,
+      sent_at: new Date().toISOString(),
+      smtp_message_id: result.message_id ?? undefined
     })
     logActivity(record.lead_id, 'email_sent', `Step ${record.step} — ${record.subject}`)
 
     // Advance lead status to 'outreach' if it's still 'approved'
-    getDb().prepare(`
+    getDb()
+      .prepare(
+        `
       UPDATE leads SET status = 'outreach', updated_at = datetime('now')
       WHERE id = ? AND status = 'approved'
-    `).run(record.lead_id)
+    `
+      )
+      .run(record.lead_id)
   } else {
     updateOutreachStatus(recordId, 'failed', { error_message: result.error ?? undefined })
   }
@@ -78,9 +84,6 @@ export async function processDueOutreach(): Promise<{ sent: number; failed: numb
 }
 
 // Schedule a full sequence for an approved lead
-export function createSequenceForLead(
-  input: SequenceInput,
-  businessName: string
-) {
+export function createSequenceForLead(input: SequenceInput, businessName: string) {
   return scheduleSequence(input, businessName)
 }

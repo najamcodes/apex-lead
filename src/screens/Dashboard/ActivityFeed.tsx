@@ -14,10 +14,13 @@ export function ActivityFeed() {
     // For now, let's assume we can fetch them or we'll add the IPC endpoint next.
     // Oh wait, I added getRecentActivity in db/queries/activity.queries.ts, but didn't expose it to IPC.
     // Let me add it to IPC later, for now we will stub the call.
-    window.api.activity.getRecent?.().then((data: any) => {
-      setActivities(data || [])
-      setLoading(false)
-    }).catch(() => setLoading(false))
+    window.api.activity
+      .getRecent?.()
+      .then((data: any) => {
+        setActivities(data || [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
   }, [])
 
   if (loading) return <div className="h-40 animate-pulse bg-zinc-800/50 rounded-xl" />
@@ -43,13 +46,9 @@ export function ActivityFeed() {
               <div className="absolute -left-1.5 top-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-950" />
               <div className="flex justify-between items-baseline mb-0.5">
                 <p className="text-sm font-medium text-zinc-200">{act.business_name}</p>
-                <p className="text-xs text-zinc-500">
-                  {new Date(act.created_at).toLocaleString()}
-                </p>
+                <p className="text-xs text-zinc-500">{new Date(act.created_at).toLocaleString()}</p>
               </div>
-              <p className="text-sm text-zinc-400 capitalize">
-                {act.event.replace(/_/g, ' ')}
-              </p>
+              <p className="text-sm text-zinc-400 capitalize">{act.event.replace(/_/g, ' ')}</p>
             </div>
           ))
         )}

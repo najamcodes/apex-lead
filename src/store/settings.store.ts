@@ -25,5 +25,5 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     await window.api.settings.save(patch)
     await get().load()
     set({ saving: false })
-  },
+  }
 }))

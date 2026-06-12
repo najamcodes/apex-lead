@@ -4,10 +4,10 @@ import { Input } from '../../components/ui/Input'
 import type { AppSettings } from '../../types'
 
 const MODEL_OPTIONS = [
-  { value: 'deepseek/deepseek-v4-flash',      label: 'DeepSeek V4 Flash (cheapest — recommended)' },
+  { value: 'deepseek/deepseek-v4-flash', label: 'DeepSeek V4 Flash (cheapest — recommended)' },
   { value: 'deepseek/deepseek-v4-flash:free', label: 'DeepSeek V4 Flash Free (rate-limited)' },
-  { value: 'qwen/qwen3.6-flash',              label: 'Qwen 3.6 Flash (fallback)' },
-  { value: 'deepseek/deepseek-v4-pro',        label: 'DeepSeek V4 Pro (best quality, higher cost)' },
+  { value: 'qwen/qwen3.6-flash', label: 'Qwen 3.6 Flash (fallback)' },
+  { value: 'deepseek/deepseek-v4-pro', label: 'DeepSeek V4 Pro (best quality, higher cost)' }
 ]
 
 interface Props {
@@ -41,8 +41,8 @@ export function ApiKeySettings({ settings, onSave }: Props) {
           className="text-emerald-400 hover:underline"
         >
           openrouter.ai/keys
-        </a>
-        {' '}— free tier available, no credit card required.
+        </a>{' '}
+        — free tier available, no credit card required.
       </p>
 
       <div>
@@ -55,7 +55,9 @@ export function ApiKeySettings({ settings, onSave }: Props) {
           onChange={(e) => onSave({ ai_model_site_scoring: e.target.value })}
         >
           {MODEL_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
           ))}
         </select>
       </div>
@@ -70,7 +72,9 @@ export function ApiKeySettings({ settings, onSave }: Props) {
           onChange={(e) => onSave({ ai_model_email_draft: e.target.value })}
         >
           {MODEL_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
           ))}
         </select>
       </div>

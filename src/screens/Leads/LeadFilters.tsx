@@ -49,6 +49,18 @@ export function LeadFilters() {
         <option value="modern">Modern</option>
         <option value="unchecked">Unchecked</option>
       </select>
+
+      <select
+        value={filters.source ?? 'all'}
+        onChange={(e) => update({ source: e.target.value })}
+        className="px-3 py-2 rounded-md text-sm bg-zinc-800 border border-zinc-700
+          text-zinc-300 outline-none focus:border-emerald-500 transition-colors"
+      >
+        <option value="all">All sources</option>
+        <option value="google_maps">Google Maps</option>
+        <option value="extension">Chrome Extension</option>
+        <option value="manual">Manual</option>
+      </select>
     </div>
   )
 }

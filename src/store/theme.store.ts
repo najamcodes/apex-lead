@@ -29,5 +29,5 @@ export const useThemeStore = create<ThemeState>((set) => ({
     } else {
       document.documentElement.classList.remove('light')
     }
-  },
+  }
 }))

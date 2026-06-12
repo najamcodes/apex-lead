@@ -20,14 +20,20 @@ export function SendModal({ lead, onClose }: SendModalProps) {
   const { scheduleSeq } = useOutreachStore()
   const draft = outreachDrafts[lead.id]
 
-  const [email, setEmail]     = useState(lead.email ?? '')
+  const [email, setEmail] = useState(lead.email ?? '')
   const [subject, setSubject] = useState(draft?.subject ?? '')
-  const [body, setBody]       = useState(draft?.email_body ?? '')
+  const [body, setBody] = useState(draft?.email_body ?? '')
   const [sending, setSending] = useState(false)
 
   const handleSchedule = async () => {
-    if (!email) { toast.error('Add an email address first'); return }
-    if (!subject || !body) { toast.error('Subject and body required'); return }
+    if (!email) {
+      toast.error('Add an email address first')
+      return
+    }
+    if (!subject || !body) {
+      toast.error('Subject and body required')
+      return
+    }
     setSending(true)
     try {
       // Save email to lead if it was manually entered
@@ -61,7 +67,10 @@ export function SendModal({ lead, onClose }: SendModalProps) {
               <h2 className="text-sm font-semibold text-zinc-100">Send outreach</h2>
               <p className="text-xs text-zinc-500 mt-0.5">{lead.business_name}</p>
             </div>
-            <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 transition-colors">
+            <button
+              onClick={onClose}
+              className="text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -74,11 +83,7 @@ export function SendModal({ lead, onClose }: SendModalProps) {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="contact@business.com"
             />
-            <Input
-              label="Subject"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-            />
+            <Input label="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium text-zinc-400">Email body</label>
               <textarea
@@ -98,7 +103,9 @@ export function SendModal({ lead, onClose }: SendModalProps) {
           </div>
 
           <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-zinc-800">
-            <Button variant="ghost" onClick={onClose}>Cancel</Button>
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
             <Button variant="primary" loading={sending} onClick={handleSchedule}>
               <Send className="w-3.5 h-3.5" />
               Schedule sequence

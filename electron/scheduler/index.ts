@@ -8,7 +8,7 @@ let activeTask: cron.ScheduledTask | null = null
 
 export function initScheduler(mainWindow: BrowserWindow): void {
   const settings = getSettings()
-  
+
   if (activeTask) {
     activeTask.stop()
     activeTask = null
@@ -22,10 +22,10 @@ export function initScheduler(mainWindow: BrowserWindow): void {
           console.log('[Scheduler] Running auto-send cron job...')
           const result = await processDueOutreach()
           console.log(`[Scheduler] Sent ${result.sent}, failed ${result.failed}`)
-          
+
           // Optionally notify the UI if we want to show a toast
           if (mainWindow && !mainWindow.isDestroyed()) {
-             mainWindow.webContents.send('scheduler:completed', result)
+            mainWindow.webContents.send('scheduler:completed', result)
           }
         } catch (err) {
           console.error('[Scheduler] Error processing due outreach:', err)

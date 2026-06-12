@@ -32,9 +32,10 @@ export function LeadCard({ lead, index, onClick }: LeadCardProps) {
           className={`
             bg-zinc-800 border rounded-lg p-3.5 cursor-pointer
             transition-all duration-150 select-none
-            ${snapshot.isDragging
-              ? 'border-emerald-500/50 shadow-lg shadow-emerald-900/20 rotate-1'
-              : 'border-zinc-700 hover:border-zinc-500'
+            ${
+              snapshot.isDragging
+                ? 'border-emerald-500/50 shadow-lg shadow-emerald-900/20 rotate-1'
+                : 'border-zinc-700 hover:border-zinc-500'
             }
           `}
         >

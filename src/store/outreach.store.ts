@@ -5,31 +5,43 @@ import type { OutreachRecord, SequenceSummary } from '../types/outreach.types'
 interface OutreachState {
   records: OutreachRecord[]
   sequences: SequenceSummary[]
+  page: number
+  pageSize: number
+  total: number
   sending: boolean
   // Actions
-  fetchAll:       ()                                           => Promise<void>
-  fetchSequences: ()                                           => Promise<void>
-  send:           (recordId: number)                           => Promise<void>
-  sendBatch:      ()                                           => Promise<{ sent: number; failed: number }>
-  markReplied:    (outreachId: number)                         => Promise<void>
-  markBounced:    (outreachId: number)                         => Promise<void>
-  scheduleSeq:    (input: unknown, businessName: string)       => Promise<void>
-  exportCsv:      ()                                           => Promise<string | null>
+  setPagination: (page: number, pageSize?: number) => void
+  fetchAll: () => Promise<void>
+  fetchSequences: () => Promise<void>
+  send: (recordId: number) => Promise<void>
+  sendBatch: () => Promise<{ sent: number; failed: number }>
+  markReplied: (outreachId: number) => Promise<void>
+  markBounced: (outreachId: number) => Promise<void>
+  scheduleSeq: (input: unknown, businessName: string) => Promise<void>
+  exportCsv: () => Promise<string | null>
 }
 
 export const useOutreachStore = create<OutreachState>((set, get) => ({
-  records:   [],
+  records: [],
   sequences: [],
-  sending:   false,
+  page: 1,
+  pageSize: 50,
+  total: 0,
+  sending: false,
+
+  setPagination: (page, pageSize) => {
+    set({ page, pageSize: pageSize || get().pageSize })
+    get().fetchSequences() // Sequences table is the main one right now
+  },
 
   fetchAll: async () => {
-    const records = await window.api.outreach.getAll()
-    set({ records })
+    const { data, total } = await window.api.outreach.getAll(undefined, { page: get().page, pageSize: get().pageSize })
+    set({ records: data, total })
   },
 
   fetchSequences: async () => {
-    const sequences = await window.api.outreach.getSequences()
-    set({ sequences })
+    const { data, total } = await window.api.outreach.getSequences({ page: get().page, pageSize: get().pageSize })
+    set({ sequences: data, total })
   },
 
   send: async (recordId) => {
@@ -63,5 +75,5 @@ export const useOutreachStore = create<OutreachState>((set, get) => ({
     await get().fetchSequences()
   },
 
-  exportCsv: () => window.api.outreach.exportCsv(),
+  exportCsv: () => window.api.outreach.exportCsv()
 }))

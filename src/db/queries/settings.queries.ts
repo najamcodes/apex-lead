@@ -9,7 +9,7 @@ const DEFAULTS: AppSettings = {
   proxy_url: '',
   proxy_username: '',
   proxy_password: '',
-  claude_api_key: '',           // legacy — not used, OpenRouter replaces this
+  claude_api_key: '', // legacy — not used, OpenRouter replaces this
   pagespeed_api_key: '',
   scrape_delay_ms: 1500,
   max_results_per_run: 100,
@@ -31,12 +31,15 @@ const DEFAULTS: AppSettings = {
   email_finder_enabled: false,
   auto_send_enabled: false,
   auto_send_cron: '0 * * * *',
-  theme: 'dark',
+  theme: 'dark'
 }
 
 export function getSettings(): AppSettings {
   const db = getDb()
-  const rows = db.prepare('SELECT key, value FROM settings').all() as { key: string; value: string }[]
+  const rows = db.prepare('SELECT key, value FROM settings').all() as {
+    key: string
+    value: string
+  }[]
   const stored: Record<string, string> = {}
   for (const row of rows) stored[row.key] = row.value
 
@@ -51,7 +54,7 @@ export function getSettings(): AppSettings {
         if (!isNaN(n) && v !== '') return [k, n]
         return [k, v]
       })
-    ),
+    )
   } as AppSettings
 }
 

@@ -9,7 +9,7 @@ function extractDomain(url: string | null): string | null {
   if (!url) return null
   try {
     const parsed = new URL(url.startsWith('http') ? url : `http://${url}`)
-    let domain = parsed.hostname.replace('www.', '')
+    const domain = parsed.hostname.replace('www.', '')
     return domain
   } catch {
     return null
@@ -20,9 +20,11 @@ export async function findEmailForLead(leadId: number): Promise<string | null> {
   const settings = getSettings()
   if (!settings.email_finder_enabled) return null
 
-  const lead = getDb().prepare('SELECT website_url, email FROM leads WHERE id = ?').get(leadId) as any
+  const lead = getDb()
+    .prepare('SELECT website_url, email FROM leads WHERE id = ?')
+    .get(leadId) as any
   if (!lead) return null
-  
+
   // Skip if we already have an email
   if (lead.email) return lead.email
 
@@ -39,7 +41,9 @@ export async function findEmailForLead(leadId: number): Promise<string | null> {
 
   // 3. Save if found
   if (foundEmail) {
-    getDb().prepare('UPDATE leads SET email = ?, updated_at = datetime("now") WHERE id = ?').run(foundEmail, leadId)
+    getDb()
+      .prepare('UPDATE leads SET email = ?, updated_at = datetime("now") WHERE id = ?')
+      .run(foundEmail, leadId)
     logActivity(leadId, 'email_found', `Found: ${foundEmail}`)
   }
 

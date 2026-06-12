@@ -9,16 +9,18 @@ import { useLeadsStore } from '../../store/leads.store'
 import type { Lead, LeadStatus } from '../../types'
 
 const COLUMNS: { id: LeadStatus; title: string; accent: string }[] = [
-  { id: 'qualified', title: 'To Review',  accent: 'bg-blue-400' },
-  { id: 'approved',  title: 'Approved',   accent: 'bg-emerald-400' },
-  { id: 'skipped',   title: 'Skipped',    accent: 'bg-zinc-500' },
+  { id: 'qualified', title: 'To Review', accent: 'bg-blue-400' },
+  { id: 'approved', title: 'Approved', accent: 'bg-emerald-400' },
+  { id: 'skipped', title: 'Skipped', accent: 'bg-zinc-500' }
 ]
 
 export function Review() {
   const { leads, fetchLeads, setFilters, updateStatus } = useLeadsStore()
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [analyzing, setAnalyzing] = useState(false)
-  const [analyzeProgress, setAnalyzeProgress] = useState<{ done: number; total: number } | null>(null)
+  const [analyzeProgress, setAnalyzeProgress] = useState<{ done: number; total: number } | null>(
+    null
+  )
 
   useEffect(() => {
     setFilters({ status: 'all' })
@@ -38,16 +40,18 @@ export function Review() {
   }, [])
 
   // Group leads by status for Kanban columns
-  const columnLeads = (status: LeadStatus) =>
-    leads.filter((l) => l.status === status)
+  const columnLeads = (status: LeadStatus) => leads.filter((l) => l.status === status)
 
   // Handle drag end — update status based on destination column
-  const onDragEnd = useCallback(async (result: DropResult) => {
-    if (!result.destination) return
-    const newStatus = result.destination.droppableId as LeadStatus
-    const leadId = parseInt(result.draggableId)
-    await updateStatus(leadId, newStatus)
-  }, [updateStatus])
+  const onDragEnd = useCallback(
+    async (result: DropResult) => {
+      if (!result.destination) return
+      const newStatus = result.destination.droppableId as LeadStatus
+      const leadId = parseInt(result.draggableId)
+      await updateStatus(leadId, newStatus)
+    },
+    [updateStatus]
+  )
 
   // Run analysis on all scraped/qualified leads that haven't been scored yet
   const handleRunAnalysis = async () => {
@@ -67,9 +71,7 @@ export function Review() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-lg font-semibold text-zinc-100">Review</h2>
-          <p className="text-sm text-zinc-500 mt-0.5">
-            Drag leads to approve or skip
-          </p>
+          <p className="text-sm text-zinc-500 mt-0.5">Drag leads to approve or skip</p>
         </div>
         <div className="flex items-center gap-3">
           {analyzeProgress && (
@@ -78,20 +80,11 @@ export function Review() {
               {analyzeProgress.done}/{analyzeProgress.total} analyzed
             </div>
           )}
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => fetchLeads()}
-          >
+          <Button variant="secondary" size="sm" onClick={() => fetchLeads()}>
             <RefreshCw className="w-3.5 h-3.5" />
             Refresh
           </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            loading={analyzing}
-            onClick={handleRunAnalysis}
-          >
+          <Button variant="primary" size="sm" loading={analyzing} onClick={handleRunAnalysis}>
             <Zap className="w-3.5 h-3.5" />
             Analyze unscored
           </Button>
@@ -115,10 +108,7 @@ export function Review() {
       </DragDropContext>
 
       {/* Lead detail drawer */}
-      <LeadDrawer
-        lead={selectedLead}
-        onClose={() => setSelectedLead(null)}
-      />
+      <LeadDrawer lead={selectedLead} onClose={() => setSelectedLead(null)} />
     </div>
   )
 }

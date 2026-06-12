@@ -14,7 +14,7 @@ export interface CompletionOptions {
   messages: ChatMessage[]
   max_tokens?: number
   temperature?: number
-  response_format?: { type: 'json_object' }  // force JSON output
+  response_format?: { type: 'json_object' } // force JSON output
 }
 
 export interface CompletionResult {
@@ -40,18 +40,18 @@ export class OpenRouterClient {
       const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://leadhunter.app',   // identifies your app in OpenRouter dashboard
-          'X-Title': 'LeadHunter',
+          'HTTP-Referer': 'https://leadhunter.app', // identifies your app in OpenRouter dashboard
+          'X-Title': 'LeadHunter'
         },
         body: JSON.stringify({
           model: options.model,
           messages: options.messages,
           max_tokens: options.max_tokens ?? 1024,
           temperature: options.temperature ?? 0.3,
-          ...(options.response_format && { response_format: options.response_format }),
-        }),
+          ...(options.response_format && { response_format: options.response_format })
+        })
       })
 
       if (!response.ok) {
@@ -64,7 +64,7 @@ export class OpenRouterClient {
         if (response.status === 503) {
           throw new Error('Model unavailable, try switching to backup model')
         }
-        
+
         // Handle retries for 429 and 500
         if (retries > 0 && (response.status === 429 || response.status === 500)) {
           await new Promise((r) => setTimeout(r, response.status === 429 ? 2000 : 1000))
@@ -85,15 +85,15 @@ export class OpenRouterClient {
         content: choice.message?.content ?? '',
         model: data.model ?? options.model,
         input_tokens: data.usage?.prompt_tokens ?? 0,
-        output_tokens: data.usage?.completion_tokens ?? 0,
+        output_tokens: data.usage?.completion_tokens ?? 0
       }
     } catch (err: any) {
       if (err.message && err.message.includes('fetch')) {
-         // It might be a network error, treat it like a 500 for retry
-         if (retries > 0) {
-            await new Promise((r) => setTimeout(r, 1000))
-            return this.complete(options, retries - 1)
-         }
+        // It might be a network error, treat it like a 500 for retry
+        if (retries > 0) {
+          await new Promise((r) => setTimeout(r, 1000))
+          return this.complete(options, retries - 1)
+        }
       }
       throw err
     }
@@ -103,7 +103,7 @@ export class OpenRouterClient {
   async completeJson<T>(options: Omit<CompletionOptions, 'response_format'>): Promise<T> {
     const result = await this.complete({
       ...options,
-      response_format: { type: 'json_object' },
+      response_format: { type: 'json_object' }
     })
 
     try {

@@ -8,7 +8,9 @@ import { ApiKeySettings } from './ApiKeySettings'
 export function Settings() {
   const { settings, loaded, saving, load, save } = useSettingsStore()
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    load()
+  }, [])
   if (!loaded || !settings) return null
 
   return (
@@ -44,7 +46,9 @@ export function Settings() {
               onChange={(e) => save({ proxy_enabled: e.target.checked })}
               className="rounded border-zinc-600 bg-zinc-800 text-emerald-500"
             />
-            <label htmlFor="proxy_enabled" className="text-sm text-zinc-400">Enable proxy</label>
+            <label htmlFor="proxy_enabled" className="text-sm text-zinc-400">
+              Enable proxy
+            </label>
           </div>
           <Input
             label="Proxy URL"
@@ -108,7 +112,9 @@ export function Settings() {
                 onChange={(e) => save({ email_finder_enabled: e.target.checked })}
                 className="rounded border-zinc-600 bg-zinc-800 text-emerald-500"
               />
-              <label htmlFor="email_finder_enabled" className="text-sm text-zinc-400">Enable Email Finder (Hunter.io + pattern guessing)</label>
+              <label htmlFor="email_finder_enabled" className="text-sm text-zinc-400">
+                Enable Email Finder (Hunter.io + pattern guessing)
+              </label>
             </div>
             <Input
               label="Hunter.io API Key"
@@ -128,7 +134,9 @@ export function Settings() {
                 onChange={(e) => save({ auto_send_enabled: e.target.checked })}
                 className="rounded border-zinc-600 bg-zinc-800 text-emerald-500"
               />
-              <label htmlFor="auto_send_enabled" className="text-sm text-zinc-400">Enable Auto-Scheduler (send queued emails in background)</label>
+              <label htmlFor="auto_send_enabled" className="text-sm text-zinc-400">
+                Enable Auto-Scheduler (send queued emails in background)
+              </label>
             </div>
             <Input
               label="Cron Expression (When to run the scheduler)"
@@ -136,7 +144,9 @@ export function Settings() {
               defaultValue={settings.auto_send_cron}
               onBlur={(e) => save({ auto_send_cron: e.target.value })}
             />
-            <p className="text-xs text-zinc-500">Requires app restart to apply changes to cron schedule.</p>
+            <p className="text-xs text-zinc-500">
+              Requires app restart to apply changes to cron schedule.
+            </p>
           </div>
         </div>
       </Card>
@@ -145,35 +155,60 @@ export function Settings() {
         <h3 className="text-sm font-medium text-zinc-300 mb-4">SMTP (email sending)</h3>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <Input label="SMTP Host" placeholder="smtp.gmail.com"
+            <Input
+              label="SMTP Host"
+              placeholder="smtp.gmail.com"
               defaultValue={settings.smtp_host}
-              onBlur={(e) => save({ smtp_host: e.target.value })} />
-            <Input label="Port" type="number" placeholder="587"
+              onBlur={(e) => save({ smtp_host: e.target.value })}
+            />
+            <Input
+              label="Port"
+              type="number"
+              placeholder="587"
               defaultValue={settings.smtp_port}
-              onBlur={(e) => save({ smtp_port: parseInt(e.target.value) })} />
+              onBlur={(e) => save({ smtp_port: parseInt(e.target.value) })}
+            />
           </div>
           <div className="flex items-center gap-2 mb-2">
-            <input type="checkbox" id="smtp_secure"
+            <input
+              type="checkbox"
+              id="smtp_secure"
               defaultChecked={settings.smtp_secure}
               onChange={(e) => save({ smtp_secure: e.target.checked })}
-              className="rounded border-zinc-600 bg-zinc-800 text-emerald-500" />
-            <label htmlFor="smtp_secure" className="text-sm text-zinc-400">Secure (SSL/TLS - Port 465)</label>
+              className="rounded border-zinc-600 bg-zinc-800 text-emerald-500"
+            />
+            <label htmlFor="smtp_secure" className="text-sm text-zinc-400">
+              Secure (SSL/TLS - Port 465)
+            </label>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Input label="Username" placeholder="you@gmail.com"
+            <Input
+              label="Username"
+              placeholder="you@gmail.com"
               defaultValue={settings.smtp_username}
-              onBlur={(e) => save({ smtp_username: e.target.value })} />
-            <Input label="Password" type="password" placeholder="App password"
+              onBlur={(e) => save({ smtp_username: e.target.value })}
+            />
+            <Input
+              label="Password"
+              type="password"
+              placeholder="App password"
               defaultValue={settings.smtp_password}
-              onBlur={(e) => save({ smtp_password: e.target.value })} />
+              onBlur={(e) => save({ smtp_password: e.target.value })}
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Input label="From Name" placeholder="John Doe"
+            <Input
+              label="From Name"
+              placeholder="John Doe"
               defaultValue={settings.smtp_from_name}
-              onBlur={(e) => save({ smtp_from_name: e.target.value })} />
-            <Input label="From Email" placeholder="john@example.com"
+              onBlur={(e) => save({ smtp_from_name: e.target.value })}
+            />
+            <Input
+              label="From Email"
+              placeholder="john@example.com"
               defaultValue={settings.smtp_from_email}
-              onBlur={(e) => save({ smtp_from_email: e.target.value })} />
+              onBlur={(e) => save({ smtp_from_email: e.target.value })}
+            />
           </div>
           <button
             className="mt-2 text-xs text-blue-400 hover:underline"
@@ -188,9 +223,7 @@ export function Settings() {
         </div>
       </Card>
 
-      {saving && (
-        <p className="text-xs text-emerald-400">Saving…</p>
-      )}
+      {saving && <p className="text-xs text-emerald-400">Saving…</p>}
     </div>
   )
 }

@@ -16,7 +16,7 @@ export interface ActivityRecord {
   id: number
   lead_id: number
   event: ActivityEvent
-  detail: string | null      // e.g. "PageSpeed: 34/100", "Step 2 sent"
+  detail: string | null // e.g. "PageSpeed: 34/100", "Step 2 sent"
   created_at: string
 }
 

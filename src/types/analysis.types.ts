@@ -1,12 +1,12 @@
 // src/types/analysis.types.ts
 
 export interface PageSpeedResult {
-  mobile_score: number        // 0–100
-  desktop_score: number       // 0–100
-  fcp_ms: number | null       // First Contentful Paint
-  lcp_ms: number | null       // Largest Contentful Paint
-  cls: number | null          // Cumulative Layout Shift
-  tbt_ms: number | null       // Total Blocking Time
+  mobile_score: number // 0–100
+  desktop_score: number // 0–100
+  fcp_ms: number | null // First Contentful Paint
+  lcp_ms: number | null // Largest Contentful Paint
+  cls: number | null // Cumulative Layout Shift
+  tbt_ms: number | null // Total Blocking Time
   fetched_at: string
 }
 
@@ -25,7 +25,7 @@ export interface DetectedTech {
 export interface SslResult {
   ssl_valid: boolean
   redirects_to_https: boolean
-  last_modified: string | null   // from HTTP header
+  last_modified: string | null // from HTTP header
   status_code: number | null
   is_reachable: boolean
 }

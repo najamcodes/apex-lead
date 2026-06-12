@@ -16,10 +16,20 @@ export function PipelineChart() {
       <h3 className="text-sm font-medium text-zinc-300 mb-4">Pipeline funnel</h3>
       <ResponsiveContainer width="100%" height={180}>
         <BarChart data={data} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-          <XAxis dataKey="stage" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
+          <XAxis
+            dataKey="stage"
+            tick={{ fill: '#71717a', fontSize: 11 }}
+            axisLine={false}
+            tickLine={false}
+          />
           <YAxis tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
           <Tooltip
-            contentStyle={{ background: '#18181b', border: '1px solid #3f3f46', borderRadius: 8, fontSize: 12 }}
+            contentStyle={{
+              background: '#18181b',
+              border: '1px solid #3f3f46',
+              borderRadius: 8,
+              fontSize: 12
+            }}
             labelStyle={{ color: '#a1a1aa' }}
             cursor={{ fill: 'rgba(255,255,255,0.03)' }}
           />

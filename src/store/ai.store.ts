@@ -4,7 +4,7 @@ import type { SiteScoreResult, OutreachDraft, AiTaskProgress } from '../types/ai
 
 interface AiState {
   taskQueue: AiTaskProgress[]
-  siteScores: Record<number, SiteScoreResult>   // keyed by lead_id
+  siteScores: Record<number, SiteScoreResult> // keyed by lead_id
   outreachDrafts: Record<number, OutreachDraft> // keyed by lead_id
   // Actions
   scoreSite: (leadId: number) => Promise<void>
@@ -19,7 +19,7 @@ export const useAiStore = create<AiState>((set, get) => ({
 
   scoreSite: async (leadId) => {
     set((s) => ({
-      taskQueue: [...s.taskQueue, { lead_id: leadId, task: 'score_site', status: 'running' }],
+      taskQueue: [...s.taskQueue, { lead_id: leadId, task: 'score_site', status: 'running' }]
     }))
     try {
       const result = await window.api.ai.scoreSite(leadId)
@@ -27,7 +27,7 @@ export const useAiStore = create<AiState>((set, get) => ({
         siteScores: { ...s.siteScores, [leadId]: result },
         taskQueue: s.taskQueue.map((t) =>
           t.lead_id === leadId && t.task === 'score_site' ? { ...t, status: 'done' } : t
-        ),
+        )
       }))
     } catch (err) {
       set((s) => ({
@@ -35,14 +35,14 @@ export const useAiStore = create<AiState>((set, get) => ({
           t.lead_id === leadId && t.task === 'score_site'
             ? { ...t, status: 'error', error: String(err) }
             : t
-        ),
+        )
       }))
     }
   },
 
   draftEmail: async (leadId) => {
     set((s) => ({
-      taskQueue: [...s.taskQueue, { lead_id: leadId, task: 'draft_email', status: 'running' }],
+      taskQueue: [...s.taskQueue, { lead_id: leadId, task: 'draft_email', status: 'running' }]
     }))
     try {
       const result = await window.api.ai.draftEmail(leadId)
@@ -50,7 +50,7 @@ export const useAiStore = create<AiState>((set, get) => ({
         outreachDrafts: { ...s.outreachDrafts, [leadId]: result },
         taskQueue: s.taskQueue.map((t) =>
           t.lead_id === leadId && t.task === 'draft_email' ? { ...t, status: 'done' } : t
-        ),
+        )
       }))
     } catch (err) {
       set((s) => ({
@@ -58,7 +58,7 @@ export const useAiStore = create<AiState>((set, get) => ({
           t.lead_id === leadId && t.task === 'draft_email'
             ? { ...t, status: 'error', error: String(err) }
             : t
-        ),
+        )
       }))
     }
   },
@@ -69,5 +69,5 @@ export const useAiStore = create<AiState>((set, get) => ({
       await get().scoreSite(id)
       await new Promise((r) => setTimeout(r, 500)) // 500ms between calls
     }
-  },
+  }
 }))

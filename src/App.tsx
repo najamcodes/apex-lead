@@ -13,20 +13,36 @@ import { useNavigate } from 'react-router-dom'
 
 function KeyboardShortcuts() {
   const navigate = useNavigate()
-  
+
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
       // Don't trigger shortcuts if typing in inputs
-      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return
+      if (
+        document.activeElement?.tagName === 'INPUT' ||
+        document.activeElement?.tagName === 'TEXTAREA'
+      )
+        return
 
       if (e.ctrlKey || e.metaKey) {
         switch (e.key) {
-          case '1': navigate('/dashboard'); break
-          case '2': navigate('/leads'); break
-          case '3': navigate('/scraper'); break
-          case '4': navigate('/review'); break
-          case '5': navigate('/outreach'); break
-          case ',': navigate('/settings'); break
+          case '1':
+            navigate('/dashboard')
+            break
+          case '2':
+            navigate('/leads')
+            break
+          case '3':
+            navigate('/scraper')
+            break
+          case '4':
+            navigate('/review')
+            break
+          case '5':
+            navigate('/outreach')
+            break
+          case ',':
+            navigate('/settings')
+            break
         }
       }
     }

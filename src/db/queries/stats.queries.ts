@@ -4,7 +4,9 @@ import type { DashboardStats } from '../../types'
 
 export function getDashboardStats(): DashboardStats {
   const db = getDb()
-  const row = db.prepare(`
+  const row = db
+    .prepare(
+      `
     SELECT
       COUNT(*) AS total_leads,
       SUM(CASE WHEN website_status = 'none' THEN 1 ELSE 0 END) AS no_website,
@@ -14,7 +16,9 @@ export function getDashboardStats(): DashboardStats {
       SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) AS closed,
       SUM(CASE WHEN scraped_at >= datetime('now', '-7 days') THEN 1 ELSE 0 END) AS this_week
     FROM leads
-  `).get() as DashboardStats
+  `
+    )
+    .get() as DashboardStats
 
   // Provide defaults in case everything is null (empty table)
   return {
@@ -29,7 +33,7 @@ export function getDashboardStats(): DashboardStats {
 }
 
 export interface ChartDataPoint {
-  date: string      // YYYY-MM-DD
+  date: string // YYYY-MM-DD
   scraped: number
   analyzed: number
   approved: number
@@ -38,7 +42,9 @@ export interface ChartDataPoint {
 
 export function getChartData(days = 14): ChartDataPoint[] {
   const db = getDb()
-  const rows = db.prepare(`
+  const rows = db
+    .prepare(
+      `
     WITH RECURSIVE dates(d) AS (
       SELECT date('now', '-${days - 1} days')
       UNION ALL
@@ -54,7 +60,9 @@ export function getChartData(days = 14): ChartDataPoint[] {
     LEFT JOIN leads l ON date(l.scraped_at) = d
     GROUP BY d
     ORDER BY d ASC
-  `).all() as ChartDataPoint[]
+  `
+    )
+    .all() as ChartDataPoint[]
   return rows
 }
 
@@ -66,7 +74,9 @@ export interface FunnelDataPoint {
 
 export function getFunnelData(): FunnelDataPoint[] {
   const db = getDb()
-  const counts = db.prepare(`
+  const counts = db
+    .prepare(
+      `
     SELECT
       COUNT(*) AS total,
       SUM(CASE WHEN status IN ('scraped', 'qualified') THEN 1 ELSE 0 END) AS scraped,
@@ -76,14 +86,16 @@ export function getFunnelData(): FunnelDataPoint[] {
       SUM(CASE WHEN status = 'replied' THEN 1 ELSE 0 END) AS replied,
       SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) AS closed
     FROM leads
-  `).get() as any
+  `
+    )
+    .get() as any
 
   return [
-    { stage: 'Scraped',   count: counts.scraped   ?? 0, color: '#3f3f46' },
-    { stage: 'Analyzed',  count: counts.analyzed  ?? 0, color: '#1d4ed8' },
-    { stage: 'Approved',  count: counts.approved  ?? 0, color: '#059669' },
-    { stage: 'Outreach',  count: counts.outreach  ?? 0, color: '#7c3aed' },
-    { stage: 'Replied',   count: counts.replied   ?? 0, color: '#0891b2' },
-    { stage: 'Closed',    count: counts.closed    ?? 0, color: '#16a34a' },
+    { stage: 'Scraped', count: counts.scraped ?? 0, color: '#3f3f46' },
+    { stage: 'Analyzed', count: counts.analyzed ?? 0, color: '#1d4ed8' },
+    { stage: 'Approved', count: counts.approved ?? 0, color: '#059669' },
+    { stage: 'Outreach', count: counts.outreach ?? 0, color: '#7c3aed' },
+    { stage: 'Replied', count: counts.replied ?? 0, color: '#0891b2' },
+    { stage: 'Closed', count: counts.closed ?? 0, color: '#16a34a' }
   ]
 }

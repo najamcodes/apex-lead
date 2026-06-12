@@ -30,12 +30,22 @@ export function Dashboard() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Total Leads"    value={stats.total_leads}       icon={Users}         />
-        <StatCard label="No Website"     value={stats.no_website}        icon={Globe}         accent="text-red-400" />
-        <StatCard label="Outdated Site"  value={stats.outdated_website}  icon={AlertTriangle} accent="text-amber-400" />
-        <StatCard label="In Review"      value={stats.in_review}         icon={Clock}         accent="text-blue-400" />
-        <StatCard label="Approved"       value={stats.approved}          icon={CheckCircle}   accent="text-emerald-400" />
-        <StatCard label="Closed"         value={stats.closed}            icon={DollarSign}    accent="text-green-400" />
+        <StatCard label="Total Leads" value={stats.total_leads} icon={Users} />
+        <StatCard label="No Website" value={stats.no_website} icon={Globe} accent="text-red-400" />
+        <StatCard
+          label="Outdated Site"
+          value={stats.outdated_website}
+          icon={AlertTriangle}
+          accent="text-amber-400"
+        />
+        <StatCard label="In Review" value={stats.in_review} icon={Clock} accent="text-blue-400" />
+        <StatCard
+          label="Approved"
+          value={stats.approved}
+          icon={CheckCircle}
+          accent="text-emerald-400"
+        />
+        <StatCard label="Closed" value={stats.closed} icon={DollarSign} accent="text-green-400" />
       </div>
 
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 font-sans">

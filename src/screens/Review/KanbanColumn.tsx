@@ -37,12 +37,7 @@ export function KanbanColumn({ id, title, leads, accent, onCardClick }: KanbanCo
             `}
           >
             {leads.map((lead, index) => (
-              <LeadCard
-                key={lead.id}
-                lead={lead}
-                index={index}
-                onClick={onCardClick}
-              />
+              <LeadCard key={lead.id} lead={lead} index={index} onClick={onCardClick} />
             ))}
             {provided.placeholder}
             {leads.length === 0 && !snapshot.isDraggingOver && (

@@ -8,14 +8,14 @@ let _config: SmtpConfig | null = null
 export function configureSmtp(config: SmtpConfig): void {
   _config = config
   _transporter = nodemailer.createTransport({
-    host:   config.host,
-    port:   config.port,
+    host: config.host,
+    port: config.port,
     secure: config.secure,
     auth: {
       user: config.username,
-      pass: config.password,
+      pass: config.password
     },
-    tls: { rejectUnauthorized: false },  // allow self-signed certs
+    tls: { rejectUnauthorized: false } // allow self-signed certs
   })
 }
 
@@ -40,10 +40,10 @@ export async function sendEmail(
 
   try {
     const info = await _transporter.sendMail({
-      from:    `"${_config.from_name}" <${_config.from_email}>`,
+      from: `"${_config.from_name}" <${_config.from_email}>`,
       to,
       subject,
-      text:    bodyText,
+      text: bodyText
       // Plain text only — avoids spam filters better than HTML for cold outreach
     })
     return { success: true, message_id: info.messageId ?? null, error: null }

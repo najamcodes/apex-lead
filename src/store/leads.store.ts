@@ -5,6 +5,7 @@ import type { Lead, LeadFilters, LeadStatus } from '../types'
 interface LeadsState {
   leads: Lead[]
   filters: LeadFilters
+  total: number
   loading: boolean
   error: string | null
   // Actions
@@ -16,22 +17,31 @@ interface LeadsState {
 
 export const useLeadsStore = create<LeadsState>((set, get) => ({
   leads: [],
-  filters: { status: 'all', website_status: 'all' },
+  filters: { status: 'all', website_status: 'all', page: 1, pageSize: 50 },
+  total: 0,
   loading: false,
   error: null,
 
   fetchLeads: async () => {
     set({ loading: true, error: null })
     try {
-      const leads = await window.api.leads.getAll(get().filters)
-      set({ leads, loading: false })
+      const { data, total } = await window.api.leads.getAll(get().filters)
+      set({ leads: data, total, loading: false })
     } catch (err) {
       set({ error: String(err), loading: false })
     }
   },
 
   setFilters: (filters) => {
-    set({ filters })
+    // If setting filters that aren't page/pageSize, reset to page 1
+    const isPaginationOnly = Object.keys(filters).every(k => k === 'page' || k === 'pageSize');
+    set({ 
+      filters: { 
+        ...get().filters, 
+        ...filters,
+        page: isPaginationOnly ? filters.page || get().filters.page : 1
+      } 
+    })
     get().fetchLeads()
   },
 
@@ -43,5 +53,5 @@ export const useLeadsStore = create<LeadsState>((set, get) => ({
   deleteLead: async (id) => {
     await window.api.leads.delete(id)
     await get().fetchLeads()
-  },
+  }
 }))

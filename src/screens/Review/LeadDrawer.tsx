@@ -22,7 +22,11 @@ function CopyButton({ text }: { text: string }) {
   }
   return (
     <button onClick={copy} className="text-zinc-500 hover:text-zinc-300 transition-colors p-1">
-      {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+      {copied ? (
+        <Check className="w-3.5 h-3.5 text-emerald-400" />
+      ) : (
+        <Copy className="w-3.5 h-3.5" />
+      )}
     </button>
   )
 }
@@ -71,10 +75,7 @@ export function LeadDrawer({ lead, onClose }: LeadDrawerProps) {
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 z-40 transition-opacity"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/50 z-40 transition-opacity" onClick={onClose} />
 
       {/* Drawer */}
       <div className="fixed right-0 top-0 h-full w-[480px] bg-zinc-950 border-l border-zinc-800 z-50 overflow-y-auto">
@@ -82,9 +83,14 @@ export function LeadDrawer({ lead, onClose }: LeadDrawerProps) {
         <div className="sticky top-0 bg-zinc-950 border-b border-zinc-800 px-6 py-4 flex items-start justify-between">
           <div>
             <h2 className="text-base font-semibold text-zinc-100">{lead.business_name}</h2>
-            <p className="text-sm text-zinc-500">{lead.category} · {lead.city}</p>
+            <p className="text-sm text-zinc-500">
+              {lead.category} · {lead.city}
+            </p>
           </div>
-          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 transition-colors mt-0.5">
+          <button
+            onClick={onClose}
+            className="text-zinc-500 hover:text-zinc-300 transition-colors mt-0.5"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -103,8 +109,12 @@ export function LeadDrawer({ lead, onClose }: LeadDrawerProps) {
               {lead.website_url && (
                 <div className="flex items-center gap-2 text-sm text-zinc-300">
                   <Globe className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
-                  <a href={lead.website_url} target="_blank" rel="noreferrer"
-                    className="hover:text-emerald-400 transition-colors truncate">
+                  <a
+                    href={lead.website_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:text-emerald-400 transition-colors truncate"
+                  >
                     {lead.website_url}
                   </a>
                 </div>
@@ -118,7 +128,9 @@ export function LeadDrawer({ lead, onClose }: LeadDrawerProps) {
               {lead.city && (
                 <div className="flex items-center gap-2 text-sm text-zinc-300">
                   <MapPin className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
-                  <span>{lead.city}, {lead.country}</span>
+                  <span>
+                    {lead.city}, {lead.country}
+                  </span>
                 </div>
               )}
             </div>
@@ -126,7 +138,9 @@ export function LeadDrawer({ lead, onClose }: LeadDrawerProps) {
 
           {/* Site analysis */}
           <div className="space-y-3">
-            <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Site analysis</h3>
+            <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+              Site analysis
+            </h3>
 
             <div className="grid grid-cols-3 gap-2">
               <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-center">
@@ -142,16 +156,16 @@ export function LeadDrawer({ lead, onClose }: LeadDrawerProps) {
                 <p className="text-xs text-zinc-500 mt-0.5">Desktop</p>
               </div>
               <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-center">
-                <p className="text-xl font-semibold text-zinc-100">
-                  {lead.ai_site_score ?? '—'}
-                </p>
+                <p className="text-xl font-semibold text-zinc-100">{lead.ai_site_score ?? '—'}</p>
                 <p className="text-xs text-zinc-500 mt-0.5">AI score</p>
               </div>
             </div>
 
             {lead.ssl_valid !== null && (
               <div className="flex items-center gap-2 text-sm">
-                <Shield className={`w-3.5 h-3.5 ${lead.ssl_valid ? 'text-emerald-400' : 'text-red-400'}`} />
+                <Shield
+                  className={`w-3.5 h-3.5 ${lead.ssl_valid ? 'text-emerald-400' : 'text-red-400'}`}
+                />
                 <span className={lead.ssl_valid ? 'text-zinc-300' : 'text-red-400'}>
                   {lead.ssl_valid ? 'SSL valid' : 'No SSL certificate'}
                 </span>
@@ -182,12 +196,7 @@ export function LeadDrawer({ lead, onClose }: LeadDrawerProps) {
               className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-sm text-zinc-300 min-h-[100px] focus:outline-none focus:border-primary/50 resize-y"
             />
             <div className="flex justify-end">
-              <Button
-                variant="secondary"
-                size="sm"
-                loading={savingNote}
-                onClick={handleSaveNote}
-              >
+              <Button variant="secondary" size="sm" loading={savingNote} onClick={handleSaveNote}>
                 Save Note
               </Button>
             </div>
@@ -196,7 +205,9 @@ export function LeadDrawer({ lead, onClose }: LeadDrawerProps) {
           {/* Outreach draft */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Outreach</h3>
+              <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                Outreach
+              </h3>
               <Button
                 variant="ghost"
                 size="sm"
@@ -249,7 +260,9 @@ export function LeadDrawer({ lead, onClose }: LeadDrawerProps) {
 
           {/* Activity Log */}
           <div className="space-y-3">
-            <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Activity Log</h3>
+            <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+              Activity Log
+            </h3>
             <div className="space-y-4">
               {activities.length === 0 && (
                 <p className="text-sm text-zinc-500">No activity recorded yet.</p>
@@ -263,9 +276,7 @@ export function LeadDrawer({ lead, onClose }: LeadDrawerProps) {
                   <p className="text-sm font-medium text-zinc-300 capitalize">
                     {act.event.replace(/_/g, ' ')}
                   </p>
-                  {act.detail && (
-                    <p className="text-sm text-zinc-400 mt-1">{act.detail}</p>
-                  )}
+                  {act.detail && <p className="text-sm text-zinc-400 mt-1">{act.detail}</p>}
                 </div>
               ))}
             </div>

@@ -15,7 +15,7 @@ export const useAppStore = create<AppState>()(
       sidebarCollapsed: false,
       activeRoute: '/dashboard',
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
-      setActiveRoute: (route) => set({ activeRoute: route }),
+      setActiveRoute: (route) => set({ activeRoute: route })
     }),
     { name: 'leadhunter-app-state' }
   )

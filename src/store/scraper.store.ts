@@ -4,25 +4,38 @@ import type { ScrapeJob, ScrapeJobConfig, ScrapeProgressEvent } from '../types/s
 
 interface ScraperState {
   jobs: ScrapeJob[]
+  page: number
+  pageSize: number
+  total: number
   activeJobId: string | null
   progress: ScrapeProgressEvent | null
   loading: boolean
   // Actions
+  setPagination: (page: number, pageSize?: number) => void
   fetchJobs: () => Promise<void>
   startJob: (config: ScrapeJobConfig) => Promise<void>
   cancelJob: (jobId: string) => Promise<void>
+  deleteJob: (jobId: string) => Promise<void>
   setProgress: (event: ScrapeProgressEvent) => void
 }
 
 export const useScraperStore = create<ScraperState>((set, get) => ({
   jobs: [],
+  page: 1,
+  pageSize: 50,
+  total: 0,
   activeJobId: null,
   progress: null,
   loading: false,
 
+  setPagination: (page, pageSize) => {
+    set({ page, pageSize: pageSize || get().pageSize })
+    get().fetchJobs()
+  },
+
   fetchJobs: async () => {
-    const jobs = await window.api.scraper.getJobs()
-    set({ jobs })
+    const { data, total } = await window.api.scraper.getJobs({ page: get().page, pageSize: get().pageSize })
+    set({ jobs: data, total })
   },
 
   startJob: async (config) => {
@@ -38,11 +51,16 @@ export const useScraperStore = create<ScraperState>((set, get) => ({
     await get().fetchJobs()
   },
 
+  deleteJob: async (jobId) => {
+    await window.api.scraper.delete(jobId)
+    await get().fetchJobs()
+  },
+
   setProgress: (event) => {
     set({ progress: event })
     if (event.status === 'completed' || event.status === 'failed' || event.status === 'cancelled') {
       set({ activeJobId: null })
       get().fetchJobs()
     }
-  },
+  }
 }))

@@ -14,27 +14,38 @@ function escapeCsv(value: unknown): string {
 }
 
 const CSV_HEADERS: (keyof Lead)[] = [
-  'id', 'business_name', 'category', 'city', 'country',
-  'phone', 'email', 'website_url', 'website_status',
-  'pagespeed_mobile', 'pagespeed_desktop', 'ssl_valid',
-  'site_built_year', 'ai_site_score', 'ai_site_summary',
-  'status', 'source', 'scraped_at',
+  'id',
+  'business_name',
+  'category',
+  'city',
+  'country',
+  'phone',
+  'email',
+  'website_url',
+  'website_status',
+  'pagespeed_mobile',
+  'pagespeed_desktop',
+  'ssl_valid',
+  'site_built_year',
+  'ai_site_score',
+  'ai_site_summary',
+  'status',
+  'source',
+  'scraped_at'
 ]
 
 export async function exportLeadsToCsv(): Promise<string | null> {
   const { filePath, canceled } = await dialog.showSaveDialog({
     title: 'Export Leads',
     defaultPath: `leadhunter-export-${new Date().toISOString().slice(0, 10)}.csv`,
-    filters: [{ name: 'CSV Files', extensions: ['csv'] }],
+    filters: [{ name: 'CSV Files', extensions: ['csv'] }]
   })
 
   if (canceled || !filePath) return null
 
-  const leads = getAllLeads()
+  const { data: leads } = getAllLeads({ page: 1, pageSize: 1000000 })
   const header = CSV_HEADERS.join(',')
-  const rows = leads.map((lead) =>
-    CSV_HEADERS.map((col) => escapeCsv(lead[col])).join(',')
-  )
+  const rows = leads.map((lead) => CSV_HEADERS.map((col) => escapeCsv(lead[col])).join(','))
 
   const csv = [header, ...rows].join('\n')
   fs.writeFileSync(filePath, csv, 'utf8')

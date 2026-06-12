@@ -5,7 +5,11 @@ import { analyzeBatch } from '../analysis'
 import { scoreSite } from '../ai/tasks/score-site'
 import { getSettings } from '../../src/db/queries/settings.queries'
 import { getDb } from '../../src/db'
-import { logActivity, getActivityByLead, getRecentActivity } from '../../src/db/queries/activity.queries'
+import {
+  logActivity,
+  getActivityByLead,
+  getRecentActivity
+} from '../../src/db/queries/activity.queries'
 import { getNoteByLead, saveNote } from '../../src/db/queries/notes.queries'
 import { runEmailFinderBatch, findEmailForLead } from '../email-finder'
 import { createSequenceForLead } from '../outreach'
@@ -46,7 +50,7 @@ export function registerBulkIpcHandlers(): void {
   ipcMain.handle(IPC.SCHEDULER_STATUS, () => {
     return getSchedulerStatus()
   })
-  
+
   // BULK ACTIONS
   ipcMain.handle(IPC.BULK_ANALYZE, async (event, leadIds: number[]) => {
     await analyzeBatch(leadIds, (done, total, leadId) => {
@@ -61,7 +65,7 @@ export function registerBulkIpcHandlers(): void {
       try {
         await scoreSite(settings.openrouter_api_key, id, settings.ai_model_site_scoring)
         // 1 sec delay to avoid rate limits
-        await new Promise(r => setTimeout(r, 1000))
+        await new Promise((r) => setTimeout(r, 1000))
       } catch {
         // ignore
       }
@@ -73,7 +77,9 @@ export function registerBulkIpcHandlers(): void {
     for (const id of leadIds) {
       const current = db.prepare('SELECT status FROM leads WHERE id = ?').get(id) as any
       if (current?.status === 'review' || current?.status === 'qualified') {
-        db.prepare(`UPDATE leads SET status = 'approved', updated_at = datetime('now') WHERE id = ?`).run(id)
+        db.prepare(
+          `UPDATE leads SET status = 'approved', updated_at = datetime('now') WHERE id = ?`
+        ).run(id)
         logActivity(id, 'lead_approved', 'Bulk approved')
       }
     }
@@ -83,15 +89,18 @@ export function registerBulkIpcHandlers(): void {
     const db = getDb()
     for (const id of leadIds) {
       const lead = db.prepare('SELECT business_name, email FROM leads WHERE id = ?').get(id) as any
-      // In a real scenario we'd fetch the AI draft for this lead. 
+      // In a real scenario we'd fetch the AI draft for this lead.
       // For now, we stub it to allow bulk scheduling with a generic fallback template.
       if (lead && lead.email) {
-        createSequenceForLead({ 
-          lead_id: id,
-          email: lead.email,
-          subject: 'Question about ' + lead.business_name,
-          email_body: 'Hi, I noticed your website might need an update.'
-        }, lead.business_name)
+        createSequenceForLead(
+          {
+            lead_id: id,
+            email: lead.email,
+            subject: 'Question about ' + lead.business_name,
+            email_body: 'Hi, I noticed your website might need an update.'
+          },
+          lead.business_name
+        )
       }
     }
   })

@@ -7,11 +7,14 @@ import type { WappalyzerResult, DetectedTech } from '../../src/types/analysis.ty
 
 // Category IDs that signal an outdated or legacy stack
 const LEGACY_TECH_SIGNALS = [
-  'flash', 'silverlight', 'jquery ui', 'mootools',
-  'prototype', 'dreamweaver', 'frontpage',
+  'flash',
+  'silverlight',
+  'jquery ui',
+  'mootools',
+  'prototype',
+  'dreamweaver',
+  'frontpage'
 ]
-
-
 
 export async function detectTechStack(websiteUrl: string): Promise<WappalyzerResult> {
   try {
@@ -24,7 +27,7 @@ export async function detectTechStack(websiteUrl: string): Promise<WappalyzerRes
     const technologies: DetectedTech[] = (results.technologies ?? []).map((t: any) => ({
       name: t.name,
       category: t.categories?.[0]?.name ?? 'unknown',
-      version: t.version ?? null,
+      version: t.version ?? null
     }))
 
     // Check for legacy signals
@@ -32,16 +35,18 @@ export async function detectTechStack(websiteUrl: string): Promise<WappalyzerRes
     const hasLegacySignal = LEGACY_TECH_SIGNALS.some((sig) => techNames.includes(sig))
 
     // Try to infer mobile responsiveness from detected meta
-    const isMobileResponsive = !hasLegacySignal && technologies.some(
-      (t) => ['bootstrap', 'tailwind css', 'foundation', 'bulma'].includes(t.name.toLowerCase())
-    )
+    const isMobileResponsive =
+      !hasLegacySignal &&
+      technologies.some((t) =>
+        ['bootstrap', 'tailwind css', 'foundation', 'bulma'].includes(t.name.toLowerCase())
+      )
 
     await wappalyzer.destroy()
 
     return {
       technologies,
-      site_built_year: null,           // Wappalyzer can't give us year — SSL checker handles this
-      is_mobile_responsive: isMobileResponsive ? true : null,
+      site_built_year: null, // Wappalyzer can't give us year — SSL checker handles this
+      is_mobile_responsive: isMobileResponsive ? true : null
     }
   } catch {
     return { technologies: [], site_built_year: null, is_mobile_responsive: null }

@@ -1,6 +1,14 @@
 // src/screens/Dashboard/WeeklyChart.tsx
 import { useEffect, useState } from 'react'
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid
+} from 'recharts'
 import { format } from 'date-fns'
 
 export function WeeklyChart() {
@@ -14,7 +22,7 @@ export function WeeklyChart() {
 
   const formatted = data.map((d) => ({
     ...d,
-    date: format(new Date(d.date), 'MMM d'),
+    date: format(new Date(d.date), 'MMM d')
   }))
 
   return (
@@ -33,14 +41,38 @@ export function WeeklyChart() {
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-          <XAxis dataKey="date" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
+          <XAxis
+            dataKey="date"
+            tick={{ fill: '#71717a', fontSize: 11 }}
+            axisLine={false}
+            tickLine={false}
+          />
           <YAxis tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
           <Tooltip
-            contentStyle={{ background: '#18181b', border: '1px solid #3f3f46', borderRadius: 8, fontSize: 12 }}
+            contentStyle={{
+              background: '#18181b',
+              border: '1px solid #3f3f46',
+              borderRadius: 8,
+              fontSize: 12
+            }}
             labelStyle={{ color: '#a1a1aa' }}
           />
-          <Area type="monotone" dataKey="scraped"  stroke="#52525b" fill="url(#gScraped)"  strokeWidth={1.5} name="Scraped" />
-          <Area type="monotone" dataKey="approved" stroke="#10b981" fill="url(#gApproved)" strokeWidth={1.5} name="Approved" />
+          <Area
+            type="monotone"
+            dataKey="scraped"
+            stroke="#52525b"
+            fill="url(#gScraped)"
+            strokeWidth={1.5}
+            name="Scraped"
+          />
+          <Area
+            type="monotone"
+            dataKey="approved"
+            stroke="#10b981"
+            fill="url(#gApproved)"
+            strokeWidth={1.5}
+            name="Approved"
+          />
         </AreaChart>
       </ResponsiveContainer>
     </div>

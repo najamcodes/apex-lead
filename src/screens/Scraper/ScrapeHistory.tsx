@@ -1,16 +1,17 @@
 // src/screens/Scraper/ScrapeHistory.tsx
 import { useEffect } from 'react'
-import { CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, AlertCircle, Trash2, RefreshCw } from 'lucide-react'
 import { useScraperStore } from '../../store/scraper.store'
+import { Pagination } from '../../components/ui/Pagination'
 import type { ScrapeStatus } from '../../types/scraper.types'
 
 const STATUS_ICON: Record<ScrapeStatus, React.ReactNode> = {
-  completed:  <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />,
-  failed:     <AlertCircle className="w-3.5 h-3.5 text-red-400" />,
-  cancelled:  <XCircle className="w-3.5 h-3.5 text-zinc-500" />,
-  running:    <Clock className="w-3.5 h-3.5 text-blue-400 animate-pulse" />,
-  idle:       <Clock className="w-3.5 h-3.5 text-zinc-650" />,
-  paused:     <Clock className="w-3.5 h-3.5 text-amber-400" />,
+  completed: <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />,
+  failed: <AlertCircle className="w-3.5 h-3.5 text-red-400" />,
+  cancelled: <XCircle className="w-3.5 h-3.5 text-zinc-500" />,
+  running: <Clock className="w-3.5 h-3.5 text-blue-400 animate-pulse" />,
+  idle: <Clock className="w-3.5 h-3.5 text-zinc-650" />,
+  paused: <Clock className="w-3.5 h-3.5 text-amber-400" />
 }
 
 function formatDuration(start: string | null, end: string | null): string {
@@ -23,7 +24,7 @@ function formatDuration(start: string | null, end: string | null): string {
 }
 
 export function ScrapeHistory() {
-  const { jobs, fetchJobs } = useScraperStore()
+  const { jobs, fetchJobs, deleteJob, startJob, loading } = useScraperStore()
 
   useEffect(() => {
     fetchJobs()
@@ -39,8 +40,11 @@ export function ScrapeHistory() {
       <table className="w-full text-left">
         <thead>
           <tr className="border-b border-zinc-800 bg-zinc-950/20">
-            {['', 'Query', 'City', 'Found', 'Duration', 'Status'].map((h) => (
-              <th key={h} className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+            {['', 'Query', 'City', 'Found', 'Duration', 'Status', ''].map((h, i) => (
+              <th
+                key={i}
+                className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider"
+              >
                 {h}
               </th>
             ))}
@@ -48,7 +52,10 @@ export function ScrapeHistory() {
         </thead>
         <tbody>
           {jobs.map((job) => (
-            <tr key={job.id} className="border-b border-zinc-805 hover:bg-zinc-800/20 transition-colors">
+            <tr
+              key={job.id}
+              className="border-b border-zinc-805 hover:bg-zinc-800/20 transition-colors"
+            >
               <td className="px-4 py-3">{STATUS_ICON[job.status]}</td>
               <td className="px-4 py-3 text-sm text-zinc-300 capitalize">{job.query}</td>
               <td className="px-4 py-3 text-sm text-zinc-400">{job.city}</td>
@@ -57,10 +64,46 @@ export function ScrapeHistory() {
                 {formatDuration(job.started_at, job.completed_at)}
               </td>
               <td className="px-4 py-3 text-xs text-zinc-500 capitalize">{job.status}</td>
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => {
+                      if (!loading) {
+                        startJob({
+                          query: job.query,
+                          city: job.city,
+                          country: job.country,
+                          max_results: job.max_results,
+                          use_proxy: false
+                        })
+                      }
+                    }}
+                    disabled={loading}
+                    title="Re-run this job"
+                    className="text-zinc-500 hover:text-emerald-400 transition-colors p-1 disabled:opacity-50"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => deleteJob(job.id)}
+                    title="Delete job"
+                    className="text-zinc-600 hover:text-red-400 transition-colors p-1"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <Pagination
+        page={useScraperStore.getState().page}
+        pageSize={useScraperStore.getState().pageSize}
+        total={useScraperStore.getState().total}
+        onPageChange={(page) => useScraperStore.getState().setPagination(page)}
+        onPageSizeChange={(pageSize) => useScraperStore.getState().setPagination(1, pageSize)}
+      />
     </div>
   )
 }

@@ -22,5 +22,5 @@ export const useNotesStore = create<NotesState>((set) => ({
   saveNote: async (leadId, body) => {
     const updated = await window.api.notes.save(leadId, body)
     set({ note: updated })
-  },
+  }
 }))

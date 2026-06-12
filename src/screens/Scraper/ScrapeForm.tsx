@@ -7,9 +7,16 @@ import { useScraperStore } from '../../store/scraper.store'
 import type { ScrapeJobConfig } from '../../types/scraper.types'
 
 const QUICK_QUERIES = [
-  'restaurants', 'hair salons', 'dental clinics',
-  'law firms', 'auto repair shops', 'real estate agents',
-  'gyms', 'pharmacies', 'clothing stores', 'hotels',
+  'restaurants',
+  'hair salons',
+  'dental clinics',
+  'law firms',
+  'auto repair shops',
+  'real estate agents',
+  'gyms',
+  'pharmacies',
+  'clothing stores',
+  'hotels'
 ]
 
 export function ScrapeForm() {
@@ -21,11 +28,10 @@ export function ScrapeForm() {
     city: '',
     country: 'Pakistan',
     max_results: 50,
-    use_proxy: false,
+    use_proxy: false
   })
 
-  const set = (patch: Partial<ScrapeJobConfig>) =>
-    setForm((f) => ({ ...f, ...patch }))
+  const set = (patch: Partial<ScrapeJobConfig>) => setForm((f) => ({ ...f, ...patch }))
 
   const handleStart = async () => {
     if (!form.query || !form.city) return
@@ -81,6 +87,42 @@ export function ScrapeForm() {
           value={form.max_results}
           onChange={(e) => set({ max_results: parseInt(e.target.value) || 50 })}
         />
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-zinc-400">Website Filter</label>
+          <select
+            className="px-2.5 py-1.5 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-200 outline-none focus:border-emerald-500/50"
+            value={form.website_filter || 'all'}
+            onChange={(e) => set({ website_filter: e.target.value as any })}
+          >
+            <option value="all">Any</option>
+            <option value="required">Must have website</option>
+            <option value="none">Must NOT have website</option>
+          </select>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-zinc-400">Phone Filter</label>
+          <select
+            className="px-2.5 py-1.5 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-200 outline-none focus:border-emerald-500/50"
+            value={form.phone_filter || 'all'}
+            onChange={(e) => set({ phone_filter: e.target.value as any })}
+          >
+            <option value="all">Any</option>
+            <option value="required">Must have phone</option>
+            <option value="none">Must NOT have phone</option>
+          </select>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-zinc-400">Email Filter</label>
+          <select
+            className="px-2.5 py-1.5 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-200 outline-none focus:border-emerald-500/50"
+            value={form.email_filter || 'all'}
+            onChange={(e) => set({ email_filter: e.target.value as any })}
+          >
+            <option value="all">Any</option>
+            <option value="required">Must have email</option>
+            <option value="none">Must NOT have email</option>
+          </select>
+        </div>
       </div>
 
       <div className="flex items-center gap-2">

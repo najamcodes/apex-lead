@@ -29,11 +29,11 @@ export async function analyzeLead(leadId: number): Promise<AnalysisResult> {
   const [pagespeedResult, sslResult, wappalyzerResult] = await Promise.allSettled([
     runPageSpeed(websiteUrl, settings.pagespeed_api_key),
     checkSsl(websiteUrl),
-    detectTechStack(websiteUrl),
+    detectTechStack(websiteUrl)
   ])
 
   const pagespeed = pagespeedResult.status === 'fulfilled' ? pagespeedResult.value : null
-  const ssl       = sslResult.status       === 'fulfilled' ? sslResult.value       : null
+  const ssl = sslResult.status === 'fulfilled' ? sslResult.value : null
   const wappalyzer = wappalyzerResult.status === 'fulfilled' ? wappalyzerResult.value : null
 
   // Estimate build year from SSL last-modified header
@@ -45,7 +45,9 @@ export async function analyzeLead(leadId: number): Promise<AnalysisResult> {
     : null
 
   // Persist all analysis data to DB
-  getDb().prepare(`
+  getDb()
+    .prepare(
+      `
     UPDATE leads SET
       pagespeed_mobile  = ?,
       pagespeed_desktop = ?,
@@ -54,14 +56,16 @@ export async function analyzeLead(leadId: number): Promise<AnalysisResult> {
       site_built_year   = ?,
       updated_at        = datetime('now')
     WHERE id = ?
-  `).run(
-    pagespeed?.mobile_score  ?? null,
-    pagespeed?.desktop_score ?? null,
-    ssl ? (ssl.ssl_valid ? 1 : 0) : null,
-    techStackJson,
-    builtYear,
-    leadId
-  )
+  `
+    )
+    .run(
+      pagespeed?.mobile_score ?? null,
+      pagespeed?.desktop_score ?? null,
+      ssl ? (ssl.ssl_valid ? 1 : 0) : null,
+      techStackJson,
+      builtYear,
+      leadId
+    )
 
   // Run AI scoring now that we have all the data
   if (settings.ai_enabled && settings.openrouter_api_key) {
@@ -75,21 +79,30 @@ export async function analyzeLead(leadId: number): Promise<AnalysisResult> {
   // Auto-advance status: scraped → qualified if we have enough data
   const currentLead = getDb().prepare('SELECT status FROM leads WHERE id = ?').get(leadId) as any
   if (currentLead?.status === 'scraped') {
-    getDb().prepare(`
+    getDb()
+      .prepare(
+        `
       UPDATE leads SET status = 'qualified', updated_at = datetime('now') WHERE id = ?
-    `).run(leadId)
+    `
+      )
+      .run(leadId)
   }
 
-  const aiScoreRecord = getDb().prepare('SELECT ai_site_score FROM leads WHERE id = ?').get(leadId) as any
-  logActivity(leadId, 'lead_analyzed',
-    `PageSpeed mobile: ${pagespeed?.mobile_score ?? '—'}, AI score: ${aiScoreRecord?.ai_site_score ?? '—'}`)
+  const aiScoreRecord = getDb()
+    .prepare('SELECT ai_site_score FROM leads WHERE id = ?')
+    .get(leadId) as any
+  logActivity(
+    leadId,
+    'lead_analyzed',
+    `PageSpeed mobile: ${pagespeed?.mobile_score ?? '—'}, AI score: ${aiScoreRecord?.ai_site_score ?? '—'}`
+  )
 
   return {
     lead_id: leadId,
     pagespeed: pagespeed ?? null,
     wappalyzer: wappalyzer ?? null,
     ssl: ssl ?? null,
-    error: null,
+    error: null
   }
 }
 

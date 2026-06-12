@@ -2,7 +2,7 @@
 import { ipcMain, BrowserWindow } from 'electron'
 import { IPC } from '../../src/types'
 import { startScrapeJob, cancelScrapeJob } from '../scraper'
-import { getAllScrapeJobs } from '../../src/db/queries/scrape-jobs.queries'
+import { getAllScrapeJobs, deleteScrapeJob } from '../../src/db/queries/scrape-jobs.queries'
 import type { ScrapeJobConfig } from '../../src/types/scraper.types'
 
 export function registerScraperIpcHandlers(win: BrowserWindow): void {
@@ -20,5 +20,11 @@ export function registerScraperIpcHandlers(win: BrowserWindow): void {
     cancelScrapeJob(jobId)
   })
 
-  ipcMain.handle(IPC.SCRAPER_GET_JOBS, () => getAllScrapeJobs())
+  ipcMain.handle(IPC.SCRAPER_DELETE, (_event, jobId: string) => {
+    deleteScrapeJob(jobId)
+  })
+
+  ipcMain.handle(IPC.SCRAPER_GET_JOBS, (_event, pagination?: import('../../src/types').PaginationParams) => {
+    return getAllScrapeJobs(pagination)
+  })
 }

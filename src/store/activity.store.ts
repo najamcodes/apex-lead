@@ -16,5 +16,5 @@ export const useActivityStore = create<ActivityState>((set) => ({
     set({ isLoading: true })
     const activities = await window.api.activity.get(leadId)
     set({ activities, isLoading: false })
-  },
+  }
 }))

@@ -24,18 +24,44 @@ export function LeadRow({ lead, selected, onToggle }: Props) {
         />
       </td>
       <td className="px-4 py-3">
-        <p className="text-sm font-medium text-zinc-200">{lead.business_name}</p>
+        <p className="text-sm font-medium text-zinc-200">
+          {lead.business_name}
+          {lead.source === 'extension' && (
+            <span className="text-xs px-1.5 py-0.5 rounded bg-purple-900/50 text-purple-400 ml-2 align-middle">
+              Ext
+            </span>
+          )}
+        </p>
         <p className="text-xs text-zinc-500">{lead.category}</p>
       </td>
       <td className="px-4 py-3 text-sm text-zinc-400">{lead.city}</td>
+      <td className="px-4 py-3">
+        {lead.website_url ? (
+          <span className="inline-flex items-center gap-1 text-xs text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded">
+            Yes
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-xs text-red-400 bg-red-400/10 px-2 py-1 rounded">
+            No
+          </span>
+        )}
+      </td>
+      <td className="px-4 py-3">
+        {lead.phone ? (
+          <span className="inline-flex items-center gap-1 text-xs text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded">
+            Yes
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-xs text-red-400 bg-red-400/10 px-2 py-1 rounded">
+            No
+          </span>
+        )}
+      </td>
       <td className="px-4 py-3">
         <Badge type="website_status" value={lead.website_status} />
       </td>
       <td className="px-4 py-3">
         <Badge type="lead_status" value={lead.status} />
-      </td>
-      <td className="px-4 py-3 text-sm text-zinc-400">
-        {lead.phone ?? <span className="text-zinc-600">—</span>}
       </td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
