@@ -10,6 +10,7 @@ export const SCHEMA_SQL = `
     country           TEXT NOT NULL DEFAULT '',
     phone             TEXT,
     email             TEXT,
+    email_verified    INTEGER,
     website_url       TEXT,
     google_maps_url   TEXT,
     website_status    TEXT NOT NULL DEFAULT 'unchecked',
@@ -81,6 +82,15 @@ export const SCHEMA_SQL = `
   );
 
   CREATE INDEX IF NOT EXISTS idx_notes_lead_id ON notes(lead_id);
+
+  CREATE TABLE IF NOT EXISTS email_templates (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT NOT NULL,
+    subject    TEXT NOT NULL,
+    body       TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 
   CREATE TABLE IF NOT EXISTS activity (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -11,6 +11,7 @@ import {
   getRecentActivity
 } from '../../src/db/queries/activity.queries'
 import { getNoteByLead, saveNote } from '../../src/db/queries/notes.queries'
+import { EmailTemplateEntity } from '../../src/db/entities/EmailTemplateEntity'
 import { runEmailFinderBatch, findEmailForLead, runEmailVerifierBatch } from '../email-finder'
 import { createSequenceForLead } from '../outreach'
 import { getSchedulerStatus } from '../scheduler'
@@ -92,19 +93,32 @@ export function registerBulkIpcHandlers(): void {
     }
   })
 
-  ipcMain.handle(IPC.BULK_SCHEDULE_SEQUENCES, async (_event, leadIds: number[], _templateId: number) => {
+  ipcMain.handle(IPC.BULK_SCHEDULE_SEQUENCES, async (_event, leadIds: number[], templateId: number) => {
+    let template: EmailTemplateEntity | null = null
+    if (templateId) {
+      template = await getDataSource()
+        .getRepository(EmailTemplateEntity)
+        .findOneBy({ id: templateId })
+    }
+
     for (const id of leadIds) {
       const results = await getDataSource().query('SELECT business_name, email FROM leads WHERE id = ?', [id])
       const lead = results[0]
-      // In a real scenario we'd fetch the AI draft for this lead.
-      // For now, we stub it to allow bulk scheduling with a generic fallback template.
       if (lead && lead.email) {
+        let subject = 'Question about ' + lead.business_name
+        let body = 'Hi, I noticed your website might need an update.'
+
+        if (template) {
+          subject = template.subject.replace(/{{business_name}}/g, lead.business_name)
+          body = template.body.replace(/{{business_name}}/g, lead.business_name)
+        }
+
         await createSequenceForLead(
           {
             lead_id: id,
             email: lead.email,
-            subject: 'Question about ' + lead.business_name,
-            email_body: 'Hi, I noticed your website might need an update.'
+            subject,
+            email_body: body
           },
           lead.business_name
         )

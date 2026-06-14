@@ -6,10 +6,14 @@ import { WeeklyChart } from './WeeklyChart'
 import { PipelineChart } from './PipelineChart'
 import { ActivityFeed } from './ActivityFeed'
 import { CityRoiStats } from './CityRoiStats'
-import type { DashboardStats } from '../../types'
+import type { DashboardStats, LeadFilters } from '../../types'
+import { useNavigate } from 'react-router-dom'
+import { useLeadsStore } from '../../store/leads.store'
 
 export function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
+  const navigate = useNavigate()
+  const { setFilters } = useLeadsStore()
 
   useEffect(() => {
     window.api.stats.getDashboard().then(setStats)
@@ -31,24 +35,85 @@ export function Dashboard() {
       </div>
 
       <div className="grid grid-cols-4 gap-4">
-        <StatCard label="Total Leads" value={stats.total_leads} icon={Users} />
-        <StatCard label="No Website" value={stats.no_website} icon={Globe} accent="text-red-400" />
+        <StatCard 
+          label="Total Leads" 
+          value={stats.total_leads} 
+          icon={Users} 
+          onClick={() => {
+            setFilters({})
+            navigate('/leads')
+          }}
+        />
+        <StatCard 
+          label="No Website" 
+          value={stats.no_website} 
+          icon={Globe} 
+          accent="text-red-400" 
+          onClick={() => {
+            setFilters({ website_status: 'none' })
+            navigate('/leads')
+          }}
+        />
         <StatCard
           label="Outdated Site"
           value={stats.outdated_website}
           icon={AlertTriangle}
           accent="text-amber-400"
+          onClick={() => {
+            setFilters({ website_status: 'outdated' })
+            navigate('/leads')
+          }}
         />
-        <StatCard label="In Review" value={stats.in_review} icon={Clock} accent="text-blue-400" />
+        <StatCard 
+          label="In Review" 
+          value={stats.in_review} 
+          icon={Clock} 
+          accent="text-blue-400" 
+          onClick={() => {
+            setFilters({ status: 'review' })
+            navigate('/leads')
+          }}
+        />
         <StatCard
           label="Approved"
           value={stats.approved}
           icon={CheckCircle}
           accent="text-emerald-400"
+          onClick={() => {
+            setFilters({ status: 'approved' })
+            navigate('/leads')
+          }}
         />
-        <StatCard label="Closed" value={stats.closed} icon={DollarSign} accent="text-green-400" />
-        <StatCard label="Verified Emails" value={stats.verified_emails} icon={MailCheck} accent="text-pink-400" />
-        <StatCard label="Socials Found" value={stats.social_links_found} icon={LinkIcon} accent="text-purple-400" />
+        <StatCard 
+          label="Closed" 
+          value={stats.closed} 
+          icon={DollarSign} 
+          accent="text-green-400" 
+          onClick={() => {
+            setFilters({ status: 'closed' })
+            navigate('/leads')
+          }}
+        />
+        <StatCard 
+          label="Verified Emails" 
+          value={stats.verified_emails} 
+          icon={MailCheck} 
+          accent="text-pink-400" 
+          onClick={() => {
+            setFilters({ email_verified: true })
+            navigate('/leads')
+          }}
+        />
+        <StatCard 
+          label="Socials Found" 
+          value={stats.social_links_found} 
+          icon={LinkIcon} 
+          accent="text-purple-400" 
+          // Currently no 'has_socials' filter, but wired for future
+          onClick={() => {
+            navigate('/leads')
+          }}
+        />
       </div>
 
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 font-sans">

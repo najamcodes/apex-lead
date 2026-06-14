@@ -87,7 +87,7 @@ export function Leads() {
                     className="rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary/20 cursor-pointer"
                   />
                 </th>
-                {['Business', 'City', 'Has Website', 'Has Phone', 'Email', 'Web Status', 'Lead Status', ''].map((h) => (
+                {['Business', 'City', 'Date Added', 'Has Website', 'Has Phone', 'Email', 'Web Status', 'Lead Status', ''].map((h) => (
                   <th
                     key={h}
                     className="px-4 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider"

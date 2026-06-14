@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Zap, CheckCircle2, Send, MailSearch, X, UserCheck } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { useLeadsStore } from '../../store/leads.store'
-import { useState } from 'react'
+import { useTemplatesStore } from '../../store/templates.store'
+import { useState, useEffect } from 'react'
 
 interface Props {
   selectedCount: number
@@ -13,7 +14,13 @@ interface Props {
 
 export function BulkActionsBar({ selectedCount, onClear, leadIds }: Props) {
   const [loadingAction, setLoadingAction] = useState<string | null>(null)
+  const [showTemplateModal, setShowTemplateModal] = useState(false)
   const { fetchLeads } = useLeadsStore()
+  const { templates, fetchAll: fetchTemplates } = useTemplatesStore()
+
+  useEffect(() => {
+    fetchTemplates()
+  }, [])
 
   if (selectedCount === 0) return null
 
@@ -101,9 +108,7 @@ export function BulkActionsBar({ selectedCount, onClear, leadIds }: Props) {
               size="sm"
               loading={loadingAction === 'schedule'}
               disabled={loadingAction !== null && loadingAction !== 'schedule'}
-              onClick={() =>
-                handleAction('schedule', () => window.api.bulk.scheduleSequences(leadIds, 1))
-              } // Defaulting templateId 1 for now
+              onClick={() => setShowTemplateModal(true)}
             >
               <Send className="w-4 h-4 text-rose-400" />
               Schedule Seq
@@ -118,6 +123,48 @@ export function BulkActionsBar({ selectedCount, onClear, leadIds }: Props) {
           </button>
         </motion.div>
       </AnimatePresence>
+
+      {/* Template Selector Modal */}
+      {showTemplateModal && (
+        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 max-w-md w-full shadow-2xl"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-zinc-100">Select Template</h3>
+              <button onClick={() => setShowTemplateModal(false)} className="text-zinc-500 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {templates.length === 0 ? (
+              <p className="text-sm text-zinc-400 mb-6">No templates created yet. Please create one in the Outreach tab.</p>
+            ) : (
+              <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
+                {templates.map(tpl => (
+                  <button
+                    key={tpl.id}
+                    className="w-full text-left px-4 py-3 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 hover:border-emerald-500/50 rounded-lg transition-colors"
+                    onClick={() => {
+                      setShowTemplateModal(false)
+                      handleAction('schedule', () => window.api.bulk.scheduleSequences(leadIds, tpl.id))
+                    }}
+                  >
+                    <div className="font-medium text-sm text-zinc-200">{tpl.name}</div>
+                    <div className="text-xs text-zinc-500 truncate mt-1">Subj: {tpl.subject}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+            
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setShowTemplateModal(false)}>Cancel</Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   )
 }

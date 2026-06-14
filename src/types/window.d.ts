@@ -87,5 +87,11 @@ interface Window {
         cb: (data: { done: number; total: number; leadId: number }) => void
       ) => () => void
     }
+    templates: {
+      getAll: () => Promise<import('./index').EmailTemplate[]>
+      create: (data: Partial<import('./index').EmailTemplate>) => Promise<import('./index').EmailTemplate>
+      update: (id: number, data: Partial<import('./index').EmailTemplate>) => Promise<import('./index').EmailTemplate>
+      delete: (id: number) => Promise<void>
+    }
   }
 }

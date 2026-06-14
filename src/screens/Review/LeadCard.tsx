@@ -30,12 +30,12 @@ export function LeadCard({ lead, index, onClick }: LeadCardProps) {
           {...provided.dragHandleProps}
           onClick={() => onClick(lead)}
           className={`
-            bg-zinc-800 border rounded-lg p-3.5 cursor-pointer
-            transition-all duration-150 select-none
+            bg-zinc-900/60 backdrop-blur-sm border rounded-xl p-3.5 cursor-pointer
+            transition-all duration-200 select-none
             ${
               snapshot.isDragging
-                ? 'border-emerald-500/50 shadow-lg shadow-emerald-900/20 rotate-1'
-                : 'border-zinc-700 hover:border-zinc-500'
+                ? 'border-emerald-500/50 shadow-xl shadow-emerald-500/10 rotate-2 scale-105'
+                : 'border-zinc-800/80 hover:border-zinc-600 hover:shadow-lg hover:-translate-y-0.5 hover:bg-zinc-800/50'
             }
           `}
         >

@@ -6,6 +6,8 @@ import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
 import { SendModal } from './SendModal'
 import { SequencePanel } from './SequencePanel'
+import { TemplateBuilder } from './TemplateBuilder'
+import { SchedulerStatusWidget } from './SchedulerStatusWidget'
 import { useOutreachStore } from '../../store/outreach.store'
 import { useLeadsStore } from '../../store/leads.store'
 import type { Lead } from '../../types'
@@ -15,7 +17,7 @@ export function Outreach() {
   const { sendBatch, fetchSequences, sequences, exportCsv } = useOutreachStore()
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [sending, setSending] = useState(false)
-  const [activeTab, setActiveTab] = useState<'queue' | 'sequences'>('queue')
+  const [activeTab, setActiveTab] = useState<'queue' | 'sequences' | 'templates'>('queue')
 
   // Approved leads that don't have a sequence yet
   const approvedLeads = leads.filter((l) => l.status === 'approved')
@@ -46,7 +48,10 @@ export function Outreach() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-zinc-100">Outreach</h2>
+          <h2 className="text-lg font-semibold text-zinc-100 flex items-center gap-3">
+            Outreach
+            <SchedulerStatusWidget />
+          </h2>
           <p className="text-sm text-zinc-500 mt-0.5">
             {approvedLeads.length} leads ready to contact
           </p>
@@ -74,20 +79,31 @@ export function Outreach() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-zinc-800/50 rounded-lg p-1 w-fit">
-        {(['queue', 'sequences'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${
-              activeTab === tab ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            {tab === 'queue'
-              ? `Queue (${approvedLeads.length})`
-              : `Sequences (${sequences.length})`}
-          </button>
-        ))}
+      <div className="flex bg-zinc-900/60 backdrop-blur-sm border border-zinc-800/80 p-1 rounded-lg w-max shadow-sm">
+        <button
+          className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+            activeTab === 'queue' ? 'bg-zinc-800 text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+          }`}
+          onClick={() => setActiveTab('queue')}
+        >
+          Sending Queue
+        </button>
+        <button
+          className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+            activeTab === 'sequences' ? 'bg-zinc-800 text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+          }`}
+          onClick={() => setActiveTab('sequences')}
+        >
+          Active Sequences
+        </button>
+        <button
+          className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+            activeTab === 'templates' ? 'bg-zinc-800 text-zinc-100 shadow-sm' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+          }`}
+          onClick={() => setActiveTab('templates')}
+        >
+          Templates
+        </button>
       </div>
 
       {/* Queue tab */}
@@ -101,7 +117,7 @@ export function Outreach() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-zinc-800">
-                  {['Business', 'City', 'Email', 'AI Score', 'Website', ''].map((h) => (
+                  {['Business', 'City', 'Date Added', 'Email', 'AI Score', 'Website', ''].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider"
@@ -121,6 +137,9 @@ export function Outreach() {
                       <p className="text-sm font-medium text-zinc-200">{lead.business_name}</p>
                     </td>
                     <td className="px-4 py-3 text-sm text-zinc-400">{lead.city}</td>
+                    <td className="px-4 py-3 text-sm text-zinc-400">
+                      {lead.scraped_at ? new Date(lead.scraped_at).toLocaleDateString() : '—'}
+                    </td>
                     <td className="px-4 py-3 text-sm text-zinc-400">
                       {lead.email ?? <span className="text-zinc-600 italic">no email</span>}
                     </td>
@@ -162,6 +181,9 @@ export function Outreach() {
 
       {/* Sequences tab */}
       {activeTab === 'sequences' && <SequencePanel />}
+
+      {/* Templates tab */}
+      {activeTab === 'templates' && <TemplateBuilder />}
 
       {/* Send modal */}
       {selectedLead && <SendModal lead={selectedLead} onClose={() => setSelectedLead(null)} />}

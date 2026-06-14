@@ -67,6 +67,11 @@ export async function getAllLeads(filters: LeadFilters = {}): Promise<import('..
   } else if (filters.has_email === false) {
     qb.andWhere("(lead.email IS NULL OR lead.email = '')")
   }
+  if (filters.email_verified === true) {
+    qb.andWhere("lead.email_verified = 1")
+  } else if (filters.email_verified === false) {
+    qb.andWhere("(lead.email_verified = 0 OR lead.email_verified IS NULL)")
+  }
   if (filters.city) {
     qb.andWhere('lead.city LIKE :city', { city: `%${filters.city}%` })
   }

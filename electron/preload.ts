@@ -107,5 +107,11 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.removeListener('emailVerifier:progress', handler)
       }
     }
+  },
+  templates: {
+    getAll: () => ipcRenderer.invoke(IPC.TEMPLATES_GET_ALL),
+    create: (data: any) => ipcRenderer.invoke(IPC.TEMPLATES_CREATE, data),
+    update: (id: number, data: any) => ipcRenderer.invoke(IPC.TEMPLATES_UPDATE, id, data),
+    delete: (id: number) => ipcRenderer.invoke(IPC.TEMPLATES_DELETE, id)
   }
 })

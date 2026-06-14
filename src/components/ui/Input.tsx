@@ -13,11 +13,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       <input
         ref={ref}
         className={`
-          w-full px-3 py-2 rounded-md text-sm bg-zinc-800 border
+          w-full px-3 py-2 rounded-md text-sm bg-zinc-900/60 backdrop-blur-sm border
           text-zinc-100 placeholder-zinc-500 outline-none
-          border-zinc-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30
-          transition-colors duration-150
-          ${error ? 'border-red-500' : ''}
+          border-zinc-800/80 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 focus:bg-zinc-900/80
+          transition-all duration-200 shadow-sm
+          ${error ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/20' : ''}
           ${className}
         `}
         {...props}

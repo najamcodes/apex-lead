@@ -25,6 +25,9 @@ export class LeadEntity {
   @Column({ type: 'text', nullable: true })
   email!: string | null
 
+  @Column({ type: 'boolean', nullable: true })
+  email_verified!: boolean | null
+
   @Column({ type: 'text', nullable: true })
   website_url!: string | null
 

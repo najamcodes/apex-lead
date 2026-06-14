@@ -9,6 +9,7 @@ import { OutreachEntity } from './entities/OutreachEntity'
 import { NoteEntity } from './entities/NoteEntity'
 import { ActivityEntity } from './entities/ActivityEntity'
 import { ScrapeJobEntity } from './entities/ScrapeJobEntity'
+import { EmailTemplateEntity } from './entities/EmailTemplateEntity'
 
 let _dataSource: DataSource | null = null
 
@@ -27,7 +28,8 @@ export async function initDb(): Promise<DataSource> {
       OutreachEntity,
       NoteEntity,
       ActivityEntity,
-      ScrapeJobEntity
+      ScrapeJobEntity,
+      EmailTemplateEntity
     ],
   })
 

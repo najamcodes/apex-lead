@@ -9,10 +9,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANTS = {
-  primary: 'bg-emerald-600 hover:bg-emerald-500 text-white border-transparent',
-  secondary: 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700',
-  ghost: 'bg-transparent hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border-transparent',
-  danger: 'bg-red-900/40 hover:bg-red-900/60 text-red-400 border-red-800/50'
+  primary: 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white border-transparent shadow-sm shadow-emerald-500/20',
+  secondary: 'bg-zinc-800/80 hover:bg-zinc-700 text-zinc-200 border-zinc-700/50 backdrop-blur-sm',
+  ghost: 'bg-transparent hover:bg-zinc-800/50 text-zinc-400 hover:text-zinc-200 border-transparent',
+  danger: 'bg-red-900/40 hover:bg-red-900/60 text-red-400 border-red-800/50 backdrop-blur-sm'
 }
 const SIZES = {
   sm: 'px-2.5 py-1.5 text-xs',
@@ -29,8 +29,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ref={ref}
       disabled={disabled || loading}
       className={`
-        inline-flex items-center gap-2 rounded-md border font-medium
-        transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed
+        inline-flex items-center gap-2 rounded-md border font-medium justify-center
+        transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
         ${VARIANTS[variant]} ${SIZES[size]} ${className}
       `}
       {...props}

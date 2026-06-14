@@ -76,6 +76,20 @@ export function LeadFilters() {
         <option value="no">No Email</option>
       </select>
 
+      <select
+        value={filters.email_verified === true ? 'yes' : filters.email_verified === false ? 'no' : 'all'}
+        onChange={(e) => {
+          const val = e.target.value;
+          update({ email_verified: val === 'yes' ? true : val === 'no' ? false : 'all' })
+        }}
+        className="px-3 py-2 rounded-md text-sm bg-zinc-800 border border-zinc-700
+          text-zinc-300 outline-none focus:border-emerald-500 transition-colors"
+      >
+        <option value="all">Verification: All</option>
+        <option value="yes">Verified Only</option>
+        <option value="no">Unverified/Bounced</option>
+      </select>
+
       <div className="w-px h-6 bg-zinc-800 mx-1" />
 
       <select

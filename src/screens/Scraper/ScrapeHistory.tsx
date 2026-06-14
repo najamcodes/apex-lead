@@ -78,7 +78,7 @@ export function ScrapeHistory() {
                 onChange={toggleAll}
               />
             </th>
-            {['', 'Query', 'City', 'Found', 'Duration', 'Status', ''].map((h, i) => (
+            {['', 'Date', 'Query', 'City', 'Found', 'Duration', 'Status', ''].map((h, i) => (
               <th
                 key={i}
                 className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider"
@@ -103,6 +103,9 @@ export function ScrapeHistory() {
                 />
               </td>
               <td className="px-4 py-3">{STATUS_ICON[job.status]}</td>
+              <td className="px-4 py-3 text-sm text-zinc-400">
+                {job.started_at ? new Date(job.started_at).toLocaleDateString() : '—'}
+              </td>
               <td className="px-4 py-3 text-sm text-zinc-300 capitalize">{job.query}</td>
               <td className="px-4 py-3 text-sm text-zinc-400">{job.city}</td>
               <td className="px-4 py-3 text-sm text-emerald-400 font-medium">{job.found}</td>

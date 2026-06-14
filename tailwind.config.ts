@@ -4,7 +4,11 @@ export default {
   darkMode: 'class',
   content: ['./src/**/*.{ts,tsx}', './index.html'],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 } satisfies Config

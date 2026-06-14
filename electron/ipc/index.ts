@@ -7,13 +7,15 @@ import { registerSettingsIpcHandlers } from './settings.ipc'
 import { registerAnalysisIpcHandlers } from './analysis.ipc'
 import { registerOutreachIpcHandlers } from './outreach.ipc'
 import { registerBulkIpcHandlers } from './bulk.ipc'
+import { registerTemplatesIpc } from './templates.ipc'
 
 export function registerAllIpcHandlers(win: BrowserWindow): void {
   registerLeadIpcHandlers()
   registerScraperIpcHandlers(win)
   registerAiIpcHandlers()
-  registerSettingsIpcHandlers()
+  registerSettingsIpcHandlers(win)
   registerAnalysisIpcHandlers(win)
   registerOutreachIpcHandlers()
   registerBulkIpcHandlers()
+  registerTemplatesIpc()
 }

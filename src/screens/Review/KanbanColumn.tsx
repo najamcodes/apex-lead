@@ -32,8 +32,8 @@ export function KanbanColumn({ id, title, leads, accent, onCardClick }: KanbanCo
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={`
-              flex-1 min-h-[96px] rounded-xl p-2 space-y-2 transition-colors duration-150
-              ${snapshot.isDraggingOver ? 'bg-zinc-800/60' : 'bg-zinc-900/40'}
+              flex-1 min-h-[96px] rounded-xl p-2.5 space-y-3 transition-all duration-300
+              ${snapshot.isDraggingOver ? 'bg-zinc-800/40 ring-1 ring-zinc-700/50' : 'bg-transparent border border-dashed border-zinc-800/50'}
             `}
           >
             {leads.map((lead, index) => (

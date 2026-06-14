@@ -224,6 +224,33 @@ export function Settings() {
       </Card>
 
       <Card>
+        <h3 className="text-sm font-medium text-zinc-300 mb-4">Auto-Send Engine</h3>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            <input
+              type="checkbox"
+              id="auto_send_enabled"
+              defaultChecked={settings.auto_send_enabled}
+              name="auto_send_enabled"
+              className="rounded border-zinc-600 bg-zinc-800 text-emerald-500"
+            />
+            <label htmlFor="auto_send_enabled" className="text-sm text-zinc-400">
+              Enable Auto-Sender (background process)
+            </label>
+          </div>
+          <Input
+            label="Cron Schedule"
+            placeholder="*/5 * * * *"
+            defaultValue={settings.auto_send_cron}
+            name="auto_send_cron"
+          />
+          <p className="text-xs text-zinc-500">
+            Cron expression for checking due emails (default: every 5 minutes <code>*/5 * * * *</code>).
+          </p>
+        </div>
+      </Card>
+
+      <Card>
         <h3 className="text-sm font-medium text-zinc-300 mb-4">SMTP (email sending)</h3>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">

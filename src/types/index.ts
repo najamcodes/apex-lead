@@ -68,6 +68,15 @@ export interface Lead {
   email_verified: boolean | null
 }
 
+export interface EmailTemplate {
+  id: number
+  name: string
+  subject: string
+  body: string
+  created_at: string
+  updated_at: string
+}
+
 export interface LeadInsert {
   business_name: string
   category: string
@@ -94,6 +103,7 @@ export interface LeadFilters extends Partial<PaginationParams> {
   status?: LeadStatus | 'all'
   website_status?: WebsiteStatus | 'all'
   has_email?: boolean | 'all'
+  email_verified?: boolean | 'all'
   city?: string
   category?: string
   search?: string
@@ -217,5 +227,9 @@ export const IPC = {
   BULK_ANALYZE: 'bulk:analyze',
   BULK_APPROVE: 'bulk:approve',
   BULK_SCORE: 'bulk:score',
-  BULK_SCHEDULE_SEQUENCES: 'bulk:scheduleSequences'
+  BULK_SCHEDULE_SEQUENCES: 'bulk:scheduleSequences',
+  TEMPLATES_GET_ALL: 'templates:getAll',
+  TEMPLATES_CREATE: 'templates:create',
+  TEMPLATES_UPDATE: 'templates:update',
+  TEMPLATES_DELETE: 'templates:delete'
 } as const

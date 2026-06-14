@@ -14,7 +14,7 @@ export function LeadRow({ lead, selected, onToggle }: Props) {
   const { updateStatus, deleteLead } = useLeadsStore()
 
   return (
-    <tr className="border-b border-zinc-800 hover:bg-zinc-800/30 transition-colors group font-sans">
+    <tr className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-all duration-200 group font-sans">
       <td className="px-4 py-3">
         <input
           type="checkbox"
@@ -54,6 +54,9 @@ export function LeadRow({ lead, selected, onToggle }: Props) {
         </p>
       </td>
       <td className="px-4 py-3 text-sm text-zinc-400">{lead.city}</td>
+      <td className="px-4 py-3 text-sm text-zinc-400">
+        {lead.scraped_at ? new Date(lead.scraped_at).toLocaleDateString() : '—'}
+      </td>
       <td className="px-4 py-3">
         {lead.website_url ? (
           <span className="inline-flex items-center gap-1 text-xs text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded">
