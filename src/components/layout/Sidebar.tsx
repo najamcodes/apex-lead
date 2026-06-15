@@ -1,5 +1,6 @@
 // src/components/layout/Sidebar.tsx
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import {
   LayoutDashboard,
   Users,
@@ -17,24 +18,34 @@ import { useAppStore } from '../../store/app.store'
 import { useThemeStore } from '../../store/theme.store'
 
 const NAV_ITEMS = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/leads', icon: Users, label: 'Leads' },
-  { to: '/scraper', icon: Search, label: 'Scraper' },
-  { to: '/review', icon: ListTodo, label: 'Review' },
-  { to: '/outreach', icon: Send, label: 'Outreach' },
-  { to: '/pipeline', icon: Workflow, label: 'Pipeline' },
-  { to: '/settings', icon: Settings, label: 'Settings' }
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', perm: null },
+  { to: '/leads', icon: Users, label: 'Leads', perm: 'view_leads' },
+  { to: '/scraper', icon: Search, label: 'Scraper', perm: 'run_scraper' },
+  { to: '/review', icon: ListTodo, label: 'Review', perm: 'view_leads' },
+  { to: '/outreach', icon: Send, label: 'Outreach', perm: 'send_outreach' },
+  { to: '/pipeline', icon: Workflow, label: 'Pipeline', perm: 'manage_settings' },
+  { to: '/settings', icon: Settings, label: 'Settings', perm: null } // Everyone gets basic settings
 ]
+
+import { useAuthStore } from '../../store/auth.store'
 
 export function Sidebar() {
   const { sidebarCollapsed, toggleSidebar } = useAppStore()
   const { theme, setTheme } = useThemeStore()
+  const { role, permissions } = useAuthStore()
+  const location = useLocation()
+  
+  const filteredNav = NAV_ITEMS.filter(item => {
+    if (!item.perm) return true
+    if (role === 'admin') return true
+    return permissions.includes(item.perm)
+  })
 
   return (
     <aside
       className={`
-      flex flex-col bg-zinc-950/80 backdrop-blur-xl border-r border-zinc-800/50
-      transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]
+      flex flex-col bg-slate-950/40 backdrop-blur-xl border-r border-slate-800/50
+      transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-20
       ${sidebarCollapsed ? 'w-14' : 'w-52'}
     `}
     >
@@ -49,25 +60,35 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-2 py-3 flex flex-col gap-0.5 font-sans">
-        {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) => `
-              flex items-center gap-2.5 px-2.5 py-2 rounded-md
-              text-sm transition-all duration-200
-              ${
-                isActive
-                  ? 'bg-emerald-500/10 text-emerald-400 shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/40'
-              }
-            `}
-          >
-            <Icon className="w-4 h-4 flex-shrink-0" />
-            {!sidebarCollapsed && <span>{label}</span>}
-          </NavLink>
-        ))}
+      <nav className="flex-1 px-2 py-3 flex flex-col gap-1 font-sans relative">
+        {filteredNav.map(({ to, icon: Icon, label }) => {
+          const isActive = location.pathname.startsWith(to)
+          return (
+            <NavLink
+              key={to}
+              to={to}
+              className={`
+                relative flex items-center gap-2.5 px-3 py-2.5 rounded-md
+                text-sm transition-colors duration-200 z-10
+                ${
+                  isActive
+                    ? 'text-emerald-400 font-medium'
+                    : 'text-slate-400 hover:text-slate-200'
+                }
+              `}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="sidebar-active-pill"
+                  className="absolute inset-0 bg-emerald-500/10 border border-emerald-500/20 rounded-md -z-10"
+                  transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                />
+              )}
+              <Icon className="w-4 h-4 flex-shrink-0" />
+              {!sidebarCollapsed && <span>{label}</span>}
+            </NavLink>
+          )
+        })}
       </nav>
 
       {/* Collapse toggle */}

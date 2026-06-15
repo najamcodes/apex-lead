@@ -8,10 +8,11 @@ import { buildDigestHtml, buildDigestText } from './digest-builder'
 import { insertDigestRun } from '../../src/db/queries/digests.queries'
 import { getSettings } from '../../src/db/queries/settings.queries'
 import { getDataSource } from '../../src/db/index'
+import { UserEntity } from '../../src/db/entities/UserEntity'
 
-let _scrapeCronTask:  any | null = null
-let _digestCronTask:  any | null = null
-let _pendingDigest:   any = null  // stored between scrape run and digest send
+let _scrapeCronTasks: any[] = []
+let _digestCronTasks: any[] = []
+let _pendingDigests: Record<number, any> = {}  // stored by user_id
 
 const DEFAULT_SCRAPE_CRON = '0 2 * * *'   // 2:00am every day
 const DEFAULT_DIGEST_CRON = '0 7 * * *'   // 7:00am every day
@@ -19,22 +20,32 @@ const DEFAULT_DIGEST_CRON = '0 7 * * *'   // 7:00am every day
 // ─── Start both cron jobs ─────────────────────────────────────────────────────
 
 export async function startNightlyRunner(): Promise<void> {
-  const settings = await getSettings()
-  if (!settings.pipeline_enabled) return
+  const users = await getDataSource().getRepository(UserEntity).find()
+  const originalUserId = (global as any).currentUserId
 
-  startScrapeCron(settings.pipeline_scrape_cron || DEFAULT_SCRAPE_CRON)
-  startDigestCron(settings.pipeline_digest_cron || DEFAULT_DIGEST_CRON)
+  console.log(`[NightlyRunner] Initializing for ${users.length} users...`)
 
-  console.log('[NightlyRunner] Started')
-  console.log(`  Scrape:  ${settings.pipeline_scrape_cron || DEFAULT_SCRAPE_CRON}`)
-  console.log(`  Digest:  ${settings.pipeline_digest_cron || DEFAULT_DIGEST_CRON}`)
+  for (const user of users) {
+    ;(global as any).currentUserId = user.id
+    const settings = await getSettings()
+    
+    if (!settings.pipeline_enabled) continue
+
+    startScrapeCron(user.id, settings.pipeline_scrape_cron || DEFAULT_SCRAPE_CRON)
+    startDigestCron(user.id, settings.pipeline_digest_cron || DEFAULT_DIGEST_CRON)
+
+    console.log(`  User ${user.id} Scrape:  ${settings.pipeline_scrape_cron || DEFAULT_SCRAPE_CRON}`)
+    console.log(`  User ${user.id} Digest:  ${settings.pipeline_digest_cron || DEFAULT_DIGEST_CRON}`)
+  }
+
+  ;(global as any).currentUserId = originalUserId
 }
 
 export function stopNightlyRunner(): void {
-  _scrapeCronTask?.stop()
-  _digestCronTask?.stop()
-  _scrapeCronTask = null
-  _digestCronTask = null
+  _scrapeCronTasks.forEach(t => t?.stop())
+  _digestCronTasks.forEach(t => t?.stop())
+  _scrapeCronTasks = []
+  _digestCronTasks = []
   console.log('[NightlyRunner] Stopped')
 }
 
@@ -45,38 +56,42 @@ export async function restartNightlyRunner(): Promise<void> {
 
 // ─── Scrape cron ──────────────────────────────────────────────────────────────
 
-function startScrapeCron(expression: string): void {
+function startScrapeCron(userId: number, expression: string): void {
   if (!cron.validate(expression)) {
-    console.error('[NightlyRunner] Invalid scrape cron:', expression)
+    console.error(`[NightlyRunner] User ${userId} invalid scrape cron:`, expression)
     return
   }
 
-  _scrapeCronTask = cron.schedule(expression, async () => {
-    console.log('[NightlyRunner] Nightly scrape starting...')
+  const task = cron.schedule(expression, async () => {
+    ;(global as any).currentUserId = userId
+    console.log(`[NightlyRunner] User ${userId} nightly scrape starting...`)
     try {
       const result = await runNightlyPipeline()
       // Store result so digest cron can use it
-      _pendingDigest = result
-      console.log('[NightlyRunner] Scrape complete:', result)
+      _pendingDigests[userId] = result
+      console.log(`[NightlyRunner] User ${userId} scrape complete:`, result)
     } catch (err) {
-      console.error('[NightlyRunner] Scrape failed:', err)
+      console.error(`[NightlyRunner] User ${userId} scrape failed:`, err)
     }
   })
+  _scrapeCronTasks.push(task)
 }
 
 // ─── Digest cron ──────────────────────────────────────────────────────────────
 
-function startDigestCron(expression: string): void {
+function startDigestCron(userId: number, expression: string): void {
   if (!cron.validate(expression)) {
-    console.error('[NightlyRunner] Invalid digest cron:', expression)
+    console.error(`[NightlyRunner] User ${userId} invalid digest cron:`, expression)
     return
   }
 
-  _digestCronTask = cron.schedule(expression, async () => {
-    console.log('[NightlyRunner] Morning digest starting...')
-    await sendMorningDigest(_pendingDigest)
-    _pendingDigest = null
+  const task = cron.schedule(expression, async () => {
+    ;(global as any).currentUserId = userId
+    console.log(`[NightlyRunner] User ${userId} morning digest starting...`)
+    await sendMorningDigest(_pendingDigests[userId])
+    delete _pendingDigests[userId]
   })
+  _digestCronTasks.push(task)
 }
 
 // ─── Send digest email ────────────────────────────────────────────────────────
@@ -204,7 +219,7 @@ export async function getNightlyRunnerStatus() {
     enabled:      settings.pipeline_enabled ?? false,
     scrape_cron:  settings.pipeline_scrape_cron || DEFAULT_SCRAPE_CRON,
     digest_cron:  settings.pipeline_digest_cron || DEFAULT_DIGEST_CRON,
-    scrape_running: _scrapeCronTask !== null,
-    digest_running: _digestCronTask !== null,
+    scrape_running: _scrapeCronTasks.length > 0,
+    digest_running: _digestCronTasks.length > 0,
   }
 }

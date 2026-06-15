@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { getRawEmailAccountById } from '../../src/db/queries/email-accounts.queries'
 import type { SendResult } from '../../src/types/outreach.types'
 import type { EmailAccount } from '../../src/types'
 
@@ -23,8 +24,10 @@ export function getTransporter(account: EmailAccount): nodemailer.Transporter {
 }
 
 export async function verifySmtp(account: EmailAccount): Promise<{ ok: boolean; error?: string }> {
+  const rawAccount = await getRawEmailAccountById(account.id)
+  if (!rawAccount) return { ok: false, error: 'Account not found' }
   try {
-    const transporter = getTransporter(account)
+    const transporter = getTransporter(rawAccount)
     await transporter.verify()
     return { ok: true }
   } catch (err) {
@@ -38,13 +41,16 @@ export async function sendEmail(
   subject: string,
   bodyText: string
 ): Promise<SendResult> {
+  const rawAccount = await getRawEmailAccountById(account.id)
+  if (!rawAccount) throw new Error(`Email account ${account.id} not found`)
   try {
-    const transporter = getTransporter(account)
+    const transporter = getTransporter(rawAccount)
     const info = await transporter.sendMail({
-      from: `"${account.sender_name}" <${account.email_address}>`,
+      from: `"${rawAccount.sender_name}" <${rawAccount.email_address}>`,
       to,
       subject,
-      text: bodyText
+      text: bodyText,
+      html: bodyText
     })
     return { success: true, message_id: info.messageId ?? null, error: null }
   } catch (err) {

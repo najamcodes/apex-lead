@@ -7,6 +7,9 @@ export class LeadEntity {
   @PrimaryGeneratedColumn()
   id!: number
 
+  @Column({ type: 'int', default: 1 })
+  org_id!: number
+
   @Column({ type: 'text' })
   business_name!: string
 
@@ -81,6 +84,9 @@ export class LeadEntity {
 
   @Column({ type: 'text', nullable: true })
   ai_icebreaker!: string | null
+
+  @Column({ type: 'text', nullable: true })
+  ai_service_pitch!: string | null
 
   @Column({ type: 'float', nullable: true })
   review_rating!: number | null

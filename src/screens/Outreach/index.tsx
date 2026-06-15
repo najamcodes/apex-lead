@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react'
 import { Send, Download, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Button } from '../../components/ui/Button'
-import { Badge } from '../../components/ui/Badge'
 import { SendModal } from './SendModal'
 import { SequencePanel } from './SequencePanel'
 import { TemplateBuilder } from './TemplateBuilder'
+import { QueueDashboard } from './QueueDashboard'
 import { SchedulerStatusWidget } from './SchedulerStatusWidget'
 import { useOutreachStore } from '../../store/outreach.store'
 import { useLeadsStore } from '../../store/leads.store'
@@ -108,75 +108,7 @@ export function Outreach() {
 
       {/* Queue tab */}
       {activeTab === 'queue' && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-          {approvedLeads.length === 0 ? (
-            <div className="py-16 text-center text-sm text-zinc-500">
-              No approved leads yet — review and approve leads in the Review screen.
-            </div>
-          ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-zinc-800">
-                  {['Business', 'City', 'Date Added', 'Email', 'AI Score', 'Website', ''].map((h) => (
-                    <th
-                      key={h}
-                      className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {approvedLeads.map((lead) => (
-                  <tr
-                    key={lead.id}
-                    className="border-b border-zinc-800/50 hover:bg-zinc-800/20 group"
-                  >
-                    <td className="px-4 py-3">
-                      <p className="text-sm font-medium text-zinc-200">{lead.business_name}</p>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-zinc-400">{lead.city}</td>
-                    <td className="px-4 py-3 text-sm text-zinc-400">
-                      {lead.scraped_at ? new Date(lead.scraped_at).toLocaleDateString() : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-zinc-400">
-                      {lead.email ?? <span className="text-zinc-600 italic">no email</span>}
-                    </td>
-                    <td className="px-4 py-3">
-                      {lead.ai_site_score !== null ? (
-                        <span
-                          className={`text-sm font-medium ${
-                            lead.ai_site_score < 40
-                              ? 'text-red-400'
-                              : lead.ai_site_score < 65
-                                ? 'text-amber-400'
-                                : 'text-emerald-400'
-                          }`}
-                        >
-                          {lead.ai_site_score}
-                        </span>
-                      ) : (
-                        <span className="text-zinc-600">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge type="website_status" value={lead.website_status} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="primary" size="sm" onClick={() => setSelectedLead(lead)}>
-                          <Send className="w-3 h-3" />
-                          Send
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+        <QueueDashboard />
       )}
 
       {/* Sequences tab */}

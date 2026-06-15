@@ -5,6 +5,10 @@ export class ScrapeJobEntity {
   @PrimaryColumn({ type: 'text' })
   id!: string
 
+  @Column({ type: 'int', default: 1 })
+  org_id!: number
+
+
   @Column({ type: 'text' })
   query!: string
 

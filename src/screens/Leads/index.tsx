@@ -11,10 +11,13 @@ import { BulkActionsBar } from './BulkActionsBar'
 import { useState } from 'react'
 
 import { Pagination } from '../../components/ui/Pagination'
+import { WebsiteAuditDrawer } from './WebsiteAuditDrawer'
+import type { Lead } from '../../types'
 
 export function Leads() {
   const { leads, loading, fetchLeads, total, filters, setFilters } = useLeadsStore()
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [auditLead, setAuditLead] = useState<Lead | null>(null)
 
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) => {
@@ -38,8 +41,8 @@ export function Leads() {
     <div className="space-y-4 font-sans">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-zinc-100">Leads</h2>
-          <p className="text-sm text-zinc-500 mt-0.5">{total} total</p>
+          <h2 className="text-lg font-semibold text-slate-100">Leads</h2>
+          <p className="text-sm text-slate-500 mt-0.5">{total} total</p>
         </div>
         <Button variant="primary" size="sm">
           + Add manually
@@ -104,6 +107,7 @@ export function Leads() {
                   lead={lead}
                   selected={selectedIds.has(lead.id)}
                   onToggle={toggleSelect}
+                  onViewAudit={(leadToAudit) => setAuditLead(leadToAudit)}
                 />
               ))}
             </tbody>
@@ -118,6 +122,12 @@ export function Leads() {
           />
         </div>
       )}
+
+      <WebsiteAuditDrawer 
+        lead={auditLead}
+        isOpen={auditLead !== null}
+        onClose={() => setAuditLead(null)}
+      />
     </div>
   )
 }

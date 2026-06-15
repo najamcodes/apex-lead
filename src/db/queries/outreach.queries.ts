@@ -1,3 +1,4 @@
+import { getTenantId } from './tenant'
 import { getDataSource } from '../index'
 import { OutreachEntity } from '../entities/OutreachEntity'
 import type {
@@ -10,6 +11,7 @@ import type {
 export async function insertOutreach(data: OutreachInsert): Promise<OutreachRecord> {
   const repo = getDataSource().getRepository(OutreachEntity)
   const entity = repo.create({
+    org_id: getTenantId(),
     lead_id: data.lead_id,
     step: data.step,
     channel: data.channel,
@@ -37,7 +39,7 @@ export async function getAllOutreach(
   const offset = (page - 1) * pageSize
 
   const [data, total] = await repo.findAndCount({
-    where: status ? { status } : {},
+    where: status ? { status, org_id: getTenantId() } : { org_id: getTenantId() },
     order: status ? { scheduled_at: 'ASC' } : { scheduled_at: 'DESC' },
     skip: offset,
     take: pageSize
@@ -49,7 +51,7 @@ export async function getAllOutreach(
 export async function getOutreachByLead(leadId: number): Promise<OutreachRecord[]> {
   const repo = getDataSource().getRepository(OutreachEntity)
   const res = await repo.find({
-    where: { lead_id: leadId },
+    where: { lead_id: leadId, org_id: getTenantId() },
     order: { step: 'ASC' }
   })
   return res as OutreachRecord[]
@@ -72,7 +74,7 @@ export async function updateOutreachStatus(
   if (extra?.error_message) setParams.error_message = extra.error_message
   if (extra?.smtp_message_id) setParams.smtp_message_id = extra.smtp_message_id
 
-  await repo.update(id, setParams)
+  await repo.update({ id, org_id: getTenantId() }, setParams)
 }
 
 export async function getDueOutreach(): Promise<OutreachRecord[]> {
@@ -80,6 +82,7 @@ export async function getDueOutreach(): Promise<OutreachRecord[]> {
   const qb = repo.createQueryBuilder('outreach')
   const res = await qb
     .where('outreach.status = :status', { status: 'queued' })
+    .andWhere('outreach.org_id = :orgId', { orgId: getTenantId() })
     .andWhere("outreach.scheduled_at <= datetime('now')")
     .orderBy('outreach.scheduled_at', 'ASC')
     .getMany()
@@ -97,6 +100,7 @@ export async function getSequenceSummaries(
   const countRes = await ds.createQueryBuilder()
     .select('COUNT(DISTINCT lead_id)', 'count')
     .from('outreach', 'o')
+    .where('o.org_id = :orgId', { orgId: getTenantId() })
     .getRawOne()
     
   const total = Number(countRes?.count) || 0
@@ -110,6 +114,7 @@ export async function getSequenceSummaries(
     .addSelect("MIN(CASE WHEN o.status = 'queued' THEN o.scheduled_at END)", 'next_scheduled')
     .from('leads', 'l')
     .innerJoin('outreach', 'o', 'o.lead_id = l.id')
+    .where('l.org_id = :orgId', { orgId: getTenantId() })
     .groupBy('l.id')
     .orderBy('next_scheduled', 'ASC', 'NULLS LAST')
     .limit(pageSize)
@@ -117,4 +122,23 @@ export async function getSequenceSummaries(
     .getRawMany()
 
   return { data: data as SequenceSummary[], total }
+}
+
+export async function getPendingOutreachQueue(): Promise<any[]> {
+  const ds = getDataSource()
+  const data = await ds.createQueryBuilder()
+    .select('o.id', 'id')
+    .addSelect('o.step', 'step')
+    .addSelect('o.subject', 'subject')
+    .addSelect('o.scheduled_at', 'scheduled_at')
+    .addSelect('l.business_name', 'business_name')
+    .addSelect('l.email', 'email')
+    .from('outreach', 'o')
+    .innerJoin('leads', 'l', 'l.id = o.lead_id')
+    .where('o.status = :status', { status: 'queued' })
+    .andWhere('o.org_id = :orgId', { orgId: getTenantId() })
+    .orderBy('o.scheduled_at', 'ASC')
+    .getRawMany()
+  
+  return data
 }

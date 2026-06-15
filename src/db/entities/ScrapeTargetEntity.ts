@@ -6,6 +6,9 @@ export class ScrapeTargetEntity {
   @PrimaryGeneratedColumn()
   id!: number
 
+  @Column({ type: 'int', default: 1 })
+  org_id!: number
+
   @Column({ type: 'text', nullable: true })
   label!: string | null
 

@@ -1,3 +1,4 @@
+import { getTenantId } from './tenant'
 // src/db/queries/digests.queries.ts
 import { getDataSource } from '../index'
 import { DigestRunEntity } from '../entities/DigestRunEntity'
@@ -6,6 +7,7 @@ import type { DigestRun } from '../../types/pipeline.types'
 export async function insertDigestRun(data: Omit<DigestRun, 'id'>): Promise<DigestRun> {
   const repo = getDataSource().getRepository(DigestRunEntity)
   const entity = repo.create({
+    org_id: getTenantId(),
     run_at: data.run_at,
     targets_run: data.targets_run,
     total_scraped: data.total_scraped,
@@ -22,6 +24,7 @@ export async function insertDigestRun(data: Omit<DigestRun, 'id'>): Promise<Dige
 export async function getAllDigests(limit = 30): Promise<DigestRun[]> {
   const repo = getDataSource().getRepository(DigestRunEntity)
   return await repo.find({
+    where: { org_id: getTenantId() },
     order: { run_at: 'DESC' },
     take: limit
   }) as unknown as DigestRun[]
@@ -30,6 +33,7 @@ export async function getAllDigests(limit = 30): Promise<DigestRun[]> {
 export async function getLatestDigest(): Promise<DigestRun | null> {
   const repo = getDataSource().getRepository(DigestRunEntity)
   const result = await repo.findOne({
+    where: { org_id: getTenantId() },
     order: { run_at: 'DESC' }
   })
   return result ? (result as unknown as DigestRun) : null

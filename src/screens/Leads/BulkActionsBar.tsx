@@ -1,6 +1,6 @@
 // src/screens/Leads/BulkActionsBar.tsx
 import { motion, AnimatePresence } from 'framer-motion'
-import { Zap, CheckCircle2, Send, MailSearch, X, UserCheck } from 'lucide-react'
+import { Zap, CheckCircle2, Send, MailSearch, X, UserCheck, Sparkles } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { useLeadsStore } from '../../store/leads.store'
 import { useTemplatesStore } from '../../store/templates.store'
@@ -139,11 +139,36 @@ export function BulkActionsBar({ selectedCount, onClear, leadIds }: Props) {
               </button>
             </div>
             
-            {templates.length === 0 ? (
-              <p className="text-sm text-zinc-400 mb-6">No templates created yet. Please create one in the Outreach tab.</p>
-            ) : (
-              <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
-                {templates.map(tpl => (
+            <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
+              <button
+                className="w-full text-left px-4 py-3 bg-emerald-950/20 hover:bg-emerald-900/30 border border-emerald-900/50 hover:border-emerald-500/50 rounded-lg transition-colors flex items-center gap-3"
+                onClick={() => {
+                  setShowTemplateModal(false)
+                  handleAction('schedule', () => window.api.bulk.scheduleSequences(leadIds))
+                }}
+              >
+                <div className="bg-emerald-500/20 p-2 rounded-full text-emerald-400">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-medium text-sm text-emerald-400">Draft with AI</div>
+                  <div className="text-xs text-emerald-500/70 mt-0.5">Generate highly personalized emails using your OpenRouter API</div>
+                </div>
+              </button>
+
+              {templates.length === 0 ? (
+                <p className="text-sm text-zinc-500 mt-4 px-2">No static templates created yet.</p>
+              ) : (
+                <>
+                  <div className="relative py-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-zinc-800"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="bg-zinc-900 px-2 text-zinc-500 uppercase tracking-wider">Or select template</span>
+                    </div>
+                  </div>
+                  {templates.map(tpl => (
                   <button
                     key={tpl.id}
                     className="w-full text-left px-4 py-3 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 hover:border-emerald-500/50 rounded-lg transition-colors"
@@ -156,8 +181,9 @@ export function BulkActionsBar({ selectedCount, onClear, leadIds }: Props) {
                     <div className="text-xs text-zinc-500 truncate mt-1">Subj: {tpl.subject}</div>
                   </button>
                 ))}
-              </div>
-            )}
+                </>
+              )}
+            </div>
             
             <div className="flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setShowTemplateModal(false)}>Cancel</Button>

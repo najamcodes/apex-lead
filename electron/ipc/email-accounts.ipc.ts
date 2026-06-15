@@ -5,8 +5,17 @@ import {
   addEmailAccount,
   updateEmailAccount,
   deleteEmailAccount,
-  getEmailAccountById
+  getRawEmailAccountById
 } from '../../src/db/queries/email-accounts.queries'
+import { getCurrentUserRole, getCurrentUserPermissions } from '../../src/db/queries/tenant'
+
+function requirePermission(perm: string) {
+  if (getCurrentUserRole() === 'admin') return;
+  const perms = getCurrentUserPermissions();
+  if (!perms.includes(perm)) {
+    throw new Error(`Unauthorized: Missing permission ${perm}`);
+  }
+}
 import nodemailer from 'nodemailer'
 
 export function registerEmailAccountsIpc(): void {
@@ -15,19 +24,23 @@ export function registerEmailAccountsIpc(): void {
   })
 
   ipcMain.handle(IPC.EMAIL_ACCOUNTS_ADD, async (_event, data) => {
+    requirePermission('manage_settings')
     return await addEmailAccount(data)
   })
 
   ipcMain.handle(IPC.EMAIL_ACCOUNTS_UPDATE, async (_event, id: number, data) => {
+    requirePermission('manage_settings')
     await updateEmailAccount(id, data)
   })
 
   ipcMain.handle(IPC.EMAIL_ACCOUNTS_DELETE, async (_event, id: number) => {
+    requirePermission('manage_settings')
     await deleteEmailAccount(id)
   })
 
   ipcMain.handle(IPC.EMAIL_ACCOUNTS_TEST, async (_event, id: number) => {
-    const account = await getEmailAccountById(id)
+    requirePermission('manage_settings')
+    const account = await getRawEmailAccountById(id)
     if (!account) return { ok: false, error: 'Account not found' }
 
     try {

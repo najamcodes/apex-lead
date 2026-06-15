@@ -63,6 +63,7 @@ export async function scoreSite(
       website_status,
       ai_personalized_hook: result.opportunity_hook ?? null,
       ai_icebreaker: result.icebreaker ?? null,
+      ai_service_pitch: result.service_pitch ?? null,
       contact_name: result.decision_maker_name ?? lead.contact_name,
       updated_at: () => "datetime('now')"
     })

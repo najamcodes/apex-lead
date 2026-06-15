@@ -1,81 +1,88 @@
 // electron/scheduler/index.ts
 import * as cron from 'node-cron'
+import { getDataSource } from '../../src/db'
+import { UserEntity } from '../../src/db/entities/UserEntity'
 import { getSettings } from '../../src/db/queries/settings.queries'
 import { processDueOutreach } from '../outreach'
 import { listenForImapReplies } from '../outreach/imap-listener'
 import { runWarmupCycle } from '../outreach/warmup-engine'
 import { BrowserWindow } from 'electron'
 
-let activeTask: cron.ScheduledTask | null = null
-let imapTask: cron.ScheduledTask | null = null
-let warmupTask: cron.ScheduledTask | null = null
+let activeTasks: cron.ScheduledTask[] = []
+let imapTasks: cron.ScheduledTask[] = []
+let warmupTasks: cron.ScheduledTask[] = []
 
 export async function initScheduler(mainWindow: BrowserWindow): Promise<void> {
-  const settings = await getSettings()
+  // Clear old tasks
+  activeTasks.forEach(t => t.stop())
+  activeTasks = []
+  imapTasks.forEach(t => t.stop())
+  imapTasks = []
+  warmupTasks.forEach(t => t.stop())
+  warmupTasks = []
 
-  if (activeTask) {
-    activeTask.stop()
-    activeTask = null
-  }
-  if (imapTask) {
-    imapTask.stop()
-    imapTask = null
-  }
-  if (warmupTask) {
-    warmupTask.stop()
-    warmupTask = null
-  }
+  const users = await getDataSource().getRepository(UserEntity).find()
+  const originalUserId = (global as any).currentUserId
 
-  if (settings.auto_send_enabled && settings.auto_send_cron) {
-    // Validate cron expression
-    if (cron.validate(settings.auto_send_cron)) {
-      activeTask = cron.schedule(settings.auto_send_cron, async () => {
-        try {
-          console.log('[Scheduler] Running auto-send cron job...')
-          const result = await processDueOutreach()
-          console.log(`[Scheduler] Sent ${result.sent}, failed ${result.failed}`)
+  for (const user of users) {
+    ;(global as any).currentUserId = user.id
+    const settings = await getSettings()
 
-          // Optionally notify the UI if we want to show a toast
-          if (mainWindow && !mainWindow.isDestroyed()) {
-            mainWindow.webContents.send('scheduler:completed', result)
+    // Auto-send
+    if (settings.auto_send_enabled && settings.auto_send_cron) {
+      if (cron.validate(settings.auto_send_cron)) {
+        const task = cron.schedule(settings.auto_send_cron, async () => {
+          ;(global as any).currentUserId = user.id
+          try {
+            console.log(`[Scheduler] User ${user.id} running auto-send...`)
+            const result = await processDueOutreach()
+            console.log(`[Scheduler] User ${user.id} sent ${result.sent}, failed ${result.failed}`)
+
+            if ((global as any).currentUserId === user.id && mainWindow && !mainWindow.isDestroyed()) {
+              mainWindow.webContents.send('scheduler:completed', result)
+            }
+          } catch (err) {
+            console.error(`[Scheduler] User ${user.id} error processing outreach:`, err)
           }
+        })
+        activeTasks.push(task)
+        console.log(`[Scheduler] User ${user.id} initialized auto-send with cron: ${settings.auto_send_cron}`)
+      }
+    }
+
+    // IMAP
+    if (cron.validate(settings.imap_cron || '*/5 * * * *')) {
+      const task = cron.schedule(settings.imap_cron || '*/5 * * * *', async () => {
+        ;(global as any).currentUserId = user.id
+        try {
+          console.log(`[Scheduler] User ${user.id} running IMAP listener...`)
+          await listenForImapReplies()
         } catch (err) {
-          console.error('[Scheduler] Error processing due outreach:', err)
+          console.error(`[Scheduler] User ${user.id} error running IMAP listener:`, err)
         }
       })
-      console.log(`[Scheduler] Initialized with cron: ${settings.auto_send_cron}`)
-    } else {
-      console.error('[Scheduler] Invalid cron expression:', settings.auto_send_cron)
+      imapTasks.push(task)
     }
-  } else {
-    console.log('[Scheduler] Disabled.')
+
+    // Warmup
+    if (cron.validate(settings.warmup_cron || '*/30 * * * *')) {
+      const task = cron.schedule(settings.warmup_cron || '*/30 * * * *', async () => {
+        ;(global as any).currentUserId = user.id
+        try {
+          console.log(`[Scheduler] User ${user.id} running Warmup Cycle...`)
+          await runWarmupCycle()
+        } catch (err) {
+          console.error(`[Scheduler] User ${user.id} error running Warmup:`, err)
+        }
+      })
+      warmupTasks.push(task)
+    }
   }
 
-  // Always run IMAP listener every 5 minutes if auto-send is running or independently? 
-  // Let's run it every 5 minutes regardless if the app is open.
-  if (cron.validate(settings.imap_cron || '*/5 * * * *')) {
-    imapTask = cron.schedule(settings.imap_cron || '*/5 * * * *', async () => {
-      try {
-        console.log('[Scheduler] Running IMAP listener...')
-        await listenForImapReplies()
-      } catch (err) {
-        console.error('[Scheduler] Error running IMAP listener:', err)
-      }
-    })
-  }
-
-  if (cron.validate(settings.warmup_cron || '*/30 * * * *')) {
-    warmupTask = cron.schedule(settings.warmup_cron || '*/30 * * * *', async () => {
-      try {
-        console.log('[Scheduler] Running Warmup Cycle...')
-        await runWarmupCycle()
-      } catch (err) {
-        console.error('[Scheduler] Error running Warmup:', err)
-      }
-    })
-  }
+  // Restore the originally logged-in user
+  ;(global as any).currentUserId = originalUserId
 }
 
 export function getSchedulerStatus(): boolean {
-  return activeTask !== null
+  return activeTasks.length > 0
 }

@@ -10,19 +10,45 @@ import {
 } from '../../src/db/queries/leads.queries'
 import { getDashboardStats, getCityRoiStats } from '../../src/db/queries/stats.queries'
 import { logActivity } from '../../src/db/queries/activity.queries'
+import { getCurrentUserRole, getCurrentUserPermissions } from '../../src/db/queries/tenant'
+
+function requirePermission(perm: string) {
+  if (getCurrentUserRole() === 'admin') return;
+  const perms = getCurrentUserPermissions();
+  if (!perms.includes(perm)) {
+    throw new Error(`Unauthorized: Missing permission ${perm}`);
+  }
+}
 
 export function registerLeadIpcHandlers(): void {
   ipcMain.handle(IPC.LEADS_GET_ALL, (_event, filters: LeadFilters) => {
+    requirePermission('view_leads')
     return getAllLeads(filters)
   })
-  ipcMain.handle(IPC.LEADS_GET_BY_ID, (_event, id) => getLeadById(id))
-  ipcMain.handle(IPC.LEADS_INSERT, (_event, data) => insertLead(data))
+  ipcMain.handle(IPC.LEADS_GET_BY_ID, (_event, id) => {
+    requirePermission('view_leads')
+    return getLeadById(id)
+  })
+  ipcMain.handle(IPC.LEADS_INSERT, (_event, data) => {
+    requirePermission('manage_settings')
+    return insertLead(data)
+  })
   ipcMain.handle(IPC.LEADS_UPDATE_STATUS, (_event, id, status, notes) => {
+    requirePermission('view_leads')
     updateLeadStatus(id, status, notes)
     if (status === 'approved') logActivity(id, 'lead_approved', notes)
     if (status === 'skipped') logActivity(id, 'lead_skipped', notes)
   })
-  ipcMain.handle(IPC.LEADS_DELETE, (_event, id) => deleteLead(id))
-  ipcMain.handle(IPC.STATS_GET_DASHBOARD, () => getDashboardStats())
-  ipcMain.handle(IPC.STATS_GET_CITY_ROI, () => getCityRoiStats())
+  ipcMain.handle(IPC.LEADS_DELETE, (_event, id) => {
+    requirePermission('manage_settings')
+    return deleteLead(id)
+  })
+  ipcMain.handle(IPC.STATS_GET_DASHBOARD, () => {
+    requirePermission('view_leads')
+    return getDashboardStats()
+  })
+  ipcMain.handle(IPC.STATS_GET_CITY_ROI, () => {
+    requirePermission('view_leads')
+    return getCityRoiStats()
+  })
 }

@@ -8,6 +8,7 @@ export interface SiteScoreResult {
   opportunity_hook: string // One sentence pitch hook e.g. "This business would benefit from a modern landing page"
   icebreaker: string | null // A personalized one-sentence observation based on their website copy (e.g. "I loved your recent case study on X")
   decision_maker_name: string | null
+  service_pitch: string | null
   model_used: string
 }
 

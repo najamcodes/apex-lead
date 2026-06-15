@@ -1,6 +1,8 @@
+import { getTenantId } from './tenant'
 import { getDataSource } from '../index'
 import { ScrapeJobEntity } from '../entities/ScrapeJobEntity'
 import type { ScrapeJob } from '../../types/scraper.types'
+import { In } from 'typeorm'
 
 export async function insertScrapeJob(
   job: Omit<
@@ -10,6 +12,7 @@ export async function insertScrapeJob(
 ): Promise<void> {
   const repo = getDataSource().getRepository(ScrapeJobEntity)
   await repo.save(repo.create({
+    org_id: getTenantId(),
     id: job.id,
     query: job.query,
     city: job.city,
@@ -21,7 +24,7 @@ export async function insertScrapeJob(
 
 export async function updateScrapeJob(id: string, patch: Partial<ScrapeJob>): Promise<void> {
   const repo = getDataSource().getRepository(ScrapeJobEntity)
-  await repo.update(id, patch)
+  await repo.update({ id, org_id: getTenantId() }, patch)
 }
 
 export async function getAllScrapeJobs(
@@ -33,6 +36,7 @@ export async function getAllScrapeJobs(
   const offset = (page - 1) * pageSize
 
   const [data, total] = await repo.findAndCount({
+    where: { org_id: getTenantId() },
     order: { started_at: 'DESC' },
     skip: offset,
     take: pageSize
@@ -43,16 +47,16 @@ export async function getAllScrapeJobs(
 
 export async function getScrapeJobById(id: string): Promise<ScrapeJob | null> {
   const repo = getDataSource().getRepository(ScrapeJobEntity)
-  const res = await repo.findOne({ where: { id } })
+  const res = await repo.findOne({ where: { id, org_id: getTenantId() } })
   return (res as ScrapeJob) || null
 }
 
 export async function deleteScrapeJob(id: string): Promise<void> {
   const repo = getDataSource().getRepository(ScrapeJobEntity)
-  await repo.delete(id)
+  await repo.delete({ id, org_id: getTenantId() })
 }
 
 export async function deleteScrapeJobs(ids: string[]): Promise<void> {
   const repo = getDataSource().getRepository(ScrapeJobEntity)
-  await repo.delete(ids)
+  await repo.delete({ id: In(ids), org_id: getTenantId() })
 }

@@ -1,5 +1,10 @@
 // src/types/window.d.ts
 interface Window {
+  electron: {
+    ipcRenderer: {
+      invoke(channel: string, ...args: any[]): Promise<any>;
+    };
+  };
   api: {
     leads: {
       getAll: (filters?: unknown) => Promise<import('./index').PaginatedResponse<import('./index').Lead>>
@@ -43,6 +48,7 @@ interface Window {
       getAll: (status?: string, pagination?: import('./index').PaginationParams) => Promise<import('./index').PaginatedResponse<import('./outreach.types').OutreachRecord>>
       markReplied: (outreachId: number) => Promise<void>
       markBounced: (outreachId: number) => Promise<void>
+      getPendingQueue: () => Promise<any[]>
       scheduleSeq: (
         input: unknown,
         businessName: string
@@ -59,7 +65,7 @@ interface Window {
       analyze: (leadIds: number[]) => Promise<void>
       score: (leadIds: number[]) => Promise<void>
       approve: (leadIds: number[]) => Promise<void>
-      scheduleSequences: (leadIds: number[], templateId: number) => Promise<void>
+      scheduleSequences: (leadIds: number[], templateId?: number) => Promise<void>
     }
     notes: {
       get: (leadId: number) => Promise<import('./activity.types').NoteRecord | null>
@@ -119,6 +125,17 @@ interface Window {
       update: (id: number, data: Partial<import('./index').EmailAccountInsert>) => Promise<void>
       delete: (id: number) => Promise<void>
       test: (id: number) => Promise<{ ok: boolean; error?: string }>
+    }
+    auth: {
+      login: (args: any) => Promise<any>
+      register: (args: any) => Promise<any>
+      restoreSession: (args: { userId: number }) => Promise<{ success: boolean; error?: string }>
+    }
+    users: {
+      list: () => Promise<any>
+      add: (args: any) => Promise<any>
+      updatePermissions: (userId: number, permissions: string[]) => Promise<any>
+      delete: (userId: number) => Promise<any>
     }
   }
 }

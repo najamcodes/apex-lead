@@ -10,7 +10,8 @@ import {
 import {
   getAllOutreach,
   updateOutreachStatus,
-  getSequenceSummaries
+  getSequenceSummaries,
+  getPendingOutreachQueue
 } from '../../src/db/queries/outreach.queries'
 import { exportLeadsToCsv } from '../outreach/csv-export'
 import { getChartData, getFunnelData } from '../../src/db/queries/stats.queries'
@@ -18,15 +19,26 @@ import { logActivity } from '../../src/db/queries/activity.queries'
 
 import type { SequenceInput } from '../outreach/sequence-engine'
 import { getDataSource } from '../../src/db'
+import { getCurrentUserRole, getCurrentUserPermissions } from '../../src/db/queries/tenant'
+
+function requirePermission(perm: string) {
+  if (getCurrentUserRole() === 'admin') return;
+  const perms = getCurrentUserPermissions();
+  if (!perms.includes(perm)) {
+    throw new Error(`Unauthorized: Missing permission ${perm}`);
+  }
+}
 
 export function registerOutreachIpcHandlers(): void {
   // Send a single outreach record
   ipcMain.handle(IPC.OUTREACH_SEND, async (_event, recordId: number) => {
+    requirePermission('send_outreach')
     return sendOutreachRecord(recordId)
   })
 
   // Process all due outreach (send scheduled emails)
   ipcMain.handle(IPC.OUTREACH_SEND_BATCH, async () => {
+    requirePermission('send_outreach')
     return processDueOutreach()
   })
 
@@ -37,6 +49,7 @@ export function registerOutreachIpcHandlers(): void {
 
   // Mark a lead as replied
   ipcMain.handle(IPC.OUTREACH_MARK_REPLIED, async (_event, outreachId: number) => {
+    requirePermission('send_outreach')
     await updateOutreachStatus(outreachId, 'replied', { replied_at: new Date().toISOString() })
     const record = await getDataSource().createQueryBuilder()
       .select('lead_id')
@@ -59,6 +72,7 @@ export function registerOutreachIpcHandlers(): void {
 
   // Mark as bounced
   ipcMain.handle(IPC.OUTREACH_MARK_BOUNCED, async (_event, outreachId: number) => {
+    requirePermission('send_outreach')
     await updateOutreachStatus(outreachId, 'bounced')
     const record = await getDataSource().createQueryBuilder()
       .select('lead_id')
@@ -72,6 +86,7 @@ export function registerOutreachIpcHandlers(): void {
   ipcMain.handle(
     IPC.OUTREACH_SCHEDULE_SEQ,
     async (_event, input: SequenceInput, businessName: string) => {
+      requirePermission('send_outreach')
       const res = await createSequenceForLead(input, businessName)
       await logActivity(input.lead_id, 'sequence_started', 'Scheduled 3-step sequence')
       return res
@@ -91,6 +106,10 @@ export function registerOutreachIpcHandlers(): void {
     weekly: await getChartData(14),
     funnel: await getFunnelData()
   }))
+
+  ipcMain.handle('outreach:getPendingQueue', async () => {
+    return await getPendingOutreachQueue()
+  })
 
 
   // Re-init SMTP (called after settings save)

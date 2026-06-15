@@ -1,5 +1,6 @@
 import { getDataSource } from '../index'
 import type { DashboardStats, CityRoiStat } from '../../types'
+import { getTenantId } from './tenant'
 
 export async function getDashboardStats(): Promise<DashboardStats> {
   const ds = getDataSource()
@@ -13,7 +14,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     .addSelect("SUM(CASE WHEN scraped_at >= datetime('now', '-7 days') THEN 1 ELSE 0 END)", 'this_week')
     .addSelect("SUM(CASE WHEN email_verified = 1 THEN 1 ELSE 0 END)", 'verified_emails')
     .addSelect("SUM(CASE WHEN social_links IS NOT NULL THEN 1 ELSE 0 END)", 'social_links_found')
+    .addSelect("SUM(CASE WHEN social_links IS NOT NULL THEN 1 ELSE 0 END)", 'social_links_found')
     .from('leads', 'leads')
+    .where('leads.org_id = :orgId', { orgId: getTenantId() })
     .getRawOne()
 
   const row = result || {}
@@ -51,16 +54,20 @@ export async function getChartData(days = 14): Promise<ChartDataPoint[]> {
   const scrapedRows = await ds.createQueryBuilder()
     .select('date(scraped_at)', 'date')
     .addSelect('COUNT(*)', 'count')
+    .addSelect('COUNT(*)', 'count')
     .from('leads', 'l')
-    .where('scraped_at >= datetime("now", "-" || :days || " days")', { days })
+    .where('l.org_id = :orgId', { orgId: getTenantId() })
+    .andWhere("scraped_at >= datetime('now', '-' || :days || ' days')", { days })
     .groupBy('date(scraped_at)')
     .getRawMany()
 
   const analyzedRows = await ds.createQueryBuilder()
     .select('date(updated_at)', 'date')
     .addSelect('COUNT(*)', 'count')
+    .addSelect('COUNT(*)', 'count')
     .from('leads', 'l')
-    .where('updated_at >= datetime("now", "-" || :days || " days")', { days })
+    .where('l.org_id = :orgId', { orgId: getTenantId() })
+    .andWhere("updated_at >= datetime('now', '-' || :days || ' days')", { days })
     .andWhere('ai_site_score IS NOT NULL')
     .groupBy('date(updated_at)')
     .getRawMany()
@@ -68,18 +75,22 @@ export async function getChartData(days = 14): Promise<ChartDataPoint[]> {
   const approvedRows = await ds.createQueryBuilder()
     .select('date(updated_at)', 'date')
     .addSelect('COUNT(*)', 'count')
+    .addSelect('COUNT(*)', 'count')
     .from('leads', 'l')
-    .where('updated_at >= datetime("now", "-" || :days || " days")', { days })
-    .andWhere('status = "approved"')
+    .where('l.org_id = :orgId', { orgId: getTenantId() })
+    .andWhere("updated_at >= datetime('now', '-' || :days || ' days')", { days })
+    .andWhere("status = 'approved'")
     .groupBy('date(updated_at)')
     .getRawMany()
 
   const closedRows = await ds.createQueryBuilder()
     .select('date(updated_at)', 'date')
     .addSelect('COUNT(*)', 'count')
+    .addSelect('COUNT(*)', 'count')
     .from('leads', 'l')
-    .where('updated_at >= datetime("now", "-" || :days || " days")', { days })
-    .andWhere('status = "closed"')
+    .where('l.org_id = :orgId', { orgId: getTenantId() })
+    .andWhere("updated_at >= datetime('now', '-' || :days || ' days')", { days })
+    .andWhere("status = 'closed'")
     .groupBy('date(updated_at)')
     .getRawMany()
 
@@ -108,7 +119,9 @@ export async function getFunnelData(): Promise<FunnelDataPoint[]> {
     .addSelect("SUM(CASE WHEN status = 'outreach' THEN 1 ELSE 0 END)", 'outreach')
     .addSelect("SUM(CASE WHEN status = 'replied' THEN 1 ELSE 0 END)", 'replied')
     .addSelect("SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END)", 'closed')
+    .addSelect("SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END)", 'closed')
     .from('leads', 'leads')
+    .where('leads.org_id = :orgId', { orgId: getTenantId() })
     .getRawOne()
 
   const counts = result || {}
@@ -129,8 +142,10 @@ export async function getCityRoiStats(): Promise<CityRoiStat[]> {
     .select('city')
     .addSelect('COUNT(*)', 'lead_count')
     .addSelect('ROUND(AVG(ai_site_score), 1)', 'avg_ai_score')
+    .addSelect('ROUND(AVG(ai_site_score), 1)', 'avg_ai_score')
     .from('leads', 'leads')
-    .where('city IS NOT NULL')
+    .where('leads.org_id = :orgId', { orgId: getTenantId() })
+    .andWhere('city IS NOT NULL')
     .andWhere('ai_site_score IS NOT NULL')
     .groupBy('city')
     .having('COUNT(*) >= 1')

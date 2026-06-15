@@ -22,8 +22,8 @@ export function EmailAccountsManager() {
     setAccounts(data)
   }
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleAdd = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault()
     setLoading(true)
     try {
       const data: EmailAccountInsert = {
@@ -87,7 +87,7 @@ export function EmailAccountsManager() {
       </div>
 
       {showAdd && (
-        <form onSubmit={handleAdd} className="bg-gray-900/50 p-4 rounded-lg border border-gray-700/50 grid grid-cols-2 gap-4">
+        <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-700/50 grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-medium text-gray-400 mb-1">Email Address</label>
             <input required type="email" value={email} onChange={e => setEmail(e.target.value)}
@@ -113,11 +113,11 @@ export function EmailAccountsManager() {
           </div>
           <div className="col-span-2 flex justify-end gap-2 mt-2">
             <button type="button" onClick={() => setShowAdd(false)} className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>
-            <button disabled={loading} type="submit" className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            <button disabled={loading} type="button" onClick={handleAdd} className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
               {loading ? 'Adding...' : 'Save Account'}
             </button>
           </div>
-        </form>
+        </div>
       )}
 
       <div className="space-y-3">

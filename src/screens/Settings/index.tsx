@@ -6,6 +6,7 @@ import { Input } from '../../components/ui/Input'
 import { ApiKeySettings } from './ApiKeySettings'
 import { EmailAccountsManager } from './EmailAccountsManager'
 import { EmailTemplatesManager } from './EmailTemplatesManager'
+import { TeamManager } from './TeamManager'
 
 export function Settings() {
   const { settings, loaded, saving, load, save } = useSettingsStore()
@@ -384,6 +385,8 @@ export function Settings() {
       </Card>
 
       <EmailAccountsManager />
+      
+      <TeamManager />
 
       <div className="flex items-center gap-4">
         <button

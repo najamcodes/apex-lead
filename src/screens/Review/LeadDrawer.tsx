@@ -268,6 +268,30 @@ export function LeadDrawer({ lead, onClose }: LeadDrawerProps) {
               </div>
             )}
 
+            {lead.ai_icebreaker && (
+              <div className="bg-emerald-950/20 border border-emerald-900/50 rounded-lg p-3">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  <p className="text-xs font-medium text-emerald-400">AI Icebreaker</p>
+                </div>
+                <p className="text-sm text-zinc-300 leading-relaxed italic">
+                  "{lead.ai_icebreaker}"
+                </p>
+              </div>
+            )}
+
+            {lead.ai_service_pitch && (
+              <div className="bg-indigo-950/20 border border-indigo-900/50 rounded-lg p-3">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                  <p className="text-xs font-medium text-indigo-400">Suggested Service Pitch</p>
+                </div>
+                <p className="text-sm text-zinc-300 leading-relaxed">
+                  {lead.ai_service_pitch}
+                </p>
+              </div>
+            )}
+
             {lead.site_built_year && (
               <p className="text-xs text-zinc-500">
                 Estimated build year: <span className="text-zinc-400">{lead.site_built_year}</span>

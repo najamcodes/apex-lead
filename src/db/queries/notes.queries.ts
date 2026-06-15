@@ -1,3 +1,4 @@
+import { getTenantId } from './tenant'
 import { getDataSource } from '../index'
 import { NoteEntity } from '../entities/NoteEntity'
 import type { NoteRecord } from '../../types/activity.types'
@@ -5,7 +6,7 @@ import type { NoteRecord } from '../../types/activity.types'
 export async function getNoteByLead(leadId: number): Promise<NoteRecord | null> {
   const repo = getDataSource().getRepository(NoteEntity)
   const res = await repo.findOne({
-    where: { lead_id: leadId },
+    where: { lead_id: leadId, org_id: getTenantId() },
     order: { updated_at: 'DESC' }
   })
   return (res as NoteRecord) || null
@@ -20,6 +21,8 @@ export async function saveNote(leadId: number, body: string): Promise<NoteRecord
     return (await getNoteByLead(leadId))!
   }
 
-  const result = await repo.save(repo.create({ lead_id: leadId, body }))
+  const result = await repo.save(repo.create({
+    org_id: getTenantId(),
+    lead_id: leadId, body }))
   return result as NoteRecord
 }

@@ -9,6 +9,7 @@ import { CityRoiStats } from './CityRoiStats'
 import type { DashboardStats } from '../../types'
 import { useNavigate } from 'react-router-dom'
 import { useLeadsStore } from '../../store/leads.store'
+import { motion } from 'framer-motion'
 
 export function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
@@ -34,7 +35,12 @@ export function Dashboard() {
         <p className="text-sm text-zinc-500 mt-0.5">Your lead pipeline at a glance</p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <motion.div 
+        className="grid grid-cols-4 gap-4"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ staggerChildren: 0.1, duration: 0.4 }}
+      >
         <StatCard 
           label="Total Leads" 
           value={stats.total_leads} 
@@ -64,6 +70,7 @@ export function Dashboard() {
             navigate('/leads')
           }}
         />
+
         <StatCard 
           label="In Review" 
           value={stats.in_review} 
@@ -114,12 +121,12 @@ export function Dashboard() {
             navigate('/leads')
           }}
         />
-      </div>
+      </motion.div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 font-sans">
-        <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">This week</p>
-        <p className="text-4xl font-semibold text-zinc-100">{stats.this_week}</p>
-        <p className="text-sm text-zinc-500 mt-1">new leads scraped</p>
+      <div className="glass-panel rounded-xl p-5 font-sans">
+        <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">This week</p>
+        <p className="text-4xl font-semibold text-slate-100">{stats.this_week}</p>
+        <p className="text-sm text-slate-500 mt-1">new leads scraped</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

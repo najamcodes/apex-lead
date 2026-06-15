@@ -11,6 +11,8 @@ import { registerTemplatesIpc } from './templates.ipc'
 import { registerPipelineIpcHandlers } from './pipeline.ipc'
 import { registerQueryProfilesIpc } from './query-profiles.ipc'
 import { registerEmailAccountsIpc } from './email-accounts.ipc'
+import { registerAuthHandlers } from './auth.ipc'
+import { registerUsersHandlers } from './users.ipc'
 
 export function registerAllIpcHandlers(win: BrowserWindow): void {
   registerLeadIpcHandlers()
@@ -24,4 +26,6 @@ export function registerAllIpcHandlers(win: BrowserWindow): void {
   registerPipelineIpcHandlers(win)
   registerQueryProfilesIpc()
   registerEmailAccountsIpc()
+  registerAuthHandlers()
+  registerUsersHandlers()
 }

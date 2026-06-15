@@ -54,9 +54,9 @@ export function ScrapeHistory() {
   }
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden font-sans">
-      <div className="px-5 py-3 border-b border-zinc-800 flex justify-between items-center">
-        <h3 className="text-sm font-medium text-zinc-300">Recent runs</h3>
+    <div className="glass-panel rounded-xl overflow-hidden font-sans">
+      <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center">
+        <h3 className="text-sm font-medium text-slate-300">Recent runs</h3>
         {selected.size > 0 && (
           <button
             onClick={handleDeleteSelected}
@@ -69,11 +69,11 @@ export function ScrapeHistory() {
       </div>
       <table className="w-full text-left">
         <thead>
-          <tr className="border-b border-zinc-800 bg-zinc-950/20">
+          <tr className="border-b border-white/5 bg-slate-900/40 backdrop-blur-sm">
             <th className="px-4 py-2.5 w-10 text-center">
               <input
                 type="checkbox"
-                className="rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-emerald-500/20"
+                className="rounded border-slate-700 bg-slate-800/50 text-emerald-500 focus:ring-emerald-500/20"
                 checked={jobs.length > 0 && selected.size === jobs.length}
                 onChange={toggleAll}
               />
@@ -81,7 +81,7 @@ export function ScrapeHistory() {
             {['', 'Date', 'Query', 'City', 'Found', 'Duration', 'Status', ''].map((h, i) => (
               <th
                 key={i}
-                className="px-4 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider"
+                className="px-4 py-2.5 text-xs font-medium text-slate-400 uppercase tracking-wider"
               >
                 {h}
               </th>
@@ -92,27 +92,27 @@ export function ScrapeHistory() {
           {jobs.map((job) => (
             <tr
               key={job.id}
-              className={`group border-b border-zinc-805 transition-colors ${selected.has(job.id) ? 'bg-emerald-900/10 hover:bg-emerald-900/20' : 'hover:bg-zinc-800/20'}`}
+              className={`group border-b border-white/5 transition-colors ${selected.has(job.id) ? 'bg-emerald-900/20 hover:bg-emerald-900/30' : 'hover:bg-slate-800/40'}`}
             >
               <td className="px-4 py-3 text-center">
                 <input
                   type="checkbox"
-                  className="rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-emerald-500/20"
+                  className="rounded border-slate-700 bg-slate-800/50 text-emerald-500 focus:ring-emerald-500/20"
                   checked={selected.has(job.id)}
                   onChange={() => toggleSelect(job.id)}
                 />
               </td>
               <td className="px-4 py-3">{STATUS_ICON[job.status]}</td>
-              <td className="px-4 py-3 text-sm text-zinc-400">
+              <td className="px-4 py-3 text-sm text-slate-400">
                 {job.started_at ? new Date(job.started_at).toLocaleDateString() : '—'}
               </td>
-              <td className="px-4 py-3 text-sm text-zinc-300 capitalize">{job.query}</td>
-              <td className="px-4 py-3 text-sm text-zinc-400">{job.city}</td>
+              <td className="px-4 py-3 text-sm text-slate-200 capitalize">{job.query}</td>
+              <td className="px-4 py-3 text-sm text-slate-400">{job.city}</td>
               <td className="px-4 py-3 text-sm text-emerald-400 font-medium">{job.found}</td>
-              <td className="px-4 py-3 text-sm text-zinc-500">
+              <td className="px-4 py-3 text-sm text-slate-400">
                 {formatDuration(job.started_at, job.completed_at)}
               </td>
-              <td className="px-4 py-3 text-xs text-zinc-500 capitalize">{job.status}</td>
+              <td className="px-4 py-3 text-xs text-slate-500 capitalize">{job.status}</td>
               <td className="px-4 py-3">
                 <div className="flex items-center gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
@@ -129,14 +129,14 @@ export function ScrapeHistory() {
                     }}
                     disabled={loading}
                     title="Re-run this job"
-                    className="text-zinc-500 hover:text-emerald-400 transition-colors p-1 disabled:opacity-50"
+                    className="text-slate-500 hover:text-emerald-400 transition-colors p-1 disabled:opacity-50"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => deleteJob(job.id)}
                     title="Delete job"
-                    className="text-zinc-600 hover:text-red-400 transition-colors p-1"
+                    className="text-slate-500 hover:text-red-400 transition-colors p-1"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

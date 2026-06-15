@@ -5,6 +5,9 @@ export class EmailTemplateEntity {
   @PrimaryGeneratedColumn()
   id!: number
 
+  @Column({ type: 'int', default: 1 })
+  org_id!: number
+
   @Column({ type: 'text' })
   name!: string
 

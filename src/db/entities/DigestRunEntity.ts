@@ -5,6 +5,9 @@ export class DigestRunEntity {
   @PrimaryGeneratedColumn()
   id!: number
 
+  @Column({ type: 'int', default: 1 })
+  org_id!: number
+
   @Column({ type: 'text', default: () => "(datetime('now'))" })
   run_at!: string
 

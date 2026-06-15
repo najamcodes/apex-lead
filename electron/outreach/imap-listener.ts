@@ -1,7 +1,7 @@
 import { ImapFlow } from 'imapflow'
 import { simpleParser } from 'mailparser'
 import { getDataSource } from '../../src/db'
-import { getEmailAccounts } from '../../src/db/queries/email-accounts.queries'
+import { getEmailAccounts, getRawEmailAccountById } from '../../src/db/queries/email-accounts.queries'
 import { logActivity } from '../../src/db/queries/activity.queries'
 import { triageReply } from '../ai/tasks/triage-reply'
 import { getSettings } from '../../src/db/queries/settings.queries'
@@ -19,13 +19,16 @@ export async function listenForImapReplies() {
 }
 
 async function checkAccountForReplies(account: import('../../src/types').EmailAccount) {
+  const rawAccount = await getRawEmailAccountById(account.id)
+  if (!rawAccount) return
+
   const client = new ImapFlow({
     host: 'imap.gmail.com',
     port: 993,
     secure: true,
     auth: {
-      user: account.email_address,
-      pass: account.app_password!
+      user: rawAccount.email_address,
+      pass: rawAccount.app_password!
     },
     logger: false
   })

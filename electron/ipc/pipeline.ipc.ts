@@ -5,6 +5,16 @@ import {
   runNightlyPipeline,
   getPipelineStatus,
 } from '../pipeline'
+import { getCurrentUserRole, getCurrentUserPermissions } from '../../src/db/queries/tenant'
+
+function requirePermission(perm: string) {
+  if (getCurrentUserRole() === 'admin') return;
+  const perms = getCurrentUserPermissions();
+  if (!perms.includes(perm)) {
+    throw new Error(`Unauthorized: Missing permission ${perm}`);
+  }
+}
+
 import {
   startNightlyRunner,
   stopNightlyRunner,
@@ -23,14 +33,27 @@ import { getAllDigests } from '../../src/db/queries/digests.queries'
 
 export function registerPipelineIpcHandlers(win: BrowserWindow): void {
   // Targets CRUD
-  ipcMain.handle(IPC.TARGETS_GET_ALL, ()           => getAllTargets())
-  ipcMain.handle(IPC.TARGETS_INSERT,  (_, data)    => insertTarget(data))
-  ipcMain.handle(IPC.TARGETS_UPDATE,  (_, id, patch) => updateTarget(id, patch))
-  ipcMain.handle(IPC.TARGETS_DELETE,  (_, id)      => deleteTarget(id))
-  ipcMain.handle(IPC.TARGETS_TOGGLE,  (_, id)      => toggleTarget(id))
+  ipcMain.handle(IPC.TARGETS_GET_ALL, () => getAllTargets())
+  ipcMain.handle(IPC.TARGETS_INSERT, async (_, data) => {
+    requirePermission('manage_settings')
+    return insertTarget(data)
+  })
+  ipcMain.handle(IPC.TARGETS_UPDATE, async (_, id, patch) => {
+    requirePermission('manage_settings')
+    return updateTarget(id, patch)
+  })
+  ipcMain.handle(IPC.TARGETS_DELETE, async (_, id) => {
+    requirePermission('manage_settings')
+    return deleteTarget(id)
+  })
+  ipcMain.handle(IPC.TARGETS_TOGGLE, async (_, id) => {
+    requirePermission('manage_settings')
+    return toggleTarget(id)
+  })
 
   // Run pipeline now (manual trigger)
   ipcMain.handle(IPC.PIPELINE_RUN_NOW, async () => {
+    requirePermission('run_scraper')
     const result = await runNightlyPipeline((msg) => {
       win.webContents.send('pipeline:log', msg)
     })

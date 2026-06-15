@@ -1,28 +1,44 @@
 import { ipcMain } from 'electron'
 import { getDataSource } from '../../src/db'
+import { getTenantId } from '../../src/db/queries/tenant'
 import { EmailTemplateEntity } from '../../src/db/entities/EmailTemplateEntity'
 import { IPC } from '../../src/types'
+import { getCurrentUserRole, getCurrentUserPermissions } from '../../src/db/queries/tenant'
+
+function requirePermission(perm: string) {
+  if (getCurrentUserRole() === 'admin') return;
+  const perms = getCurrentUserPermissions();
+  if (!perms.includes(perm)) {
+    throw new Error(`Unauthorized: Missing permission ${perm}`);
+  }
+}
 
 export function registerTemplatesIpc() {
   ipcMain.handle(IPC.TEMPLATES_GET_ALL, async () => {
+
     const repo = getDataSource().getRepository(EmailTemplateEntity)
-    return await repo.find({ order: { created_at: 'DESC' } })
+    const templates = await repo.find({ where: { org_id: getTenantId() }, order: { created_at: 'DESC' } })
+    return templates
   })
 
   ipcMain.handle(IPC.TEMPLATES_CREATE, async (_event, data: Partial<EmailTemplateEntity>) => {
+    requirePermission('manage_settings')
     const repo = getDataSource().getRepository(EmailTemplateEntity)
-    const template = repo.create(data)
+    const template = repo.create({ ...data, org_id: getTenantId() })
     return await repo.save(template)
   })
 
   ipcMain.handle(IPC.TEMPLATES_UPDATE, async (_event, id: number, data: Partial<EmailTemplateEntity>) => {
+    requirePermission('manage_settings')
     const repo = getDataSource().getRepository(EmailTemplateEntity)
-    await repo.update(id, data)
-    return await repo.findOneBy({ id })
+    await repo.update({ id: id, org_id: getTenantId() }, data)
+    const updated = await repo.findOneBy({ id: id, org_id: getTenantId() })
+    return updated
   })
 
   ipcMain.handle(IPC.TEMPLATES_DELETE, async (_event, id: number) => {
+    requirePermission('manage_settings')
     const repo = getDataSource().getRepository(EmailTemplateEntity)
-    await repo.delete(id)
+    await repo.delete({ id: id, org_id: getTenantId() })
   })
 }

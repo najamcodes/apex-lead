@@ -1,6 +1,18 @@
+import { getTenantId } from './tenant'
 import { getDataSource } from '../index'
 import { SettingsEntity } from '../entities/SettingsEntity'
 import type { AppSettings } from '../../types'
+import { encrypt, decrypt } from '../../../electron/utils/crypto'
+
+export const SENSITIVE_KEYS = [
+  'proxy_password',
+  'claude_api_key',
+  'pagespeed_api_key',
+  'openrouter_api_key',
+  'smtp_password',
+  'hunter_api_key',
+  'two_captcha_key'
+]
 
 export const DEFAULTS: AppSettings = {
   proxy_enabled: false,
@@ -49,11 +61,21 @@ export const DEFAULTS: AppSettings = {
   warmup_cron: '*/30 * * * *'
 }
 
-export async function getSettings(): Promise<AppSettings> {
+export async function getSettings(maskSensitive = false): Promise<AppSettings> {
   const repo = getDataSource().getRepository(SettingsEntity)
-  const rows = await repo.find()
+  const rows = await repo.find({ where: { org_id: getTenantId() } })
   const stored: Record<string, string> = {}
-  for (const row of rows) stored[row.key] = row.value
+  for (const row of rows) {
+    if (SENSITIVE_KEYS.includes(row.key)) {
+      if (maskSensitive && row.value) {
+        stored[row.key] = '********'
+      } else {
+        stored[row.key] = decrypt(row.value)
+      }
+    } else {
+      stored[row.key] = row.value
+    }
+  }
 
   return {
     ...DEFAULTS,
@@ -71,9 +93,27 @@ export async function getSettings(): Promise<AppSettings> {
 
 export async function saveSettings(settings: Partial<AppSettings>): Promise<void> {
   const repo = getDataSource().getRepository(SettingsEntity)
-  const entities = Object.entries(settings).map(([key, value]) => {
-    return repo.create({ key, value: String(value) })
-  })
+  
+  const entitiesToSave: SettingsEntity[] = []
+  
+  for (const [key, rawValue] of Object.entries(settings)) {
+    if (SENSITIVE_KEYS.includes(key) && rawValue === '********') {
+      continue // Do not overwrite with masked string
+    }
+    
+    let finalValue = String(rawValue)
+    if (SENSITIVE_KEYS.includes(key) && finalValue) {
+      finalValue = encrypt(finalValue)
+    }
+    
+    entitiesToSave.push(repo.create({
+      org_id: getTenantId(),
+      key,
+      value: finalValue
+    }))
+  }
 
-  await repo.save(entities)
+  if (entitiesToSave.length > 0) {
+    await repo.save(entitiesToSave)
+  }
 }

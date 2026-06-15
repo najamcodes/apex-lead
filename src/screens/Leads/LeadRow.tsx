@@ -8,23 +8,24 @@ interface Props {
   lead: Lead
   selected: boolean
   onToggle: (id: number) => void
+  onViewAudit: (lead: Lead) => void
 }
 
-export function LeadRow({ lead, selected, onToggle }: Props) {
+export function LeadRow({ lead, selected, onToggle, onViewAudit }: Props) {
   const { updateStatus, deleteLead } = useLeadsStore()
 
   return (
-    <tr className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-all duration-200 group font-sans">
+    <tr className="border-b border-white/5 hover:bg-slate-800/40 transition-all duration-200 group font-sans">
       <td className="px-4 py-3">
         <input
           type="checkbox"
           checked={selected}
           onChange={() => onToggle(lead.id)}
-          className="rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary/20 cursor-pointer"
+          className="rounded border-slate-700 bg-slate-900 text-primary focus:ring-primary/20 cursor-pointer"
         />
       </td>
       <td className="px-4 py-3">
-        <p className="text-sm font-medium text-zinc-200 flex items-center gap-2">
+        <p className="text-sm font-medium text-slate-200 flex items-center gap-2">
           {lead.business_name}
           {lead.source === 'extension' && (
             <span className="text-xs px-1.5 py-0.5 rounded bg-purple-900/50 text-purple-400 align-middle">
@@ -38,7 +39,7 @@ export function LeadRow({ lead, selected, onToggle }: Props) {
             </span>
           )}
         </p>
-        <p className="text-xs text-zinc-500 mt-0.5 flex flex-wrap items-center gap-2">
+        <p className="text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-2">
           {lead.category}
           {lead.tech_stack && (
             <span className="inline-flex items-center gap-1 text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded" title="Detected Tech Stack">
@@ -53,8 +54,8 @@ export function LeadRow({ lead, selected, onToggle }: Props) {
           )}
         </p>
       </td>
-      <td className="px-4 py-3 text-sm text-zinc-400">{lead.city}</td>
-      <td className="px-4 py-3 text-sm text-zinc-400">
+      <td className="px-4 py-3 text-sm text-slate-400">{lead.city}</td>
+      <td className="px-4 py-3 text-sm text-slate-400">
         {lead.scraped_at ? new Date(lead.scraped_at).toLocaleDateString() : '—'}
       </td>
       <td className="px-4 py-3">
@@ -82,7 +83,7 @@ export function LeadRow({ lead, selected, onToggle }: Props) {
       <td className="px-4 py-3">
         {lead.email ? (
           <div className="flex items-center gap-1.5" title={lead.email}>
-            <span className="text-xs text-zinc-300 max-w-[120px] truncate">{lead.email}</span>
+            <span className="text-xs text-slate-300 max-w-[120px] truncate">{lead.email}</span>
             {lead.email_verified === true && (
               <div title="Verified" className="flex">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
@@ -95,7 +96,7 @@ export function LeadRow({ lead, selected, onToggle }: Props) {
             )}
           </div>
         ) : (
-          <span className="text-xs text-zinc-600">—</span>
+          <span className="text-xs text-slate-600">—</span>
         )}
       </td>
       <td className="px-4 py-3">
@@ -111,7 +112,7 @@ export function LeadRow({ lead, selected, onToggle }: Props) {
               href={lead.website_url}
               target="_blank"
               rel="noreferrer"
-              className="text-zinc-500 hover:text-zinc-300 transition-colors p-1"
+              className="text-slate-500 hover:text-slate-300 transition-colors p-1"
             >
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
@@ -124,9 +125,18 @@ export function LeadRow({ lead, selected, onToggle }: Props) {
               Approve
             </button>
           )}
+          {lead.website_status !== 'unchecked' && (
+            <button
+              onClick={() => onViewAudit(lead)}
+              className="text-xs px-2 py-0.5 rounded bg-blue-900/50 text-blue-400 hover:bg-blue-900 transition-colors"
+              title="View Website Audit & AI Pitch"
+            >
+              Audit
+            </button>
+          )}
           <button
             onClick={() => deleteLead(lead.id)}
-            className="text-zinc-650 hover:text-red-400 transition-colors p-1"
+            className="text-slate-500 hover:text-red-400 transition-colors p-1"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>

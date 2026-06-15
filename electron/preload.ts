@@ -59,6 +59,7 @@ contextBridge.exposeInMainWorld('api', {
     getAll: (status?: string, pagination?: unknown) => ipcRenderer.invoke(IPC.OUTREACH_GET_ALL, status, pagination),
     markReplied: (outreachId: number) => ipcRenderer.invoke(IPC.OUTREACH_MARK_REPLIED, outreachId),
     markBounced: (outreachId: number) => ipcRenderer.invoke(IPC.OUTREACH_MARK_BOUNCED, outreachId),
+    getPendingQueue: () => ipcRenderer.invoke('outreach:getPendingQueue'),
     scheduleSeq: (input: unknown, businessName: string) =>
       ipcRenderer.invoke(IPC.OUTREACH_SCHEDULE_SEQ, input, businessName),
     getSequences: (pagination?: unknown) => ipcRenderer.invoke(IPC.OUTREACH_GET_SEQUENCES, pagination),
@@ -137,5 +138,23 @@ contextBridge.exposeInMainWorld('api', {
     insert:       (data: any) => ipcRenderer.invoke('query-profiles:insert', data),
     updateStatus: (id: number, status: string) => ipcRenderer.invoke('query-profiles:update-status', id, status),
     delete:       (id: number) => ipcRenderer.invoke('query-profiles:delete', id)
+  },
+  emailAccounts: {
+    getAll: () => ipcRenderer.invoke('emailAccounts:getAll'),
+    add: (data: any) => ipcRenderer.invoke('emailAccounts:add', data),
+    update: (id: number, data: any) => ipcRenderer.invoke('emailAccounts:update', id, data),
+    delete: (id: number) => ipcRenderer.invoke('emailAccounts:delete', id),
+    test: (id: number) => ipcRenderer.invoke('emailAccounts:test', id)
+  },
+  auth: {
+    login: (args: any) => ipcRenderer.invoke('auth:login', args),
+    register: (args: any) => ipcRenderer.invoke('auth:register', args),
+    restoreSession: (args: { userId: number }) => ipcRenderer.invoke('auth:restoreSession', args)
+  },
+  users: {
+    list: () => ipcRenderer.invoke(IPC.USERS_LIST),
+    add: (args: any) => ipcRenderer.invoke(IPC.USERS_ADD, args),
+    updatePermissions: (userId: number, permissions: string[]) => ipcRenderer.invoke(IPC.USERS_UPDATE_PERMISSIONS, { userId, permissions }),
+    delete: (userId: number) => ipcRenderer.invoke(IPC.USERS_DELETE, userId)
   }
 })

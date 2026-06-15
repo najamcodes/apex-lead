@@ -5,22 +5,25 @@ export class EmailAccountEntity {
   @PrimaryGeneratedColumn()
   id!: number
 
-  @Column({ unique: true })
+  @Column({ type: 'int', default: 1 })
+  org_id!: number
+
+  @Column({ type: 'text', unique: true })
   email_address!: string
 
-  @Column()
+  @Column({ type: 'text' })
   app_password!: string
 
-  @Column()
+  @Column({ type: 'text' })
   sender_name!: string
 
-  @Column({ default: 50 })
+  @Column({ type: 'int', default: 50 })
   daily_limit!: number
 
-  @Column({ default: 0 })
+  @Column({ type: 'int', default: 0 })
   sent_today!: number
 
-  @Column({ default: 'active' })
+  @Column({ type: 'text', default: 'active' })
   status!: string
 
   @Column({ type: 'text', nullable: true })

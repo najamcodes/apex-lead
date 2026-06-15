@@ -1,3 +1,4 @@
+import { getTenantId } from './tenant'
 import { getDataSource } from '../index'
 import { LeadEntity } from '../entities/LeadEntity'
 import type { LeadInsert, LeadFilters, LeadStatus } from '../../types'
@@ -8,7 +9,8 @@ export async function insertLead(data: LeadInsert): Promise<LeadEntity | null> {
   // Try to insert
   try {
     const lead = repo.create({
-      business_name: data.business_name,
+    org_id: getTenantId(),
+    business_name: data.business_name,
       category: data.category,
       city: data.city,
       country: data.country,
@@ -50,12 +52,13 @@ export async function insertLead(data: LeadInsert): Promise<LeadEntity | null> {
 
 export async function getLeadById(id: number): Promise<LeadEntity | null> {
   const repo = getDataSource().getRepository(LeadEntity)
-  return await repo.findOne({ where: { id } })
+  return await repo.findOne({ where: { id, org_id: getTenantId() } })
 }
 
 export async function getAllLeads(filters: LeadFilters = {}): Promise<import('../../types').PaginatedResponse<LeadEntity>> {
   const repo = getDataSource().getRepository(LeadEntity)
   const qb = repo.createQueryBuilder('lead')
+  qb.where('lead.org_id = :orgId', { orgId: getTenantId() })
 
   if (filters.status && filters.status !== 'all') {
     qb.andWhere('lead.status = :status', { status: filters.status })
@@ -121,10 +124,10 @@ export async function updateLeadStatus(id: number, status: LeadStatus, notes?: s
   if (notes !== undefined) {
     updateData.reviewer_notes = notes
   }
-  await repo.update(id, updateData)
+  await repo.update({ id, org_id: getTenantId() }, updateData)
 }
 
 export async function deleteLead(id: number): Promise<void> {
   const repo = getDataSource().getRepository(LeadEntity)
-  await repo.delete(id)
+  await repo.delete({ id, org_id: getTenantId() })
 }

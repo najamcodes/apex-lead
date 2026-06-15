@@ -7,6 +7,15 @@ import {
   deleteQueryProfile
 } from '../../src/db/queries/query-profiles.queries'
 import type { QueryProfileInsert } from '../../src/types/pipeline.types'
+import { getCurrentUserRole, getCurrentUserPermissions } from '../../src/db/queries/tenant'
+
+function requirePermission(perm: string) {
+  if (getCurrentUserRole() === 'admin') return;
+  const perms = getCurrentUserPermissions();
+  if (!perms.includes(perm)) {
+    throw new Error(`Unauthorized: Missing permission ${perm}`);
+  }
+}
 
 export const IPC = {
   QUERY_PROFILES: {
@@ -28,15 +37,18 @@ export function registerQueryProfilesIpc() {
   })
 
   ipcMain.handle(IPC.QUERY_PROFILES.INSERT, async (_, data: QueryProfileInsert) => {
+    requirePermission('manage_settings')
     return await insertQueryProfile(data)
   })
 
   ipcMain.handle(IPC.QUERY_PROFILES.UPDATE_STATUS, async (_, id: number, status: 'active' | 'paused' | 'error') => {
+    requirePermission('manage_settings')
     await updateQueryProfileStatus(id, status)
     return true
   })
 
   ipcMain.handle(IPC.QUERY_PROFILES.DELETE, async (_, id: number) => {
+    requirePermission('manage_settings')
     await deleteQueryProfile(id)
     return true
   })

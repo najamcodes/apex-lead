@@ -7,6 +7,9 @@ export class ActivityEntity {
   @PrimaryGeneratedColumn()
   id!: number
 
+  @Column({ type: 'int', default: 1 })
+  org_id!: number
+
   @Column({ type: 'int' })
   lead_id!: number
 

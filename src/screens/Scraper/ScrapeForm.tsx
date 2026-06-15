@@ -75,12 +75,12 @@ export function ScrapeForm() {
   }
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-5 font-sans">
-      <h3 className="text-sm font-medium text-zinc-300">New scrape run</h3>
+    <div className="glass-panel rounded-xl p-5 space-y-5 font-sans">
+      <h3 className="text-sm font-medium text-slate-300">New scrape run</h3>
 
       {/* Quick query chips */}
       <div>
-        <p className="text-xs text-zinc-500 mb-2">Quick select</p>
+        <p className="text-xs text-slate-500 mb-2">Quick select</p>
         <div className="flex flex-wrap gap-1.5">
           {QUICK_QUERIES.map((q) => (
             <button
@@ -89,7 +89,7 @@ export function ScrapeForm() {
               className={`px-2.5 py-1 rounded-md text-xs transition-colors ${
                 form.query === q
                   ? 'bg-emerald-600 text-white'
-                  : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700'
+                  : 'bg-slate-800/50 text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
               }`}
             >
               {q}
@@ -124,9 +124,9 @@ export function ScrapeForm() {
           onChange={(e) => set({ max_results: parseInt(e.target.value) || 50 })}
         />
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-zinc-400">Website Filter</label>
+          <label className="text-xs font-medium text-slate-400">Website Filter</label>
           <select
-            className="px-2.5 py-1.5 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-200 outline-none focus:border-emerald-500/50"
+            className="px-2.5 py-1.5 bg-slate-900/40 backdrop-blur-sm border border-white/5 rounded-md text-sm text-slate-200 outline-none focus:border-emerald-500/50 focus:bg-slate-900/60"
             value={form.website_filter || 'all'}
             onChange={(e) => set({ website_filter: e.target.value as any })}
           >
@@ -136,9 +136,9 @@ export function ScrapeForm() {
           </select>
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-zinc-400">Phone Filter</label>
+          <label className="text-xs font-medium text-slate-400">Phone Filter</label>
           <select
-            className="px-2.5 py-1.5 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-200 outline-none focus:border-emerald-500/50"
+            className="px-2.5 py-1.5 bg-slate-900/40 backdrop-blur-sm border border-white/5 rounded-md text-sm text-slate-200 outline-none focus:border-emerald-500/50 focus:bg-slate-900/60"
             value={form.phone_filter || 'all'}
             onChange={(e) => set({ phone_filter: e.target.value as any })}
           >
@@ -148,9 +148,9 @@ export function ScrapeForm() {
           </select>
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-zinc-400">Email Filter</label>
+          <label className="text-xs font-medium text-slate-400">Email Filter</label>
           <select
-            className="px-2.5 py-1.5 bg-zinc-900 border border-zinc-700 rounded-md text-sm text-zinc-200 outline-none focus:border-emerald-500/50"
+            className="px-2.5 py-1.5 bg-slate-900/40 backdrop-blur-sm border border-white/5 rounded-md text-sm text-slate-200 outline-none focus:border-emerald-500/50 focus:bg-slate-900/60"
             value={form.email_filter || 'all'}
             onChange={(e) => set({ email_filter: e.target.value as any })}
           >
@@ -167,9 +167,9 @@ export function ScrapeForm() {
           id="use_proxy"
           checked={form.use_proxy}
           onChange={(e) => set({ use_proxy: e.target.checked })}
-          className="rounded border-zinc-600 bg-zinc-800 text-emerald-500"
+          className="rounded border-slate-600 bg-slate-800/50 text-emerald-500 focus:ring-emerald-500/20"
         />
-        <label htmlFor="use_proxy" className="text-sm text-zinc-400">
+        <label htmlFor="use_proxy" className="text-sm text-slate-400">
           Use proxy (configure in Settings)
         </label>
       </div>

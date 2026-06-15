@@ -62,6 +62,7 @@ export interface Lead {
   ai_personalized_hook: string | null
   contact_name: string | null
   ai_icebreaker: string | null
+  ai_service_pitch: string | null
   review_rating: number | null
   review_count: number | null
   social_links: string | null
@@ -290,5 +291,12 @@ export const IPC = {
   TARGETS_TOGGLE: 'targets:toggle',
   PIPELINE_RUN_NOW: 'pipeline:runNow',
   PIPELINE_GET_STATUS: 'pipeline:getStatus',
-  DIGESTS_GET_ALL: 'digests:getAll'
+  DIGESTS_GET_ALL: 'digests:getAll',
+
+  // Users
+  USERS_LIST: 'users:list',
+  USERS_ADD: 'users:add',
+  USERS_UPDATE_PERMISSIONS: 'users:updatePermissions',
+  USERS_DELETE: 'users:delete',
+  OUTREACH_GET_PENDING_QUEUE: 'outreach:getPendingQueue'
 } as const

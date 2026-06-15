@@ -17,8 +17,8 @@ export function Scraper() {
   return (
     <div className="space-y-6 max-w-2xl font-sans">
       <div>
-        <h2 className="text-lg font-semibold text-zinc-100">Scraper</h2>
-        <p className="text-sm text-zinc-500 mt-0.5">
+        <h2 className="text-lg font-semibold text-slate-100">Scraper</h2>
+        <p className="text-sm text-slate-500 mt-0.5">
           Find businesses with no website or outdated sites
         </p>
       </div>
