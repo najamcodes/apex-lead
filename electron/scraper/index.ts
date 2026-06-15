@@ -4,7 +4,6 @@
 import { randomUUID as uuid } from 'crypto'
 import { createStealthContext } from './stealth'
 import { scrapeGoogleMaps } from './google-maps'
-import { proxyRotator } from './engine/proxy-rotator'
 import { insertLead } from '../../src/db/queries/leads.queries'
 import { insertScrapeJob, updateScrapeJob } from '../../src/db/queries/scrape-jobs.queries'
 import { analyzeBatch } from '../analysis'
@@ -56,16 +55,13 @@ export async function startScrapeJob(
       const settings = await getSettings()
       let proxyConfig: import('./stealth').ProxyConfig | null = null
 
-      if (config.use_proxy && proxyRotator.hasProxies()) {
-        const proxy = proxyRotator.next()
-        if (proxy) {
-          proxyConfig = {
-            server:   proxy.server,
-            username: proxy.username,
-            password: proxy.password,
-          }
-          console.log(`[Job] Using proxy: ${proxy.server}`)
+      if (settings.proxy_enabled && settings.proxy_url) {
+        proxyConfig = {
+          server: settings.proxy_url,
+          username: settings.proxy_username || undefined,
+          password: settings.proxy_password || undefined,
         }
+        console.log(`[Job] Using global proxy: ${proxyConfig.server}`)
       }
 
       const { context } = await createStealthContext(proxyConfig, !settings.scraper_headful)

@@ -6,6 +6,7 @@ export interface SiteScoreResult {
   summary: string // One sentence e.g. "Site loads slowly, no mobile version, built circa 2015"
   issues: string[] // e.g. ["No SSL", "Not mobile responsive", "Outdated design"]
   opportunity_hook: string // One sentence pitch hook e.g. "This business would benefit from a modern landing page"
+  icebreaker: string | null // A personalized one-sentence observation based on their website copy (e.g. "I loved your recent case study on X")
   decision_maker_name: string | null
   model_used: string
 }

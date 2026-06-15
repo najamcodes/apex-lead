@@ -29,7 +29,8 @@ export const SCHEMA_SQL = `
     scraped_at        TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at        TEXT NOT NULL DEFAULT (datetime('now')),
     ai_personalized_hook TEXT,
-    contact_name      TEXT
+    contact_name      TEXT,
+    ai_icebreaker     TEXT
   );
 
   CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
@@ -100,7 +101,51 @@ export const SCHEMA_SQL = `
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
-  CREATE INDEX IF NOT EXISTS idx_activity_lead_id  ON activity(lead_id);
+  CREATE INDEX IF NOT EXISTS idx_activity_lead_id ON activity(lead_id);
+
+  CREATE TABLE IF NOT EXISTS email_accounts (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    email_address TEXT NOT NULL UNIQUE,
+    app_password  TEXT NOT NULL,
+    sender_name   TEXT NOT NULL,
+    daily_limit   INTEGER NOT NULL DEFAULT 50,
+    sent_today    INTEGER NOT NULL DEFAULT 0,
+    status        TEXT NOT NULL DEFAULT 'active',
+    last_error    TEXT,
+    created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS scrape_targets (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    label           TEXT NOT NULL,
+    query           TEXT NOT NULL,
+    city            TEXT NOT NULL,
+    country         TEXT NOT NULL DEFAULT '',
+    max_per_run     INTEGER NOT NULL DEFAULT 50,
+    min_ai_score    INTEGER NOT NULL DEFAULT 0,
+    website_filter  TEXT NOT NULL DEFAULT 'all',
+    status          TEXT NOT NULL DEFAULT 'active',
+    use_proxy       INTEGER NOT NULL DEFAULT 0,
+    last_run_at     TEXT,
+    next_run_at     TEXT,
+    total_found     INTEGER NOT NULL DEFAULT 0,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS digest_runs (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_at           TEXT NOT NULL DEFAULT (datetime('now')),
+    targets_run      INTEGER NOT NULL DEFAULT 0,
+    total_scraped    INTEGER NOT NULL DEFAULT 0,
+    total_qualified  INTEGER NOT NULL DEFAULT 0,
+    total_no_website INTEGER NOT NULL DEFAULT 0,
+    total_new        INTEGER NOT NULL DEFAULT 0,
+    digest_sent      INTEGER NOT NULL DEFAULT 0,
+    digest_error     TEXT,
+    top_leads        TEXT NOT NULL DEFAULT '[]'
+  );
+
   CREATE INDEX IF NOT EXISTS idx_activity_created  ON activity(created_at);
 
   CREATE TABLE IF NOT EXISTS scrape_jobs (

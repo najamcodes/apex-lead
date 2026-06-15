@@ -93,5 +93,32 @@ interface Window {
       update: (id: number, data: Partial<import('./index').EmailTemplate>) => Promise<import('./index').EmailTemplate>
       delete: (id: number) => Promise<void>
     }
+    pipeline: {
+      getTargets: () => Promise<import('./pipeline.types').ScrapeTarget[]>
+      addTarget: (data: import('./pipeline.types').ScrapeTargetInsert) => Promise<import('./pipeline.types').ScrapeTarget>
+      updateTarget: (id: number, patch: Partial<import('./pipeline.types').ScrapeTarget>) => Promise<void>
+      toggleTarget: (id: number) => Promise<void>
+      deleteTarget: (id: number) => Promise<void>
+      getDigests: () => Promise<import('./pipeline.types').DigestRun[]>
+      getStatus: () => Promise<any>
+      runNow: () => Promise<any>
+      sendDigestNow: () => Promise<void>
+      restartRunner: () => Promise<void>
+      onLog: (cb: (msg: string) => void) => () => void
+    }
+    queryProfiles: {
+      getAll: () => Promise<import('./pipeline.types').QueryProfile[]>
+      getActive: () => Promise<import('./pipeline.types').QueryProfile[]>
+      insert: (data: import('./pipeline.types').QueryProfileInsert) => Promise<import('./pipeline.types').QueryProfile>
+      updateStatus: (id: number, status: 'active' | 'paused' | 'error') => Promise<boolean>
+      delete: (id: number) => Promise<boolean>
+    }
+    emailAccounts: {
+      getAll: () => Promise<import('./index').EmailAccount[]>
+      add: (data: import('./index').EmailAccountInsert) => Promise<import('./index').EmailAccount>
+      update: (id: number, data: Partial<import('./index').EmailAccountInsert>) => Promise<void>
+      delete: (id: number) => Promise<void>
+      test: (id: number) => Promise<{ ok: boolean; error?: string }>
+    }
   }
 }

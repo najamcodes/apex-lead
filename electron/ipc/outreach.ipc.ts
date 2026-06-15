@@ -15,7 +15,7 @@ import {
 import { exportLeadsToCsv } from '../outreach/csv-export'
 import { getChartData, getFunnelData } from '../../src/db/queries/stats.queries'
 import { logActivity } from '../../src/db/queries/activity.queries'
-import { verifySmtp } from '../outreach/smtp-sender'
+
 import type { SequenceInput } from '../outreach/sequence-engine'
 import { getDataSource } from '../../src/db'
 
@@ -38,13 +38,21 @@ export function registerOutreachIpcHandlers(): void {
   // Mark a lead as replied
   ipcMain.handle(IPC.OUTREACH_MARK_REPLIED, async (_event, outreachId: number) => {
     await updateOutreachStatus(outreachId, 'replied', { replied_at: new Date().toISOString() })
-    const records = await getDataSource().query('SELECT lead_id FROM outreach WHERE id = ?', [outreachId])
-    const record = records[0]
+    const record = await getDataSource().createQueryBuilder()
+      .select('lead_id')
+      .from('outreach', 'o')
+      .where('id = :id', { id: outreachId })
+      .getRawOne()
+      
     if (record) {
-      await getDataSource().query(
-        `UPDATE leads SET status = 'replied', updated_at = datetime('now') WHERE id = ?`,
-        [record.lead_id]
-      )
+      await getDataSource().createQueryBuilder()
+        .update('leads')
+        .set({
+          status: 'replied',
+          updated_at: () => "datetime('now')"
+        })
+        .where('id = :id', { id: record.lead_id })
+        .execute()
       await logActivity(record.lead_id, 'email_replied')
     }
   })
@@ -52,8 +60,11 @@ export function registerOutreachIpcHandlers(): void {
   // Mark as bounced
   ipcMain.handle(IPC.OUTREACH_MARK_BOUNCED, async (_event, outreachId: number) => {
     await updateOutreachStatus(outreachId, 'bounced')
-    const records = await getDataSource().query('SELECT lead_id FROM outreach WHERE id = ?', [outreachId])
-    const record = records[0]
+    const record = await getDataSource().createQueryBuilder()
+      .select('lead_id')
+      .from('outreach', 'o')
+      .where('id = :id', { id: outreachId })
+      .getRawOne()
     if (record) await logActivity(record.lead_id, 'email_bounced')
   })
 
@@ -81,8 +92,6 @@ export function registerOutreachIpcHandlers(): void {
     funnel: await getFunnelData()
   }))
 
-  // Verify SMTP connection
-  ipcMain.handle('smtp:verify', async () => verifySmtp())
 
   // Re-init SMTP (called after settings save)
   ipcMain.handle('smtp:reinit', () => initSmtp())

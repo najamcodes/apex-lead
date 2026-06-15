@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron'
 import { getDataSource } from '../../src/db'
 import { EmailTemplateEntity } from '../../src/db/entities/EmailTemplateEntity'
-import { IPC } from './constants'
+import { IPC } from '../../src/types'
 
 export function registerTemplatesIpc() {
   ipcMain.handle(IPC.TEMPLATES_GET_ALL, async () => {

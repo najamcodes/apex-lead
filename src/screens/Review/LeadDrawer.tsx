@@ -187,8 +187,37 @@ export function LeadDrawer({ lead, onClose }: LeadDrawerProps) {
           {/* Site analysis */}
           <div className="space-y-3">
             <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
-              Site analysis
+              Site analysis & Priority
             </h3>
+
+            {/* Priority Details */}
+            {lead.priority_score !== null && (
+              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-zinc-300">Priority Score</span>
+                  <span className={`text-sm font-bold ${lead.priority_score >= 70 ? 'text-red-400' : lead.priority_score >= 40 ? 'text-amber-400' : 'text-zinc-500'}`}>
+                    {lead.priority_score}/100
+                  </span>
+                </div>
+                {lead.priority_breakdown && (
+                  <div className="space-y-1 mt-2 border-t border-zinc-800 pt-2">
+                    {(() => {
+                      try {
+                        const data = JSON.parse(lead.priority_breakdown)
+                        return (data.reasons || []).map((reason: string, i: number) => (
+                          <div key={i} className="text-xs text-zinc-400 flex items-start gap-1.5">
+                            <span className="text-emerald-500/50 mt-0.5">•</span>
+                            <span>{reason}</span>
+                          </div>
+                        ))
+                      } catch {
+                        return null
+                      }
+                    })()}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-3 gap-2">
               <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-center">

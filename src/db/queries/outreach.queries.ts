@@ -94,23 +94,27 @@ export async function getSequenceSummaries(
   const pageSize = pagination?.pageSize || 50
   const offset = (page - 1) * pageSize
 
-  const countRes = await ds.query(`SELECT COUNT(DISTINCT lead_id) as count FROM outreach`)
-  const total = Number(countRes[0]?.count) || 0
+  const countRes = await ds.createQueryBuilder()
+    .select('COUNT(DISTINCT lead_id)', 'count')
+    .from('outreach', 'o')
+    .getRawOne()
+    
+  const total = Number(countRes?.count) || 0
 
-  const data = await ds.query(`
-    SELECT
-      l.id AS lead_id,
-      l.business_name,
-      MAX(CASE WHEN o.step = 1 THEN o.status END) AS step1_status,
-      MAX(CASE WHEN o.step = 2 THEN o.status END) AS step2_status,
-      MAX(CASE WHEN o.step = 3 THEN o.status END) AS step3_status,
-      MIN(CASE WHEN o.status = 'queued' THEN o.scheduled_at END) AS next_scheduled
-    FROM leads l
-    JOIN outreach o ON o.lead_id = l.id
-    GROUP BY l.id
-    ORDER BY next_scheduled ASC NULLS LAST
-    LIMIT ? OFFSET ?
-  `, [pageSize, offset])
+  const data = await ds.createQueryBuilder()
+    .select('l.id', 'lead_id')
+    .addSelect('l.business_name', 'business_name')
+    .addSelect("MAX(CASE WHEN o.step = 1 THEN o.status END)", 'step1_status')
+    .addSelect("MAX(CASE WHEN o.step = 2 THEN o.status END)", 'step2_status')
+    .addSelect("MAX(CASE WHEN o.step = 3 THEN o.status END)", 'step3_status')
+    .addSelect("MIN(CASE WHEN o.status = 'queued' THEN o.scheduled_at END)", 'next_scheduled')
+    .from('leads', 'l')
+    .innerJoin('outreach', 'o', 'o.lead_id = l.id')
+    .groupBy('l.id')
+    .orderBy('next_scheduled', 'ASC', 'NULLS LAST')
+    .limit(pageSize)
+    .offset(offset)
+    .getRawMany()
 
   return { data: data as SequenceSummary[], total }
 }

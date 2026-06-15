@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Activity, PauseCircle } from 'lucide-react'
+import { PauseCircle } from 'lucide-react'
 
 export function SchedulerStatusWidget() {
   const [isActive, setIsActive] = useState<boolean | null>(null)

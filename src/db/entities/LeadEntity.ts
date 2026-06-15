@@ -79,6 +79,9 @@ export class LeadEntity {
   @Column({ type: 'text', nullable: true })
   contact_name!: string | null
 
+  @Column({ type: 'text', nullable: true })
+  ai_icebreaker!: string | null
+
   @Column({ type: 'float', nullable: true })
   review_rating!: number | null
 
@@ -91,8 +94,11 @@ export class LeadEntity {
   @Column({ type: 'text', nullable: true })
   seo_metrics!: string | null
 
-  @Column({ type: 'boolean', nullable: true })
-  email_verified!: boolean | null
+  @Column({ type: 'int', nullable: true })
+  priority_score!: number | null
+
+  @Column({ type: 'text', nullable: true })
+  priority_breakdown!: string | null
 
   @Column({ type: 'text', default: () => "datetime('now')" })
   scraped_at!: string

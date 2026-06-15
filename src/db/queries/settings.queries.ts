@@ -33,7 +33,20 @@ export const DEFAULTS: AppSettings = {
   captcha_strategy: 'pause',
   two_captcha_key: '',
   captcha_timeout_s: 120,
-  scraper_headful: false
+  scraper_headful: false,
+
+  pipeline_enabled: false,
+  pipeline_scrape_cron: '0 2 * * *',
+  pipeline_digest_cron: '0 7 * * *',
+  digest_recipient_email: '',
+  digest_from_name: 'LeadHunter',
+  auto_approve_threshold: 0,
+  auto_sequence_on_approve: false,
+  discord_webhook_url: '',
+  use_ai_for_outreach: true,
+  default_email_template_id: null,
+  imap_cron: '*/5 * * * *',
+  warmup_cron: '*/30 * * * *'
 }
 
 export async function getSettings(): Promise<AppSettings> {

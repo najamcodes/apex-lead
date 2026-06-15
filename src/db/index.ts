@@ -10,6 +10,10 @@ import { NoteEntity } from './entities/NoteEntity'
 import { ActivityEntity } from './entities/ActivityEntity'
 import { ScrapeJobEntity } from './entities/ScrapeJobEntity'
 import { EmailTemplateEntity } from './entities/EmailTemplateEntity'
+import { QueryProfileEntity } from './entities/QueryProfileEntity'
+import { ScrapeTargetEntity } from './entities/ScrapeTargetEntity'
+import { DigestRunEntity } from './entities/DigestRunEntity'
+import { EmailAccountEntity } from './entities/EmailAccountEntity'
 
 let _dataSource: DataSource | null = null
 
@@ -29,7 +33,11 @@ export async function initDb(): Promise<DataSource> {
       NoteEntity,
       ActivityEntity,
       ScrapeJobEntity,
-      EmailTemplateEntity
+      EmailTemplateEntity,
+      QueryProfileEntity,
+      ScrapeTargetEntity,
+      DigestRunEntity,
+      EmailAccountEntity
     ],
   })
 

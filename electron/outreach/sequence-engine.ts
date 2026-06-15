@@ -39,8 +39,10 @@ Wishing you a great week.`
 
 export async function scheduleSequence(input: SequenceInput, businessName: string): Promise<OutreachRecord[]> {
   // Fetch full lead to populate template variables
-  const leads = await require('../../src/db').getDataSource().query('SELECT * FROM leads WHERE id = ?', [input.lead_id])
-  const lead = leads[0]
+  const leadRepo = require('../../src/db').getDataSource().getRepository(
+    require('../../src/db/entities/LeadEntity').LeadEntity
+  )
+  const lead = await leadRepo.findOneBy({ id: input.lead_id })
   if (!lead) throw new Error(`Lead ${input.lead_id} not found`)
   
   // Replace variables in templates

@@ -20,6 +20,22 @@ function ScoreDot({ score }: { score: number | null }) {
   )
 }
 
+function PriorityBadge({ score }: { score: number | null }) {
+  if (score === null) return null
+
+  const config = score >= 70
+    ? { label: 'HOT',    bg: 'bg-red-900/50',    text: 'text-red-400' }
+    : score >= 40
+    ? { label: 'WARM',   bg: 'bg-amber-900/50',  text: 'text-amber-400' }
+    : { label: 'COOL',   bg: 'bg-zinc-800',      text: 'text-zinc-500' }
+
+  return (
+    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${config.bg} ${config.text}`}>
+      {config.label} {score}
+    </span>
+  )
+}
+
 export function LeadCard({ lead, index, onClick }: LeadCardProps) {
   return (
     <Draggable draggableId={String(lead.id)} index={index}>
@@ -39,10 +55,13 @@ export function LeadCard({ lead, index, onClick }: LeadCardProps) {
             }
           `}
         >
-          {/* Business name */}
-          <p className="text-sm font-medium text-zinc-200 mb-1 leading-snug">
-            {lead.business_name}
-          </p>
+          {/* Business name + Priority */}
+          <div className="flex items-start justify-between mb-1">
+            <p className="text-sm font-medium text-zinc-200 leading-snug flex-1 pr-2">
+              {lead.business_name}
+            </p>
+            <PriorityBadge score={lead.priority_score} />
+          </div>
 
           {/* Category + city */}
           <p className="text-xs text-zinc-500 mb-3">

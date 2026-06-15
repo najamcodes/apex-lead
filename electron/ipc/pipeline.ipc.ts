@@ -1,0 +1,55 @@
+// electron/ipc/pipeline.ipc.ts
+import { ipcMain, BrowserWindow } from 'electron'
+import { IPC } from '../../src/types'
+import {
+  runNightlyPipeline,
+  getPipelineStatus,
+} from '../pipeline'
+import {
+  startNightlyRunner,
+  stopNightlyRunner,
+  restartNightlyRunner,
+  sendMorningDigest,
+  getNightlyRunnerStatus,
+} from '../pipeline/nightly-runner'
+import {
+  getAllTargets,
+  insertTarget,
+  updateTarget,
+  toggleTarget,
+  deleteTarget,
+} from '../../src/db/queries/targets.queries'
+import { getAllDigests } from '../../src/db/queries/digests.queries'
+
+export function registerPipelineIpcHandlers(win: BrowserWindow): void {
+  // Targets CRUD
+  ipcMain.handle(IPC.TARGETS_GET_ALL, ()           => getAllTargets())
+  ipcMain.handle(IPC.TARGETS_INSERT,  (_, data)    => insertTarget(data))
+  ipcMain.handle(IPC.TARGETS_UPDATE,  (_, id, patch) => updateTarget(id, patch))
+  ipcMain.handle(IPC.TARGETS_DELETE,  (_, id)      => deleteTarget(id))
+  ipcMain.handle(IPC.TARGETS_TOGGLE,  (_, id)      => toggleTarget(id))
+
+  // Run pipeline now (manual trigger)
+  ipcMain.handle(IPC.PIPELINE_RUN_NOW, async () => {
+    const result = await runNightlyPipeline((msg) => {
+      win.webContents.send('pipeline:log', msg)
+    })
+    await sendMorningDigest(result)
+    return result
+  })
+
+  // Pipeline status
+  ipcMain.handle(IPC.PIPELINE_GET_STATUS, async () => ({
+    ...getPipelineStatus(),
+    runner: await getNightlyRunnerStatus(),
+  }))
+
+  // Digest history
+  ipcMain.handle(IPC.DIGESTS_GET_ALL, () => getAllDigests())
+
+  // Scheduler controls
+  ipcMain.handle('pipeline:startRunner',   () => startNightlyRunner())
+  ipcMain.handle('pipeline:stopRunner',    () => stopNightlyRunner())
+  ipcMain.handle('pipeline:restartRunner', () => restartNightlyRunner())
+  ipcMain.handle('pipeline:sendDigestNow', async () => sendMorningDigest())
+}

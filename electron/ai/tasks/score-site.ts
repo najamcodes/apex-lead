@@ -13,8 +13,11 @@ export async function scoreSite(
   sslResult?: SslResult | null
 ): Promise<SiteScoreResult> {
   // Fetch lead data
-  const leads = await getDataSource().query('SELECT * FROM leads WHERE id = ?', [leadId])
-  const lead = leads[0]
+  const lead = await getDataSource().createQueryBuilder()
+    .select('*')
+    .from('leads', 'leads')
+    .where('id = :id', { id: leadId })
+    .getRawOne()
   if (!lead) throw new Error(`Lead ${leadId} not found`)
 
   const client = getAiClient(apiKey)
@@ -48,33 +51,23 @@ export async function scoreSite(
   const score = Math.min(100, Math.max(0, result.score ?? 0))
 
   // Persist result to DB
-  await getDataSource().query(
-    `
-    UPDATE leads SET
-      ai_site_score = ?,
-      ai_site_summary = ?,
-      website_status = CASE
-        WHEN ? = 0 THEN 'none'
-        WHEN ? < 40 THEN 'outdated'
-        WHEN ? < 70 THEN 'outdated'
-        ELSE 'modern'
-      END,
-      ai_personalized_hook = ?,
-      contact_name = COALESCE(contact_name, ?),
-      updated_at = datetime('now')
-    WHERE id = ?
-  `,
-    [
-      score,
-      result.summary,
-      score,
-      score,
-      score,
-      result.opportunity_hook ?? null,
-      result.decision_maker_name ?? null,
-      leadId
-    ]
-  )
+  let website_status = 'modern'
+  if (score === 0) website_status = 'none'
+  else if (score < 70) website_status = 'outdated'
+
+  await getDataSource().createQueryBuilder()
+    .update('leads')
+    .set({
+      ai_site_score: score,
+      ai_site_summary: result.summary,
+      website_status,
+      ai_personalized_hook: result.opportunity_hook ?? null,
+      ai_icebreaker: result.icebreaker ?? null,
+      contact_name: result.decision_maker_name ?? lead.contact_name,
+      updated_at: () => "datetime('now')"
+    })
+    .where('id = :id', { id: leadId })
+    .execute()
 
   return {
     ...result,

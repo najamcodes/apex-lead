@@ -81,13 +81,21 @@ export function registerBulkIpcHandlers(): void {
 
   ipcMain.handle(IPC.BULK_APPROVE, async (_event, leadIds: number[]) => {
     for (const id of leadIds) {
-      const results = await getDataSource().query('SELECT status FROM leads WHERE id = ?', [id])
-      const current = results[0]
+      const current = await getDataSource().createQueryBuilder()
+        .select('status')
+        .from('leads', 'leads')
+        .where('id = :id', { id })
+        .getRawOne()
+      
       if (current?.status === 'review' || current?.status === 'qualified') {
-        await getDataSource().query(
-          `UPDATE leads SET status = 'approved', updated_at = datetime('now') WHERE id = ?`,
-          [id]
-        )
+        await getDataSource().createQueryBuilder()
+          .update('leads')
+          .set({
+            status: 'approved',
+            updated_at: () => "datetime('now')"
+          })
+          .where('id = :id', { id })
+          .execute()
         await logActivity(id, 'lead_approved', 'Bulk approved')
       }
     }
@@ -102,8 +110,12 @@ export function registerBulkIpcHandlers(): void {
     }
 
     for (const id of leadIds) {
-      const results = await getDataSource().query('SELECT business_name, email FROM leads WHERE id = ?', [id])
-      const lead = results[0]
+      const lead = await getDataSource().createQueryBuilder()
+        .select(['business_name', 'email'])
+        .from('leads', 'leads')
+        .where('id = :id', { id })
+        .getRawOne()
+        
       if (lead && lead.email) {
         let subject = 'Question about ' + lead.business_name
         let body = 'Hi, I noticed your website might need an update.'

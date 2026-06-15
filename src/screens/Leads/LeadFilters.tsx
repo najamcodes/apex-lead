@@ -93,12 +93,46 @@ export function LeadFilters() {
       <div className="w-px h-6 bg-zinc-800 mx-1" />
 
       <select
+        value={filters.date_range ?? 'all'}
+        onChange={(e) => {
+          const val = e.target.value;
+          update({ date_range: val as Filters['date_range'] })
+        }}
+        className="px-3 py-2 rounded-md text-sm bg-zinc-800 border border-zinc-700
+          text-zinc-300 outline-none focus:border-emerald-500 transition-colors"
+      >
+        <option value="all">Any Date</option>
+        <option value="today">Added Today</option>
+        <option value="this_week">Added This Week</option>
+        <option value="this_month">Added This Month</option>
+      </select>
+
+      <div className="w-px h-6 bg-zinc-800 mx-1" />
+
+      <select
+        value={filters.min_priority ?? 'all'}
+        onChange={(e) => {
+          const val = e.target.value;
+          update({ min_priority: val === 'all' ? undefined : parseInt(val) })
+        }}
+        className="px-3 py-2 rounded-md text-sm bg-zinc-800 border border-zinc-700
+          text-zinc-300 outline-none focus:border-emerald-500 transition-colors"
+      >
+        <option value="all">Any Priority</option>
+        <option value="70">HOT (70+)</option>
+        <option value="40">WARM (40+)</option>
+      </select>
+
+      <div className="w-px h-6 bg-zinc-800 mx-1" />
+
+      <select
         value={filters.sortBy ?? 'scraped_at'}
         onChange={(e) => update({ sortBy: e.target.value as Filters['sortBy'] })}
         className="px-3 py-2 rounded-md text-sm bg-zinc-800 border border-zinc-700
           text-zinc-300 outline-none focus:border-emerald-500 transition-colors"
       >
         <option value="scraped_at">Date Scraped</option>
+        <option value="priority_score">Priority Score</option>
         <option value="ai_site_score">AI Score</option>
         <option value="pagespeed_mobile">PageSpeed Mobile</option>
         <option value="site_built_year">Build Year</option>

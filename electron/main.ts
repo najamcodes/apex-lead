@@ -7,6 +7,7 @@ import { registerAllIpcHandlers } from './ipc'
 import { initScheduler } from './scheduler'
 import { startLocalServer, stopLocalServer } from './local-server'
 import { initSmtp } from './outreach'
+import { startNightlyRunner } from './pipeline/nightly-runner'
 
 async function createWindow(): Promise<void> {
   const win = new BrowserWindow({
@@ -47,6 +48,7 @@ app.whenReady().then(async () => {
   await initDb() // Initialize DB on startup
   await initSmtp() // Initialize SMTP transporter
   startLocalServer() // Start local HTTP server for Chrome extension
+  startNightlyRunner() // Start pipeline runner
   await createWindow()
 })
 

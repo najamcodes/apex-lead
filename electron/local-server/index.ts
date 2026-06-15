@@ -76,16 +76,13 @@ export function startLocalServer(): void {
   // ─── Get recent extension-added leads ──────────────────────────
   app.get('/leads', async (_req, res) => {
     try {
-      const leads = await getDataSource().query(
-        `
-        SELECT id, business_name, category, city, website_url,
-               website_status, status, ai_site_score, scraped_at
-        FROM leads
-        WHERE source = 'extension'
-        ORDER BY scraped_at DESC
-        LIMIT 10
-        `
-      )
+      const leads = await getDataSource().createQueryBuilder()
+        .select(['id', 'business_name', 'category', 'city', 'website_url', 'website_status', 'status', 'ai_site_score', 'scraped_at'])
+        .from('leads', 'leads')
+        .where("source = 'extension'")
+        .orderBy('scraped_at', 'DESC')
+        .limit(10)
+        .getRawMany()
       res.json({ leads })
     } catch (err) {
       res.status(500).json({ error: String(err) })

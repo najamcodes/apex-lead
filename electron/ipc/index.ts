@@ -8,6 +8,9 @@ import { registerAnalysisIpcHandlers } from './analysis.ipc'
 import { registerOutreachIpcHandlers } from './outreach.ipc'
 import { registerBulkIpcHandlers } from './bulk.ipc'
 import { registerTemplatesIpc } from './templates.ipc'
+import { registerPipelineIpcHandlers } from './pipeline.ipc'
+import { registerQueryProfilesIpc } from './query-profiles.ipc'
+import { registerEmailAccountsIpc } from './email-accounts.ipc'
 
 export function registerAllIpcHandlers(win: BrowserWindow): void {
   registerLeadIpcHandlers()
@@ -18,4 +21,7 @@ export function registerAllIpcHandlers(win: BrowserWindow): void {
   registerOutreachIpcHandlers()
   registerBulkIpcHandlers()
   registerTemplatesIpc()
+  registerPipelineIpcHandlers(win)
+  registerQueryProfilesIpc()
+  registerEmailAccountsIpc()
 }

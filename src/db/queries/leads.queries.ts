@@ -20,6 +20,7 @@ export async function insertLead(data: LeadInsert): Promise<LeadEntity | null> {
       ssl_valid: data.ssl_valid ?? null,
       source: data.source,
       ai_personalized_hook: data.ai_personalized_hook ?? null,
+      ai_icebreaker: data.ai_icebreaker ?? null,
       contact_name: data.contact_name ?? null,
       review_rating: data.review_rating ?? null,
       review_count: data.review_count ?? null,
@@ -84,6 +85,18 @@ export async function getAllLeads(filters: LeadFilters = {}): Promise<import('..
   if (filters.source && filters.source !== 'all') {
     qb.andWhere('lead.source = :source', { source: filters.source })
   }
+  if (filters.min_priority !== undefined) {
+    qb.andWhere('lead.priority_score >= :min_priority', { min_priority: filters.min_priority })
+  }
+  if (filters.date_range && filters.date_range !== 'all') {
+    if (filters.date_range === 'today') {
+      qb.andWhere("lead.scraped_at >= datetime('now', 'start of day')")
+    } else if (filters.date_range === 'this_week') {
+      qb.andWhere("lead.scraped_at >= datetime('now', '-7 days')")
+    } else if (filters.date_range === 'this_month') {
+      qb.andWhere("lead.scraped_at >= datetime('now', '-30 days')")
+    }
+  }
 
   const page = filters.page || 1
   const pageSize = filters.pageSize || 50
@@ -91,9 +104,9 @@ export async function getAllLeads(filters: LeadFilters = {}): Promise<import('..
 
   if (filters.sortBy) {
     const dir = filters.sortDir === 'asc' ? 'ASC' : 'DESC'
-    qb.orderBy(`lead.${filters.sortBy}`, dir)
+    qb.orderBy(`lead.${filters.sortBy}`, dir, 'NULLS LAST')
   } else {
-    qb.orderBy('lead.scraped_at', 'DESC')
+    qb.orderBy('lead.priority_score', 'DESC', 'NULLS LAST')
   }
 
   qb.skip(offset).take(pageSize)

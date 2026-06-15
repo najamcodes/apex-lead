@@ -14,7 +14,7 @@ import type { Lead } from '../../types'
 
 export function Outreach() {
   const { leads, fetchLeads } = useLeadsStore()
-  const { sendBatch, fetchSequences, sequences, exportCsv } = useOutreachStore()
+  const { sendBatch, fetchSequences, exportCsv } = useOutreachStore()
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
   const [sending, setSending] = useState(false)
   const [activeTab, setActiveTab] = useState<'queue' | 'sequences' | 'templates'>('queue')

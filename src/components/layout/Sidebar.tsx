@@ -9,6 +9,7 @@ import {
   Search,
   ListTodo,
   Send,
+  Workflow,
   Sun,
   Moon
 } from 'lucide-react'
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { to: '/scraper', icon: Search, label: 'Scraper' },
   { to: '/review', icon: ListTodo, label: 'Review' },
   { to: '/outreach', icon: Send, label: 'Outreach' },
+  { to: '/pipeline', icon: Workflow, label: 'Pipeline' },
   { to: '/settings', icon: Settings, label: 'Settings' }
 ]
 

@@ -7,6 +7,7 @@ import { Scraper } from './screens/Scraper'
 import { Settings } from './screens/Settings'
 import { Review } from './screens/Review'
 import { Outreach } from './screens/Outreach'
+import { Pipeline } from './screens/Pipeline'
 import { useEffect } from 'react'
 import { useThemeStore } from './store/theme.store'
 import { useNavigate } from 'react-router-dom'
@@ -68,10 +69,11 @@ export default function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="leads" element={<Leads />} />
-          <Route path="scraper" element={<Scraper />} />
-          <Route path="review" element={<Review />} />
-          <Route path="outreach" element={<Outreach />} />
-          <Route path="settings" element={<Settings />} />
+          <Route path="/scraper" element={<Scraper />} />
+          <Route path="/review" element={<Review />} />
+          <Route path="/outreach" element={<Outreach />} />
+          <Route path="/pipeline" element={<Pipeline />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
     </HashRouter>

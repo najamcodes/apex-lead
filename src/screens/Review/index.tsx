@@ -23,7 +23,7 @@ export function Review() {
   )
 
   useEffect(() => {
-    setFilters({ status: 'all' })
+    setFilters({ status: 'all', sortBy: 'priority_score', sortDir: 'desc' })
   }, [])
 
   // Subscribe to analysis progress events

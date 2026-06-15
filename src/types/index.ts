@@ -61,11 +61,14 @@ export interface Lead {
   updated_at: string // ISO timestamp
   ai_personalized_hook: string | null
   contact_name: string | null
+  ai_icebreaker: string | null
   review_rating: number | null
   review_count: number | null
   social_links: string | null
   seo_metrics: string | null
   email_verified: boolean | null
+  priority_score: number | null
+  priority_breakdown: string | null
 }
 
 export interface EmailTemplate {
@@ -75,6 +78,26 @@ export interface EmailTemplate {
   body: string
   created_at: string
   updated_at: string
+}
+
+export interface EmailAccount {
+  id: number
+  email_address: string
+  app_password?: string // Omit when sending to frontend ideally
+  sender_name: string
+  daily_limit: number
+  sent_today: number
+  status: string
+  last_error: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface EmailAccountInsert {
+  email_address: string
+  app_password: string
+  sender_name: string
+  daily_limit?: number
 }
 
 export interface LeadInsert {
@@ -91,6 +114,7 @@ export interface LeadInsert {
   ssl_valid?: boolean | null
   ai_personalized_hook?: string | null
   contact_name?: string | null
+  ai_icebreaker?: string | null
   review_rating?: number | null
   review_count?: number | null
   tech_stack?: string | null
@@ -108,8 +132,10 @@ export interface LeadFilters extends Partial<PaginationParams> {
   category?: string
   search?: string
   source?: string
-  sortBy?: 'scraped_at' | 'ai_site_score' | 'pagespeed_mobile' | 'site_built_year'
+  sortBy?: 'scraped_at' | 'ai_site_score' | 'pagespeed_mobile' | 'site_built_year' | 'priority_score'
   sortDir?: 'asc' | 'desc'
+  min_priority?: number
+  date_range?: 'all' | 'today' | 'this_week' | 'this_month'
 }
 
 export interface DashboardStats {
@@ -177,6 +203,23 @@ export interface AppSettings {
   two_captcha_key: string
   captcha_timeout_s: number
   scraper_headful: boolean
+
+  // Autonomous Pipeline
+  pipeline_enabled: boolean
+  pipeline_scrape_cron: string
+  pipeline_digest_cron: string
+  digest_recipient_email: string
+  digest_from_name: string
+  auto_approve_threshold: number
+  auto_sequence_on_approve: boolean
+
+  discord_webhook_url: string
+  
+  // Phase 6: Email Templates & Cron Configs
+  use_ai_for_outreach: boolean
+  default_email_template_id: number | null
+  imap_cron: string
+  warmup_cron: string
 }
 
 // IPC channel names — typed constants, never magic strings
@@ -223,6 +266,12 @@ export const IPC = {
   ACTIVITY_GET: 'activity:get',
   ACTIVITY_GET_RECENT: 'activity:getRecent',
   SCHEDULER_STATUS: 'scheduler:status',
+
+  EMAIL_ACCOUNTS_GET_ALL: 'emailAccounts:getAll',
+  EMAIL_ACCOUNTS_ADD: 'emailAccounts:add',
+  EMAIL_ACCOUNTS_UPDATE: 'emailAccounts:update',
+  EMAIL_ACCOUNTS_DELETE: 'emailAccounts:delete',
+  EMAIL_ACCOUNTS_TEST: 'emailAccounts:test',
   SCHEDULER_TOGGLE: 'scheduler:toggle',
   BULK_ANALYZE: 'bulk:analyze',
   BULK_APPROVE: 'bulk:approve',
@@ -231,5 +280,15 @@ export const IPC = {
   TEMPLATES_GET_ALL: 'templates:getAll',
   TEMPLATES_CREATE: 'templates:create',
   TEMPLATES_UPDATE: 'templates:update',
-  TEMPLATES_DELETE: 'templates:delete'
+  TEMPLATES_DELETE: 'templates:delete',
+
+  // Pipeline
+  TARGETS_GET_ALL: 'targets:getAll',
+  TARGETS_INSERT: 'targets:insert',
+  TARGETS_UPDATE: 'targets:update',
+  TARGETS_DELETE: 'targets:delete',
+  TARGETS_TOGGLE: 'targets:toggle',
+  PIPELINE_RUN_NOW: 'pipeline:runNow',
+  PIPELINE_GET_STATUS: 'pipeline:getStatus',
+  DIGESTS_GET_ALL: 'digests:getAll'
 } as const

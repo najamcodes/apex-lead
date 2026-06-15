@@ -1,31 +1,20 @@
-// electron/outreach/index.ts
-import { getSettings } from '../../src/db/queries/settings.queries'
+
 import { getDataSource } from '../../src/db'
-import {
-  getDueOutreach,
-  updateOutreachStatus,
-  getOutreachById
-} from '../../src/db/queries/outreach.queries'
-import { configureSmtp, sendEmail } from './smtp-sender'
+import { getDueOutreach, updateOutreachStatus, getOutreachById } from '../../src/db/queries/outreach.queries'
+import { getEmailAccounts, incrementSentToday, updateEmailAccount } from '../../src/db/queries/email-accounts.queries'
+import { sendEmail } from './smtp-sender'
+import { parseSpintax } from './spintax'
 import { scheduleSequence, type SequenceInput } from './sequence-engine'
 import { logActivity } from '../../src/db/queries/activity.queries'
 import type { SendResult } from '../../src/types/outreach.types'
 
-// Initialize SMTP from saved settings — call on app start and after settings change
+let _lastAccountIndex = 0
+
 export async function initSmtp(): Promise<void> {
-  const s = await getSettings()
-  if (s.smtp_host && s.smtp_username) {
-    configureSmtp({
-      host: s.smtp_host,
-      port: s.smtp_port || 587,
-      secure: s.smtp_secure ?? false,
-      username: s.smtp_username,
-      password: s.smtp_password,
-      from_name: s.smtp_from_name || s.developer_name || 'LeadHunter',
-      from_email: s.smtp_from_email || s.smtp_username
-    })
-  }
+  // Legacy function. The frontend might still call 'smtp:reinit'.
+  // Do nothing, we fetch dynamically.
 }
+
 
 // Send a single outreach record
 export async function sendOutreachRecord(recordId: number): Promise<SendResult> {
@@ -33,16 +22,36 @@ export async function sendOutreachRecord(recordId: number): Promise<SendResult> 
   if (!record) return { success: false, message_id: null, error: 'Record not found' }
 
   // Get lead email
-  const leads = await getDataSource().query('SELECT email, business_name FROM leads WHERE id = ?', [record.lead_id])
-  const lead = leads[0]
+  const lead = await getDataSource().createQueryBuilder()
+    .select(['email', 'business_name'])
+    .from('leads', 'leads')
+    .where('id = :id', { id: record.lead_id })
+    .getRawOne()
   if (!lead?.email) {
     await updateOutreachStatus(recordId, 'failed', { error_message: 'No email address for lead' })
     return { success: false, message_id: null, error: 'No email address on record' }
   }
 
-  const result = await sendEmail(lead.email, record.subject ?? '(no subject)', record.body)
+  // Find an available email account (Round Robin)
+  const accounts = await getEmailAccounts()
+  const activeAccounts = accounts.filter(a => a.status === 'active' && a.sent_today < a.daily_limit)
+  
+  if (activeAccounts.length === 0) {
+    await updateOutreachStatus(recordId, 'failed', { error_message: 'No active email accounts with remaining daily quota' })
+    return { success: false, message_id: null, error: 'No active email accounts with remaining quota' }
+  }
+
+  // Round-robin selection
+  _lastAccountIndex = (_lastAccountIndex + 1) % activeAccounts.length
+  const account = activeAccounts[_lastAccountIndex]
+
+  const parsedSubject = parseSpintax(record.subject ?? '(no subject)')
+  const parsedBody = parseSpintax(record.body)
+
+  const result = await sendEmail(account, lead.email, parsedSubject, parsedBody)
 
   if (result.success) {
+    await incrementSentToday(account.id)
     await updateOutreachStatus(recordId, 'sent', {
       sent_at: new Date().toISOString(),
       smtp_message_id: result.message_id ?? undefined
@@ -50,12 +59,20 @@ export async function sendOutreachRecord(recordId: number): Promise<SendResult> 
     await logActivity(record.lead_id, 'email_sent', `Step ${record.step} — ${record.subject}`)
 
     // Advance lead status to 'outreach' if it's still 'approved'
-    await getDataSource().query(
-      `UPDATE leads SET status = 'outreach', updated_at = datetime('now') WHERE id = ? AND status = 'approved'`,
-      [record.lead_id]
-    )
+    await getDataSource().createQueryBuilder()
+      .update('leads')
+      .set({
+        status: 'outreach',
+        updated_at: () => "datetime('now')"
+      })
+      .where('id = :id', { id: record.lead_id })
+      .andWhere("status = 'approved'")
+      .execute()
   } else {
     await updateOutreachStatus(recordId, 'failed', { error_message: result.error ?? undefined })
+    if (result.error && result.error.includes('auth')) {
+      await updateEmailAccount(account.id, { status: 'error', last_error: result.error } as any)
+    }
   }
 
   return result

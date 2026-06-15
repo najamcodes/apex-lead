@@ -19,7 +19,7 @@ export function buildSiteScorerPrompt(data: {
 }): string {
   if (!data.website_url) {
     return `Business: "${data.business_name}" has NO website.
-Return JSON: { "score": 0, "verdict": "none", "summary": "No website found", "issues": ["No website"], "opportunity_hook": "I noticed you don't have a website yet, which makes it hard for locals to find you online.", "decision_maker_name": null }`
+Return JSON: { "score": 0, "verdict": "none", "summary": "No website found", "issues": ["No website"], "opportunity_hook": "I noticed you don't have a website yet, which makes it hard for locals to find you online.", "icebreaker": null, "decision_maker_name": null }`
   }
 
   return `Evaluate this business website:
@@ -49,6 +49,7 @@ Return JSON only:
   "summary": "<one sentence describing the site's main problem>",
   "issues": ["<issue 1>", "<issue 2>"],
   "opportunity_hook": "<1-2 sentence personalized cold email hook mentioning exactly what they do, and identifying a gap or opportunity. Use the Failed SEO/Accessibility Audits if applicable. Make it sound natural and human. Do not use generic phrases.>",
+  "icebreaker": "<A personalized 1-sentence compliment or observation based on their website copy, e.g. 'I loved your recent case study on the downtown plumbing project'>",
   "decision_maker_name": "<If a founder, owner, or team member name is found in the text, put it here. Otherwise null>"
 }`
 }

@@ -20,8 +20,11 @@ export async function findEmailForLead(leadId: number): Promise<string | null> {
   const settings = await getSettings()
   if (!settings.email_finder_enabled) return null
 
-  const leads = await getDataSource().query('SELECT website_url, email FROM leads WHERE id = ?', [leadId])
-  const lead = leads[0]
+  const lead = await getDataSource().createQueryBuilder()
+    .select(['website_url', 'email'])
+    .from('leads', 'leads')
+    .where('id = :id', { id: leadId })
+    .getRawOne()
   if (!lead) return null
 
   // Skip if we already have an email
@@ -40,7 +43,14 @@ export async function findEmailForLead(leadId: number): Promise<string | null> {
 
   // 3. Save if found
   if (foundEmail) {
-    await getDataSource().query('UPDATE leads SET email = ?, updated_at = datetime("now") WHERE id = ?', [foundEmail, leadId])
+    await getDataSource().createQueryBuilder()
+      .update('leads')
+      .set({
+        email: foundEmail,
+        updated_at: () => "datetime('now')"
+      })
+      .where('id = :id', { id: leadId })
+      .execute()
     await logActivity(leadId, 'email_found', `Found: ${foundEmail}`)
   }
 
@@ -64,18 +74,37 @@ export async function runEmailFinderBatch(
 }
 
 export async function verifyEmailForLead(leadId: number): Promise<boolean | null> {
-  const leads = await getDataSource().query('SELECT email FROM leads WHERE id = ?', [leadId])
-  const lead = leads[0]
+  const lead = await getDataSource().createQueryBuilder()
+    .select('email')
+    .from('leads', 'leads')
+    .where('id = :id', { id: leadId })
+    .getRawOne()
   if (!lead || !lead.email) return null
 
   const isVerified = await verifyEmailWithHunter(lead.email)
   
   if (isVerified !== null) {
     if (isVerified) {
-      await getDataSource().query('UPDATE leads SET email_verified = true, updated_at = datetime("now") WHERE id = ?', [leadId])
+      await getDataSource().createQueryBuilder()
+        .update('leads')
+        .set({
+          email_verified: true,
+          updated_at: () => "datetime('now')"
+        })
+        .where('id = :id', { id: leadId })
+        .execute()
       await logActivity(leadId, 'email_found', `Email verified successfully`)
     } else {
-      await getDataSource().query('UPDATE leads SET email_verified = false, status = "skipped", flag_reason = "Invalid Email", updated_at = datetime("now") WHERE id = ?', [leadId])
+      await getDataSource().createQueryBuilder()
+        .update('leads')
+        .set({
+          email_verified: false,
+          status: 'skipped',
+          flag_reason: 'Invalid Email',
+          updated_at: () => "datetime('now')"
+        })
+        .where('id = :id', { id: leadId })
+        .execute()
       await logActivity(leadId, 'lead_skipped', `Email bounced/invalid`)
     }
   }

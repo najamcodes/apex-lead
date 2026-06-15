@@ -3,21 +3,20 @@ import type { DashboardStats, CityRoiStat } from '../../types'
 
 export async function getDashboardStats(): Promise<DashboardStats> {
   const ds = getDataSource()
-  const result = await ds.query(`
-    SELECT
-      COUNT(*) AS total_leads,
-      SUM(CASE WHEN website_status = 'none' THEN 1 ELSE 0 END) AS no_website,
-      SUM(CASE WHEN website_status = 'outdated' THEN 1 ELSE 0 END) AS outdated_website,
-      SUM(CASE WHEN status = 'review' THEN 1 ELSE 0 END) AS in_review,
-      SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) AS approved,
-      SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) AS closed,
-      SUM(CASE WHEN scraped_at >= datetime('now', '-7 days') THEN 1 ELSE 0 END) AS this_week,
-      SUM(CASE WHEN email_verified = 1 THEN 1 ELSE 0 END) AS verified_emails,
-      SUM(CASE WHEN social_links IS NOT NULL THEN 1 ELSE 0 END) AS social_links_found
-    FROM leads
-  `)
+  const result = await ds.createQueryBuilder()
+    .select('COUNT(*)', 'total_leads')
+    .addSelect("SUM(CASE WHEN website_status = 'none' THEN 1 ELSE 0 END)", 'no_website')
+    .addSelect("SUM(CASE WHEN website_status = 'outdated' THEN 1 ELSE 0 END)", 'outdated_website')
+    .addSelect("SUM(CASE WHEN status = 'review' THEN 1 ELSE 0 END)", 'in_review')
+    .addSelect("SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END)", 'approved')
+    .addSelect("SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END)", 'closed')
+    .addSelect("SUM(CASE WHEN scraped_at >= datetime('now', '-7 days') THEN 1 ELSE 0 END)", 'this_week')
+    .addSelect("SUM(CASE WHEN email_verified = 1 THEN 1 ELSE 0 END)", 'verified_emails')
+    .addSelect("SUM(CASE WHEN social_links IS NOT NULL THEN 1 ELSE 0 END)", 'social_links_found')
+    .from('leads', 'leads')
+    .getRawOne()
 
-  const row = result[0]
+  const row = result || {}
   return {
     total_leads: Number(row?.total_leads) || 0,
     no_website: Number(row?.no_website) || 0,
@@ -41,24 +40,56 @@ export interface ChartDataPoint {
 
 export async function getChartData(days = 14): Promise<ChartDataPoint[]> {
   const ds = getDataSource()
-  const rows = await ds.query(`
-    WITH RECURSIVE dates(d) AS (
-      SELECT date('now', '-' || (? - 1) || ' days')
-      UNION ALL
-      SELECT date(d, '+1 day') FROM dates WHERE d < date('now')
-    )
-    SELECT
-      d AS date,
-      COUNT(CASE WHEN date(l.scraped_at) = d THEN 1 END) AS scraped,
-      COUNT(CASE WHEN date(l.updated_at) = d AND l.ai_site_score IS NOT NULL THEN 1 END) AS analyzed,
-      COUNT(CASE WHEN date(l.updated_at) = d AND l.status = 'approved' THEN 1 END) AS approved,
-      COUNT(CASE WHEN date(l.updated_at) = d AND l.status = 'closed' THEN 1 END) AS closed
-    FROM dates
-    LEFT JOIN leads l ON date(l.scraped_at) = d
-    GROUP BY d
-    ORDER BY d ASC
-  `, [days])
-  return rows as ChartDataPoint[]
+  // Generate the last 14 dates in TypeScript
+  const dates: string[] = []
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    dates.push(d.toISOString().split('T')[0])
+  }
+
+  const scrapedRows = await ds.createQueryBuilder()
+    .select('date(scraped_at)', 'date')
+    .addSelect('COUNT(*)', 'count')
+    .from('leads', 'l')
+    .where('scraped_at >= datetime("now", "-" || :days || " days")', { days })
+    .groupBy('date(scraped_at)')
+    .getRawMany()
+
+  const analyzedRows = await ds.createQueryBuilder()
+    .select('date(updated_at)', 'date')
+    .addSelect('COUNT(*)', 'count')
+    .from('leads', 'l')
+    .where('updated_at >= datetime("now", "-" || :days || " days")', { days })
+    .andWhere('ai_site_score IS NOT NULL')
+    .groupBy('date(updated_at)')
+    .getRawMany()
+
+  const approvedRows = await ds.createQueryBuilder()
+    .select('date(updated_at)', 'date')
+    .addSelect('COUNT(*)', 'count')
+    .from('leads', 'l')
+    .where('updated_at >= datetime("now", "-" || :days || " days")', { days })
+    .andWhere('status = "approved"')
+    .groupBy('date(updated_at)')
+    .getRawMany()
+
+  const closedRows = await ds.createQueryBuilder()
+    .select('date(updated_at)', 'date')
+    .addSelect('COUNT(*)', 'count')
+    .from('leads', 'l')
+    .where('updated_at >= datetime("now", "-" || :days || " days")', { days })
+    .andWhere('status = "closed"')
+    .groupBy('date(updated_at)')
+    .getRawMany()
+
+  return dates.map(d => ({
+    date: d,
+    scraped: Number(scrapedRows.find((r: any) => r.date === d)?.count || 0),
+    analyzed: Number(analyzedRows.find((r: any) => r.date === d)?.count || 0),
+    approved: Number(approvedRows.find((r: any) => r.date === d)?.count || 0),
+    closed: Number(closedRows.find((r: any) => r.date === d)?.count || 0)
+  }))
 }
 
 export interface FunnelDataPoint {
@@ -69,19 +100,18 @@ export interface FunnelDataPoint {
 
 export async function getFunnelData(): Promise<FunnelDataPoint[]> {
   const ds = getDataSource()
-  const result = await ds.query(`
-    SELECT
-      COUNT(*) AS total,
-      SUM(CASE WHEN status IN ('scraped', 'qualified') THEN 1 ELSE 0 END) AS scraped,
-      SUM(CASE WHEN status = 'review' OR ai_site_score IS NOT NULL THEN 1 ELSE 0 END) AS analyzed,
-      SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) AS approved,
-      SUM(CASE WHEN status = 'outreach' THEN 1 ELSE 0 END) AS outreach,
-      SUM(CASE WHEN status = 'replied' THEN 1 ELSE 0 END) AS replied,
-      SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) AS closed
-    FROM leads
-  `)
+  const result = await ds.createQueryBuilder()
+    .select('COUNT(*)', 'total')
+    .addSelect("SUM(CASE WHEN status IN ('scraped', 'qualified') THEN 1 ELSE 0 END)", 'scraped')
+    .addSelect("SUM(CASE WHEN status = 'review' OR ai_site_score IS NOT NULL THEN 1 ELSE 0 END)", 'analyzed')
+    .addSelect("SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END)", 'approved')
+    .addSelect("SUM(CASE WHEN status = 'outreach' THEN 1 ELSE 0 END)", 'outreach')
+    .addSelect("SUM(CASE WHEN status = 'replied' THEN 1 ELSE 0 END)", 'replied')
+    .addSelect("SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END)", 'closed')
+    .from('leads', 'leads')
+    .getRawOne()
 
-  const counts = result[0] || {}
+  const counts = result || {}
 
   return [
     { stage: 'Scraped', count: Number(counts.scraped) || 0, color: '#3f3f46' },
@@ -95,18 +125,19 @@ export async function getFunnelData(): Promise<FunnelDataPoint[]> {
 
 export async function getCityRoiStats(): Promise<CityRoiStat[]> {
   const ds = getDataSource()
-  const rows = await ds.query(`
-    SELECT
-      city,
-      COUNT(*) as lead_count,
-      ROUND(AVG(ai_site_score), 1) as avg_ai_score
-    FROM leads
-    WHERE city IS NOT NULL AND ai_site_score IS NOT NULL
-    GROUP BY city
-    HAVING lead_count >= 1
-    ORDER BY avg_ai_score DESC, lead_count DESC
-    LIMIT 10
-  `)
+  const rows = await ds.createQueryBuilder()
+    .select('city')
+    .addSelect('COUNT(*)', 'lead_count')
+    .addSelect('ROUND(AVG(ai_site_score), 1)', 'avg_ai_score')
+    .from('leads', 'leads')
+    .where('city IS NOT NULL')
+    .andWhere('ai_site_score IS NOT NULL')
+    .groupBy('city')
+    .having('COUNT(*) >= 1')
+    .orderBy('AVG(ai_site_score)', 'DESC')
+    .addOrderBy('COUNT(*)', 'DESC')
+    .limit(10)
+    .getRawMany()
   
   return rows.map((r: any) => ({
     city: r.city,

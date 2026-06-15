@@ -11,8 +11,11 @@ export async function draftOutreach(
   developerName: string,
   modelOverride?: string
 ): Promise<OutreachDraft> {
-  const leads = await getDataSource().query('SELECT * FROM leads WHERE id = ?', [leadId])
-  const lead = leads[0]
+  const lead = await getDataSource().createQueryBuilder()
+    .select('*')
+    .from('leads', 'leads')
+    .where('id = :id', { id: leadId })
+    .getRawOne()
   if (!lead) throw new Error(`Lead ${leadId} not found`)
 
   const client = getAiClient(apiKey)

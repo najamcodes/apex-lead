@@ -6,7 +6,7 @@ import { WeeklyChart } from './WeeklyChart'
 import { PipelineChart } from './PipelineChart'
 import { ActivityFeed } from './ActivityFeed'
 import { CityRoiStats } from './CityRoiStats'
-import type { DashboardStats, LeadFilters } from '../../types'
+import type { DashboardStats } from '../../types'
 import { useNavigate } from 'react-router-dom'
 import { useLeadsStore } from '../../store/leads.store'
 
