@@ -32,18 +32,22 @@ body {
 ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
 
-html.light body {
-  background: #fafafa;
-  color: #18181b;
+/* Light Mode Filter Override */
+html.light {
+  filter: invert(1) hue-rotate(180deg);
+  background: white;
 }
 
-html.light .bg-zinc-950 { background-color: #f4f4f5 !important; }
-html.light .bg-zinc-900 { background-color: #ffffff !important; }
-html.light .bg-zinc-800 { background-color: #f4f4f5 !important; }
-html.light .border-zinc-800 { border-color: #e4e4e7 !important; }
-html.light .border-zinc-700 { border-color: #d4d4d8 !important; }
-html.light .text-zinc-100 { color: #18181b !important; }
-html.light .text-zinc-200 { color: #27272a !important; }
-html.light .text-zinc-300 { color: #3f3f46 !important; }
-html.light .text-zinc-400 { color: #52525b !important; }
-html.light .text-zinc-500 { color: #71717a !important; }
+/* Re-invert elements that shouldn't be inverted (images, avatars) */
+html.light img, 
+html.light video, 
+html.light iframe,
+html.light [style*="background-image"],
+html.light .lucide.lucide-sun,
+html.light .lucide.lucide-moon {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+html.light body {
+  background: #020617; /* Slate 950 inverted becomes a clean off-white */
+}

@@ -22,9 +22,10 @@ Target Cities: ${profile.cities.join(', ')}
 4. Output ONLY valid JSON in the following format, with no markdown formatting, no backticks, and no explanations.
 
 ### OUTPUT FORMAT:
-[
-  { "query": "[Niche] in [City]", "city": "[City]", "rationale": "Why this niche is likely to buy the core offer" },
-  ...
-]
+{
+  "queries": [
+    { "query": "[Niche] in [City]", "city": "[City]", "rationale": "Why this niche is likely to buy the core offer" }
+  ]
+}
 `
 }

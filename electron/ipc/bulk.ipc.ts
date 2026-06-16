@@ -83,10 +83,10 @@ export function registerBulkIpcHandlers(): void {
   ipcMain.handle(IPC.BULK_SCORE, async (_event, leadIds: number[]) => {
     requirePermission('run_scraper')
     const settings = await getSettings()
-    if (!settings.ai_enabled || !settings.openrouter_api_key) return
+    if (!settings.ai_enabled || !settings.ai_enabled) return
     for (const id of leadIds) {
       try {
-        await scoreSite(settings.openrouter_api_key, id, settings.ai_model_site_scoring)
+        await scoreSite(settings, id, settings.ai_model_site_scoring)
         // 1 sec delay to avoid rate limits
         await new Promise((r) => setTimeout(r, 1000))
       } catch {
@@ -158,9 +158,9 @@ export function registerBulkIpcHandlers(): void {
             body = parseSpintax(body)
           } else {
             // Draft with AI
-            if (settings.openrouter_api_key) {
+            if (settings.ai_enabled) {
               const draft = await draftOutreach(
-                settings.openrouter_api_key,
+                settings,
                 id,
                 settings.developer_name || 'Your Name',
                 settings.ai_model_email_draft

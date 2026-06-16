@@ -34,9 +34,10 @@ export async function initScheduler(mainWindow: BrowserWindow): Promise<void> {
         const task = cron.schedule(settings.auto_send_cron, async () => {
           ;(global as any).currentUserId = user.id
           try {
-            console.log(`[Scheduler] User ${user.id} running auto-send...`)
             const result = await processDueOutreach()
-            console.log(`[Scheduler] User ${user.id} sent ${result.sent}, failed ${result.failed}`)
+            if (result.sent > 0 || result.failed > 0) {
+              console.log(`[Scheduler] User ${user.id} sent ${result.sent}, failed ${result.failed}`)
+            }
 
             if ((global as any).currentUserId === user.id && mainWindow && !mainWindow.isDestroyed()) {
               mainWindow.webContents.send('scheduler:completed', result)
@@ -55,7 +56,6 @@ export async function initScheduler(mainWindow: BrowserWindow): Promise<void> {
       const task = cron.schedule(settings.imap_cron || '*/5 * * * *', async () => {
         ;(global as any).currentUserId = user.id
         try {
-          console.log(`[Scheduler] User ${user.id} running IMAP listener...`)
           await listenForImapReplies()
         } catch (err) {
           console.error(`[Scheduler] User ${user.id} error running IMAP listener:`, err)
@@ -69,7 +69,6 @@ export async function initScheduler(mainWindow: BrowserWindow): Promise<void> {
       const task = cron.schedule(settings.warmup_cron || '*/30 * * * *', async () => {
         ;(global as any).currentUserId = user.id
         try {
-          console.log(`[Scheduler] User ${user.id} running Warmup Cycle...`)
           await runWarmupCycle()
         } catch (err) {
           console.error(`[Scheduler] User ${user.id} error running Warmup:`, err)

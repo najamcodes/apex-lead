@@ -1,12 +1,13 @@
+import type { AppSettings } from '../../../src/types'
 // electron/ai/tasks/draft-outreach.ts
-import { getAiClient } from '../openrouter-client'
+import { getAiClient } from '../ai-client'
 import { EMAIL_DRAFTER_SYSTEM, buildEmailDrafterPrompt } from '../prompts/email-drafter'
 import { DEFAULT_MODELS } from '../models'
 import { getDataSource } from '../../../src/db'
 import type { OutreachDraft } from '../../../src/types/ai.types'
 
 export async function draftOutreach(
-  apiKey: string,
+  settings: AppSettings,
   leadId: number,
   developerName: string,
   modelOverride?: string
@@ -18,7 +19,7 @@ export async function draftOutreach(
     .getRawOne()
   if (!lead) throw new Error(`Lead ${leadId} not found`)
 
-  const client = getAiClient(apiKey)
+  const client = getAiClient(settings)
   const model = modelOverride ?? DEFAULT_MODELS.email_draft
 
   let seoIssues: string[] = []

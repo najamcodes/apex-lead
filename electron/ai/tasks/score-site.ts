@@ -1,5 +1,6 @@
+import type { AppSettings } from '../../../src/types'
 // electron/ai/tasks/score-site.ts
-import { getAiClient } from '../openrouter-client'
+import { getAiClient } from '../ai-client'
 import { SITE_SCORER_SYSTEM, buildSiteScorerPrompt } from '../prompts/site-scorer'
 import { DEFAULT_MODELS } from '../models'
 import { getDataSource } from '../../../src/db'
@@ -7,7 +8,7 @@ import type { SiteScoreResult } from '../../../src/types/ai.types'
 import type { SslResult } from '../../../src/types/analysis.types'
 
 export async function scoreSite(
-  apiKey: string,
+  settings: AppSettings,
   leadId: number,
   modelOverride?: string,
   sslResult?: SslResult | null
@@ -20,7 +21,7 @@ export async function scoreSite(
     .getRawOne()
   if (!lead) throw new Error(`Lead ${leadId} not found`)
 
-  const client = getAiClient(apiKey)
+  const client = getAiClient(settings)
   const model = modelOverride ?? DEFAULT_MODELS.site_scoring
 
   const result = await client.completeJson<Omit<SiteScoreResult, 'model_used'>>({

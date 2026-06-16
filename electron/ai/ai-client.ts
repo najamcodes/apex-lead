@@ -1,9 +1,4 @@
-// electron/ai/openrouter-client.ts
-// Thin wrapper around OpenRouter's OpenAI-compatible /chat/completions endpoint.
-// All AI calls in the app go through this — never call fetch directly from tasks.
-
-import { OPENROUTER_BASE_URL } from './models'
-
+import type { AppSettings } from '../../src/types'
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant'
   content: string
@@ -24,23 +19,54 @@ export interface CompletionResult {
   output_tokens: number
 }
 
-export class OpenRouterClient {
-  private apiKey: string
+export class AIClient {
+  private settings: AppSettings
 
-  constructor(apiKey: string) {
-    this.apiKey = apiKey
+  constructor(settings: AppSettings) {
+    this.settings = settings
   }
 
   async complete(options: CompletionOptions, retries = 1): Promise<CompletionResult> {
-    if (!this.apiKey) {
-      throw new Error('OpenRouter API key not configured. Add it in Settings.')
+    let apiKey = ''
+    let baseUrl = ''
+
+    switch (this.settings.ai_provider) {
+      case 'openai':
+        apiKey = this.settings.openai_api_key
+        baseUrl = 'https://api.openai.com/v1'
+        break
+      case 'groq':
+        apiKey = this.settings.groq_api_key
+        baseUrl = 'https://api.groq.com/openai/v1'
+        break
+      case 'gemini':
+        apiKey = this.settings.gemini_api_key
+        baseUrl = 'https://generativelanguage.googleapis.com/v1beta/openai'
+        break
+      case 'lmstudio':
+        apiKey = 'lmstudio' // some local endpoints don't need a key, but fetch might fail if empty
+        baseUrl = (this.settings.lmstudio_url || '').replace(/\/$/, '')
+        break
+      case 'ollama':
+        apiKey = 'ollama'
+        baseUrl = (this.settings.ollama_url || '').replace(/\/$/, '')
+        break
+      case 'openrouter':
+      default:
+        apiKey = this.settings.openrouter_api_key
+        baseUrl = 'https://openrouter.ai/api/v1'
+        break
+    }
+
+    if (!apiKey) {
+      throw new Error(`API key not configured for provider: ${this.settings.ai_provider}. Add it in Settings.`)
     }
 
     try {
-      const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+      const response = await fetch(`${baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': 'https://leadhunter.app', // identifies your app in OpenRouter dashboard
           'X-Title': 'LeadHunter'
@@ -56,10 +82,10 @@ export class OpenRouterClient {
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('Check your OpenRouter API key in Settings')
+          throw new Error('Check your AI API key in Settings')
         }
         if (response.status === 402) {
-          throw new Error('Add credits at openrouter.ai/credits')
+          throw new Error('Add credits to your AI provider account')
         }
         if (response.status === 503) {
           throw new Error('Model unavailable, try switching to backup model')
@@ -73,13 +99,13 @@ export class OpenRouterClient {
 
         const err = await response.json().catch(() => ({}))
         throw new Error(
-          `OpenRouter error ${response.status}: ${(err as any)?.error?.message ?? response.statusText}`
+          `AI Provider error ${response.status}: ${(err as any)?.error?.message ?? response.statusText}`
         )
       }
 
       const data = await response.json()
       const choice = data.choices?.[0]
-      if (!choice) throw new Error('OpenRouter returned no choices')
+      if (!choice) throw new Error('AI Provider returned no choices')
 
       return {
         content: choice.message?.content ?? '',
@@ -120,12 +146,12 @@ export class OpenRouterClient {
   }
 }
 
-// Singleton — rebuilt when API key changes
-let _client: OpenRouterClient | null = null
+// Singleton — rebuilt when settings change
+let _client: AIClient | null = null
 
-export function getAiClient(apiKey: string): OpenRouterClient {
-  if (!_client || _client['apiKey'] !== apiKey) {
-    _client = new OpenRouterClient(apiKey)
+export function getAiClient(settings: AppSettings): AIClient {
+  if (!_client || JSON.stringify(_client['settings']) !== JSON.stringify(settings)) {
+    _client = new AIClient(settings)
   }
   return _client
 }

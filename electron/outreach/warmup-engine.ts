@@ -1,12 +1,11 @@
 import { getEmailAccounts } from '../../src/db/queries/email-accounts.queries'
 import { sendEmail } from './smtp-sender'
 import { getSettings } from '../../src/db/queries/settings.queries'
-import { getAiClient } from '../ai/openrouter-client'
+import { getAiClient } from '../ai/ai-client'
 
 export async function runWarmupCycle() {
   const settings = await getSettings()
-  if (!settings.ai_enabled || !settings.openrouter_api_key) {
-    console.log('[Warmup] Skipped: AI is disabled or missing API key')
+  if (!settings.ai_enabled || !settings.ai_enabled) {
     return
   }
 
@@ -14,7 +13,6 @@ export async function runWarmupCycle() {
   const activeAccounts = accounts.filter(a => a.status === 'active')
 
   if (activeAccounts.length < 2) {
-    console.log('[Warmup] Skipped: Need at least 2 active accounts for warmup')
     return
   }
 
@@ -29,7 +27,7 @@ export async function runWarmupCycle() {
   const receiver = activeAccounts[indexB]
 
   try {
-    const client = getAiClient(settings.openrouter_api_key)
+    const client = getAiClient(settings)
     
     // Generate a benign, conversational email
     const prompt = `You are an employee sending a casual, benign 3-sentence email to a coworker. 

@@ -1,6 +1,8 @@
 // electron/ai/tasks/generate-queries.ts
 import { buildQueryGenerationPrompt } from '../prompts/query-generator'
 import type { QueryProfile } from '../../../src/types/pipeline.types'
+import type { AppSettings } from '../../../src/types'
+import { getAiClient } from '../ai-client'
 
 export interface GeneratedQuery {
   query: string
@@ -9,7 +11,7 @@ export interface GeneratedQuery {
 }
 
 export async function generateQueriesFromProfile(
-  apiKey: string,
+  settings: AppSettings,
   profile: QueryProfile,
   model = 'anthropic/claude-3-haiku'
 ): Promise<GeneratedQuery[]> {
@@ -20,37 +22,12 @@ export async function generateQueriesFromProfile(
     cities: JSON.parse(profile.cities)
   })
 
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'http://localhost:5173',
-      'X-Title': 'LeadHunter',
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.7,
-    }),
+  const client = getAiClient(settings)
+  const result = await client.completeJson<{ queries: GeneratedQuery[] }>({
+    model,
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.7,
   })
 
-  if (!res.ok) {
-    const err = await res.text()
-    throw new Error(`OpenRouter API error: ${err}`)
-  }
-
-  const data = await res.json()
-  let content = data.choices[0]?.message?.content || '[]'
-  
-  // Strip markdown code blocks if the model wrapped the JSON
-  content = content.replace(/```json/gi, '').replace(/```/g, '').trim()
-
-  try {
-    const queries = JSON.parse(content)
-    return queries
-  } catch (e) {
-    console.error('Failed to parse query generator response:', content)
-    return []
-  }
+  return result.queries || []
 }

@@ -28,7 +28,7 @@ function ProtectedRoute({ children, perm }: { children: React.ReactNode, perm: s
   )
 }
 
-function KeyboardShortcuts(): void {
+function KeyboardShortcuts() {
   const navigate = useNavigate()
 
   useEffect(() => {

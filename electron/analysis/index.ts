@@ -54,8 +54,8 @@ export async function analyzeLead(leadId: number): Promise<AnalysisResult> {
   const crawlerData = crawlerResult.status === 'fulfilled' ? crawlerResult.value : null
 
   let aiDecisionMaker: import('../ai/tasks/extract-decision-maker').DecisionMakerInfo | null = null;
-  if (crawlerData && settings.ai_enabled && settings.openrouter_api_key) {
-    aiDecisionMaker = await extractDecisionMaker(settings.openrouter_api_key, settings.ai_model_site_scoring, crawlerData)
+  if (crawlerData && settings.ai_enabled ) {
+    aiDecisionMaker = await extractDecisionMaker(settings, settings.ai_model_site_scoring, crawlerData)
   }
   
   // Estimate build year from SSL last-modified header
@@ -95,9 +95,9 @@ export async function analyzeLead(leadId: number): Promise<AnalysisResult> {
   })
 
   // Run AI scoring now that we have all the data
-  if (settings.ai_enabled && settings.openrouter_api_key) {
+  if (settings.ai_enabled ) {
     try {
-      await scoreSite(settings.openrouter_api_key, leadId, settings.ai_model_site_scoring, ssl)
+      await scoreSite(settings, leadId, settings.ai_model_site_scoring, ssl)
     } catch {
       // AI failure shouldn't block analysis — lead still has pagespeed/ssl data
     }

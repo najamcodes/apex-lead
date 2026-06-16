@@ -179,6 +179,15 @@ export interface AppSettings {
   seo_audit_engine: 'pagespeed' | 'lighthouse' | 'none'
   developer_name?: string
   openrouter_api_key: string
+  
+  // AI Settings
+  ai_provider: 'openrouter' | 'openai' | 'groq' | 'lmstudio' | 'ollama' | 'gemini'
+  openai_api_key: string
+  groq_api_key: string
+  gemini_api_key: string
+  lmstudio_url: string
+  ollama_url: string
+
   ai_model_site_scoring: string
   ai_model_email_draft: string
   ai_enabled: boolean

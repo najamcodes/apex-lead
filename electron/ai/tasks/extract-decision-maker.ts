@@ -1,4 +1,5 @@
-import { getAiClient } from '../openrouter-client'
+import type { AppSettings } from '../../../src/types'
+import { getAiClient } from '../ai-client'
 import type { CrawledWebsiteData } from '../../scraper/extractors/website-crawler'
 
 export interface DecisionMakerInfo {
@@ -24,7 +25,7 @@ If you cannot confidently identify a specific person, return null for all fields
 `
 
 export async function extractDecisionMaker(
-  apiKey: string,
+  settings: AppSettings,
   model: string,
   data: CrawledWebsiteData
 ): Promise<DecisionMakerInfo> {
@@ -46,7 +47,7 @@ ${data.contactText.slice(0, 3000)}
 `
 
   try {
-    const client = getAiClient(apiKey)
+    const client = getAiClient(settings)
     const responseText = await client.complete({
       model,
       messages: [

@@ -1,4 +1,5 @@
-import { getAiClient } from '../openrouter-client'
+import type { AppSettings } from '../../../src/types'
+import { getAiClient } from '../ai-client'
 
 export interface ReplyTriageResult {
   intent: 'interested' | 'not_interested' | 'objection' | 'out_of_office' | 'bounce' | 'other'
@@ -26,9 +27,9 @@ Return ONLY a valid JSON object matching this schema:
 }
 `
 
-export async function triageReply(apiKey: string, model: string, emailBody: string): Promise<ReplyTriageResult> {
+export async function triageReply(settings: AppSettings, model: string, emailBody: string): Promise<ReplyTriageResult> {
   try {
-    const client = getAiClient(apiKey)
+    const client = getAiClient(settings)
     const response = await client.completeJson<ReplyTriageResult>({
       model,
       messages: [

@@ -58,8 +58,8 @@ async function checkAccountForReplies(account: import('../../src/types').EmailAc
           let summary = 'Reply received'
           let suggested_reply: string | undefined = undefined
           
-          if (settings.ai_enabled && settings.openrouter_api_key) {
-            const triage = await triageReply(settings.openrouter_api_key, settings.ai_model_site_scoring, parsed.text || '')
+          if (settings.ai_enabled ) {
+            const triage = await triageReply(settings, settings.ai_model_site_scoring, parsed.text || '')
             intent = triage.intent
             summary = triage.summary
             suggested_reply = triage.suggested_reply

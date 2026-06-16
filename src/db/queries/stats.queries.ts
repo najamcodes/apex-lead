@@ -14,7 +14,6 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     .addSelect("SUM(CASE WHEN scraped_at >= datetime('now', '-7 days') THEN 1 ELSE 0 END)", 'this_week')
     .addSelect("SUM(CASE WHEN email_verified = 1 THEN 1 ELSE 0 END)", 'verified_emails')
     .addSelect("SUM(CASE WHEN social_links IS NOT NULL THEN 1 ELSE 0 END)", 'social_links_found')
-    .addSelect("SUM(CASE WHEN social_links IS NOT NULL THEN 1 ELSE 0 END)", 'social_links_found')
     .from('leads', 'leads')
     .where('leads.org_id = :orgId', { orgId: getTenantId() })
     .getRawOne()
@@ -53,7 +52,6 @@ export async function getChartData(days = 14): Promise<ChartDataPoint[]> {
 
   const scrapedRows = await ds.createQueryBuilder()
     .select('date(scraped_at)', 'date')
-    .addSelect('COUNT(*)', 'count')
     .addSelect('COUNT(*)', 'count')
     .from('leads', 'l')
     .where('l.org_id = :orgId', { orgId: getTenantId() })

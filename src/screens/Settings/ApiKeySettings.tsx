@@ -1,4 +1,5 @@
 // src/screens/Settings/ApiKeySettings.tsx
+import { useState } from 'react'
 import { Input } from '../../components/ui/Input'
 
 import type { AppSettings } from '../../types'
@@ -16,34 +17,112 @@ interface Props {
 }
 
 export function ApiKeySettings({ settings, onSave }: Props) {
+  const [provider, setProvider] = useState(settings.ai_provider || 'openrouter')
+
+  const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value as any
+    setProvider(val)
+    onSave({ ai_provider: val })
+  }
+
   return (
     <div className="space-y-4">
-      <Input
-        label="OpenRouter API Key"
-        type="password"
-        placeholder="sk-or-..."
-        defaultValue={settings.openrouter_api_key}
-        onBlur={(e) => onSave({ openrouter_api_key: e.target.value })}
-      />
-      <Input
-        label="Google PageSpeed API Key (optional)"
-        type="password"
-        placeholder="AIza..."
-        defaultValue={settings.pagespeed_api_key}
-        onBlur={(e) => onSave({ pagespeed_api_key: e.target.value })}
-      />
-      <p className="text-xs text-zinc-500">
-        Get your key at{' '}
-        <a
-          href="https://openrouter.ai/keys"
-          target="_blank"
-          rel="noreferrer"
-          className="text-emerald-400 hover:underline"
+      <div>
+        <label className="text-xs font-medium text-zinc-400 block mb-1.5">
+          Active AI Provider
+        </label>
+        <select
+          className="w-full px-3 py-2 rounded-md text-sm bg-zinc-800 border border-zinc-700 text-zinc-300 outline-none focus:border-emerald-500 transition-colors"
+          value={provider}
+          onChange={handleProviderChange}
         >
-          openrouter.ai/keys
-        </a>{' '}
-        — free tier available, no credit card required.
-      </p>
+          <option value="openrouter">OpenRouter (Recommended)</option>
+          <option value="openai">OpenAI</option>
+          <option value="groq">Groq</option>
+          <option value="gemini">Google Gemini</option>
+          <option value="lmstudio">LM Studio (Local)</option>
+          <option value="ollama">Ollama (Local)</option>
+        </select>
+      </div>
+
+      {provider === 'openrouter' && (
+        <>
+          <Input
+            label="OpenRouter API Key"
+            type="password"
+            placeholder="sk-or-..."
+            defaultValue={settings.openrouter_api_key}
+            onBlur={(e) => onSave({ openrouter_api_key: e.target.value })}
+          />
+          <p className="text-xs text-zinc-500">
+            Get your key at{' '}
+            <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer" className="text-emerald-400 hover:underline">
+              openrouter.ai/keys
+            </a>{' '}
+            — free tier available.
+          </p>
+        </>
+      )}
+
+      {provider === 'openai' && (
+        <Input
+          label="OpenAI API Key"
+          type="password"
+          placeholder="sk-..."
+          defaultValue={settings.openai_api_key}
+          onBlur={(e) => onSave({ openai_api_key: e.target.value })}
+        />
+      )}
+
+      {provider === 'groq' && (
+        <Input
+          label="Groq API Key"
+          type="password"
+          placeholder="gsk_..."
+          defaultValue={settings.groq_api_key}
+          onBlur={(e) => onSave({ groq_api_key: e.target.value })}
+        />
+      )}
+
+      {provider === 'gemini' && (
+        <Input
+          label="Google Gemini API Key"
+          type="password"
+          placeholder="AIza..."
+          defaultValue={settings.gemini_api_key}
+          onBlur={(e) => onSave({ gemini_api_key: e.target.value })}
+        />
+      )}
+
+      {provider === 'lmstudio' && (
+        <Input
+          label="LM Studio Base URL"
+          type="text"
+          placeholder="http://127.0.0.1:1234/v1"
+          defaultValue={settings.lmstudio_url}
+          onBlur={(e) => onSave({ lmstudio_url: e.target.value })}
+        />
+      )}
+
+      {provider === 'ollama' && (
+        <Input
+          label="Ollama Base URL"
+          type="text"
+          placeholder="http://127.0.0.1:11434/v1"
+          defaultValue={settings.ollama_url}
+          onBlur={(e) => onSave({ ollama_url: e.target.value })}
+        />
+      )}
+
+      <div className="pt-2 border-t border-zinc-800">
+        <Input
+          label="Google PageSpeed API Key (optional)"
+          type="password"
+          placeholder="AIza..."
+          defaultValue={settings.pagespeed_api_key}
+          onBlur={(e) => onSave({ pagespeed_api_key: e.target.value })}
+        />
+      </div>
 
       <div className="pt-2 border-t border-zinc-800">
         <label className="text-xs font-medium text-zinc-400 block mb-1.5">
@@ -64,34 +143,34 @@ export function ApiKeySettings({ settings, onSave }: Props) {
         <label className="text-xs font-medium text-zinc-400 block mb-1.5">
           Model for site scoring
         </label>
-        <select
+        <input
+          type="text"
+          list="scoring-models"
           className="w-full px-3 py-2 rounded-md text-sm bg-zinc-800 border border-zinc-700 text-zinc-300 outline-none focus:border-emerald-500 transition-colors"
           defaultValue={settings.ai_model_site_scoring}
-          onChange={(e) => onSave({ ai_model_site_scoring: e.target.value })}
-        >
-          {MODEL_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+          onBlur={(e) => onSave({ ai_model_site_scoring: e.target.value })}
+          placeholder="e.g. gpt-4o or llama3-8b-8192"
+        />
+        <datalist id="scoring-models">
+          {MODEL_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </datalist>
       </div>
 
       <div>
         <label className="text-xs font-medium text-zinc-400 block mb-1.5">
           Model for email drafting
         </label>
-        <select
+        <input
+          type="text"
+          list="drafting-models"
           className="w-full px-3 py-2 rounded-md text-sm bg-zinc-800 border border-zinc-700 text-zinc-300 outline-none focus:border-emerald-500 transition-colors"
           defaultValue={settings.ai_model_email_draft}
-          onChange={(e) => onSave({ ai_model_email_draft: e.target.value })}
-        >
-          {MODEL_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+          onBlur={(e) => onSave({ ai_model_email_draft: e.target.value })}
+          placeholder="e.g. gpt-4o or llama3-8b-8192"
+        />
+        <datalist id="drafting-models">
+          {MODEL_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </datalist>
       </div>
 
       <div className="bg-zinc-800/50 rounded-lg px-4 py-3 text-xs text-zinc-400 space-y-1">

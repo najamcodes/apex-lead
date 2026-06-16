@@ -66,11 +66,11 @@ export async function runNightlyPipeline(
     
     // 1. Process Query Profiles
     const profiles = await getActiveQueryProfiles()
-    if (profiles.length > 0 && settings.ai_enabled && settings.openrouter_api_key) {
+    if (profiles.length > 0 && settings.ai_enabled ) {
       log(`Expanding ${profiles.length} Smart Query Profiles via AI...`)
       for (const profile of profiles) {
         try {
-          const queries = await generateQueriesFromProfile(settings.openrouter_api_key, profile, settings.ai_model_site_scoring)
+          const queries = await generateQueriesFromProfile(settings, profile, settings.ai_model_site_scoring)
           for (const q of queries) {
             targets.push({
               id: -1,
@@ -271,7 +271,7 @@ async function getTopLeadsForDigest(limit: number): Promise<any[]> {
 
 async function autoScheduleSequences(log: (msg: string) => void): Promise<void> {
   const settings = await getSettings()
-  if (settings.use_ai_for_outreach && !settings.openrouter_api_key) return
+  if (settings.use_ai_for_outreach && !settings.ai_enabled) return
 
   let template: any = null
   if (!settings.use_ai_for_outreach) {
@@ -313,7 +313,7 @@ async function autoScheduleSequences(log: (msg: string) => void): Promise<void> 
       let draft = { subject: '', email_body: '' }
       if (settings.use_ai_for_outreach) {
         draft = await draftOutreach(
-          settings.openrouter_api_key,
+          settings,
           lead.id,
           settings.developer_name || 'Your Name',
           settings.ai_model_email_draft

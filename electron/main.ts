@@ -1,5 +1,15 @@
 // electron/main.ts
 import 'reflect-metadata'
+
+// Suppress punycode deprecation warning from dependencies
+process.removeAllListeners('warning');
+process.on('warning', (warning) => {
+  if (warning.name === 'DeprecationWarning' && warning.message.includes('punycode')) {
+    return;
+  }
+  console.warn(warning.name, warning.message);
+});
+
 import { app, BrowserWindow, shell } from 'electron'
 import path from 'path'
 import { initDb } from '../src/db'
