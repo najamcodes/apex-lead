@@ -12,7 +12,8 @@ import {
   Send,
   Workflow,
   Sun,
-  Moon
+  Moon,
+  BookOpen
 } from 'lucide-react'
 import { useAppStore } from '../../store/app.store'
 import { useThemeStore } from '../../store/theme.store'
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { to: '/review', icon: ListTodo, label: 'Review', perm: 'view_leads' },
   { to: '/outreach', icon: Send, label: 'Outreach', perm: 'send_outreach' },
   { to: '/pipeline', icon: Workflow, label: 'Pipeline', perm: 'manage_settings' },
+  { to: '/tutorial', icon: BookOpen, label: 'Tutorial', perm: null },
   { to: '/settings', icon: Settings, label: 'Settings', perm: null } // Everyone gets basic settings
 ]
 

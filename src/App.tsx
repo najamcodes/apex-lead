@@ -9,6 +9,7 @@ import { Review } from './screens/Review'
 import { Login } from './screens/Auth/Login'
 import { useAuthStore } from './store/auth.store'
 import { Outreach } from './screens/Outreach'
+import { Tutorial } from './screens/Tutorial'
 import { Pipeline } from './screens/Pipeline'
 import { useEffect, useState } from 'react'
 import { useThemeStore } from './store/theme.store'
@@ -116,6 +117,7 @@ export default function App() {
           <Route path="/review" element={<ProtectedRoute perm="view_leads"><Review /></ProtectedRoute>} />
           <Route path="/outreach" element={<ProtectedRoute perm="send_outreach"><Outreach /></ProtectedRoute>} />
           <Route path="/pipeline" element={<ProtectedRoute perm="manage_settings"><Pipeline /></ProtectedRoute>} />
+          <Route path="/tutorial" element={<ProtectedRoute perm={null}><Tutorial /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute perm={null}><Settings /></ProtectedRoute>} />
         </Route>
       </Routes>
