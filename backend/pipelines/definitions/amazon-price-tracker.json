@@ -1,0 +1,81 @@
+// backend/pipelines/definitions/amazon-price-tracker.json
+// Example multi-domain pipeline. Shows the system is NOT lead-only.
+// Requires a user-provided 'amazon-products' scraper plugin.
+{
+  "id": "amazon-price-tracker",
+  "name": "Amazon Price Tracker",
+  "description": "Scrape Amazon products, fetch price history, AI-summarize opportunity, store, alert Discord.",
+  "collection": "amazon_products",
+  "status": "draft",
+  "nodes": [
+    {
+      "id": "scrape",
+      "type": "scraper",
+      "label": "Scrape Amazon",
+      "enabled": true,
+      "position": { "x": 50, "y": 200 },
+      "config": {
+        "plugin": "amazon-products",
+        "max_results": 50
+      }
+    },
+    {
+      "id": "fetch-history",
+      "type": "http",
+      "label": "Fetch Price History",
+      "enabled": true,
+      "position": { "x": 350, "y": 200 },
+      "config": {
+        "method": "GET",
+        "url": "https://api.keepa.com/product?key={{input.keepa_key}}&asin={{input.asin}}",
+        "response_field": "price_history"
+      }
+    },
+    {
+      "id": "summarize",
+      "type": "ai",
+      "label": "AI Opportunity Summary",
+      "enabled": true,
+      "position": { "x": 650, "y": 200 },
+      "config": {
+        "model": "gpt-4o",
+        "prompt": "Analyze this Amazon product for resale/arbitrage opportunity.\n\nTitle: {{input.title}}\nPrice: {{input.price}}\nRating: {{input.rating}}\nReviews: {{input.review_count}}\n\nReturn JSON: {\"opportunity\": string, \"score\": number, \"notes\": string}",
+        "output_field": "ai_opportunity",
+        "parse_json": "true"
+      }
+    },
+    {
+      "id": "store",
+      "type": "store",
+      "label": "Store Product",
+      "enabled": true,
+      "position": { "x": 950, "y": 200 },
+      "config": {
+        "collection": "amazon_products",
+        "mode": "upsert"
+      }
+    },
+    {
+      "id": "alert",
+      "type": "connector",
+      "label": "Discord Alert",
+      "enabled": true,
+      "position": { "x": 1250, "y": 200 },
+      "config": {
+        "plugin": "connector-discord",
+        "trigger": "lead.created"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "scrape", "to": "fetch-history" },
+    { "id": "e2", "from": "fetch-history", "to": "summarize" },
+    { "id": "e3", "from": "summarize", "to": "store" },
+    { "id": "e4", "from": "store", "to": "alert" }
+  ],
+  "trigger": {
+    "type": "cron",
+    "cron": "0 8 * * *"
+  },
+  "version": 1
+}

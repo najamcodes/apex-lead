@@ -1,0 +1,105 @@
+// backend/pipelines/definitions/lead-generation.json
+// The default lead-generation pipeline, converted from the old LeadGenerationPipeline.
+// Users can edit this in the UI to turn steps on/off, reorder, or add nodes.
+{
+  "id": "lead-generation",
+  "name": "Lead Generation (Google Maps)",
+  "description": "Scrape Google Maps, enrich with PageSpeed/SSL, AI-score, store, and optionally schedule outreach.",
+  "collection": "leads",
+  "status": "active",
+  "nodes": [
+    {
+      "id": "scrape",
+      "type": "scraper",
+      "label": "Scrape Google Maps",
+      "enabled": true,
+      "position": { "x": 50, "y": 200 },
+      "config": {
+        "plugin": "google-maps",
+        "max_results": 100
+      }
+    },
+    {
+      "id": "enrich",
+      "type": "enricher",
+      "label": "Enrich (PageSpeed + SSL + Hunter)",
+      "enabled": true,
+      "position": { "x": 350, "y": 200 },
+      "config": {
+        "plugins": []
+      }
+    },
+    {
+      "id": "score",
+      "type": "ai",
+      "label": "AI Score Site",
+      "enabled": true,
+      "position": { "x": 650, "y": 200 },
+      "config": {
+        "model": "anthropic/claude-3-haiku",
+        "prompt": "You are a website auditor. Score this business website 0-100 for modernization opportunity.\n\nBusiness: {{input.business_name}}\nWebsite: {{input.website_url}}\nCity: {{input.city}}\nPageSpeed Mobile: {{input.pagespeed_mobile}}\nSSL Valid: {{input.ssl_valid}}\n\nReturn JSON: {\"score\": number, \"summary\": string, \"opportunity_hook\": string}",
+        "output_field": "ai_result",
+        "parse_json": "true"
+      }
+    },
+    {
+      "id": "branch",
+      "type": "branch",
+      "label": "Score >= 70?",
+      "enabled": true,
+      "position": { "x": 950, "y": 200 },
+      "config": {
+        "condition": "data.ai_result && data.ai_result.score >= 70"
+      }
+    },
+    {
+      "id": "store-approved",
+      "type": "store",
+      "label": "Store (Approved)",
+      "enabled": true,
+      "position": { "x": 1250, "y": 100 },
+      "config": {
+        "collection": "leads",
+        "mode": "upsert",
+        "set_status": "approved"
+      }
+    },
+    {
+      "id": "store-qualified",
+      "type": "store",
+      "label": "Store (Qualified)",
+      "enabled": true,
+      "position": { "x": 1250, "y": 300 },
+      "config": {
+        "collection": "leads",
+        "mode": "upsert",
+        "set_status": "qualified"
+      }
+    },
+    {
+      "id": "outreach",
+      "type": "outreach",
+      "label": "Schedule Outreach",
+      "enabled": false,
+      "position": { "x": 1550, "y": 100 },
+      "config": {
+        "subject": "Quick question about {{business_name}}",
+        "body": "Hi {{business_name}}, I came across your business in {{city}}...",
+        "require_email": true,
+        "send_immediately": false
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "scrape", "to": "enrich", "mappings": [] },
+    { "id": "e2", "from": "enrich", "to": "score", "mappings": [] },
+    { "id": "e3", "from": "score", "to": "branch", "mappings": [] },
+    { "id": "e4", "from": "branch", "to": "store-approved", "fromPort": "true", "mappings": [] },
+    { "id": "e5", "from": "branch", "to": "store-qualified", "fromPort": "false", "mappings": [] },
+    { "id": "e6", "from": "store-approved", "to": "outreach", "mappings": [] }
+  ],
+  "trigger": {
+    "type": "manual"
+  },
+  "version": 1
+}
