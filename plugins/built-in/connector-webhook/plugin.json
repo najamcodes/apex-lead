@@ -1,0 +1,11 @@
+{
+  "id": "connector-webhook",
+  "kind": "connector",
+  "name": "Webhook Connector",
+  "version": "1.0.0",
+  "description": "Posts lead events to any HTTP endpoint (Zapier, Make, n8n, custom). Supports configurable triggers, custom headers, and HMAC signing.",
+  "author": "LeadHunter",
+  "main": "index.ts",
+  "enabledByDefault": false,
+  "tags": ["connector", "webhook", "zapier", "make", "n8n", "built-in"]
+}

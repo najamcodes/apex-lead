@@ -1,0 +1,10 @@
+﻿{
+  "id": "enricher-ai-decision-maker",
+  "kind": "enricher",
+  "name": "AI Decision Maker Finder",
+  "version": "1.0.0",
+  "description": "Crawls the prospect website and uses AI to identify the primary decision maker and their direct email.",
+  "author": "LeadHunter",
+  "main": "index.ts",
+  "enabledByDefault": true
+}

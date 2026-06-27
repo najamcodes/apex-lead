@@ -1,0 +1,11 @@
+{
+  "id": "enricher-ssl",
+  "kind": "enricher",
+  "name": "SSL & Tech Stack Enricher",
+  "version": "1.0.0",
+  "description": "Checks SSL certificate validity, detects tech stack via Wappalyzer, estimates site build year, and extracts social links and contact info.",
+  "author": "LeadHunter",
+  "main": "index.ts",
+  "enabledByDefault": true,
+  "tags": ["enricher", "ssl", "tech-stack", "wappalyzer", "built-in"]
+}

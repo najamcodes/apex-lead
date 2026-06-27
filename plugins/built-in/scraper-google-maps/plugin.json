@@ -1,0 +1,11 @@
+{
+  "id": "google-maps",
+  "kind": "scraper",
+  "name": "Google Maps Scraper",
+  "version": "1.0.0",
+  "description": "Scrapes business listings from Google Maps using stealth Playwright. The original LeadHunter built-in source.",
+  "author": "LeadHunter",
+  "main": "index.ts",
+  "enabledByDefault": true,
+  "tags": ["scraper", "google", "built-in"]
+}

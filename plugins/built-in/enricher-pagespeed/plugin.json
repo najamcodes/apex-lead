@@ -1,0 +1,11 @@
+{
+  "id": "enricher-pagespeed",
+  "kind": "enricher",
+  "name": "PageSpeed Enricher",
+  "version": "1.0.0",
+  "description": "Audits lead websites using Google PageSpeed Insights API. Provides mobile/desktop performance scores, Core Web Vitals, and SEO metrics.",
+  "author": "LeadHunter",
+  "main": "index.ts",
+  "enabledByDefault": true,
+  "tags": ["enricher", "seo", "performance", "built-in"]
+}

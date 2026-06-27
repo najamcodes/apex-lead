@@ -1,0 +1,11 @@
+{
+  "id": "enricher-hunter",
+  "kind": "enricher",
+  "name": "Hunter.io Email Finder",
+  "version": "1.0.0",
+  "description": "Finds and verifies professional email addresses using Hunter.io. Falls back to pattern-guessing if Hunter.io returns no result.",
+  "author": "LeadHunter",
+  "main": "index.ts",
+  "enabledByDefault": true,
+  "tags": ["enricher", "email", "hunter", "built-in"]
+}
