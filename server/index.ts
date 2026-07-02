@@ -1,0 +1,286 @@
+import './polyfill'
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
+import { getCookie } from 'hono/cookie'
+import { serve } from '@hono/node-server'
+import { verifyToken } from './src/auth'
+import { wsHub } from './src/ws'
+import { initDb, getDataSource } from '../src/db'
+import { UserEntity } from '../src/db/entities/UserEntity'
+import { initSentry, captureException, setUserContext } from './src/utils/sentry'
+import { logger } from './src/utils/logger'
+import { logRequest } from './src/middleware/logger'
+import { rateLimiter } from './src/middleware/rateLimiter'
+import { initPluginRegistry } from '../plugins/registry'
+
+import { leadsRouter, statsRouter } from './src/routes/leads'
+import { authRouter, settingsRouter } from './src/routes/settings'
+import { scraperRouter } from './src/routes/scraper'
+import { apiRouter } from './src/routes/api'
+import { aiRouter } from './src/routes/ai'
+import { analysisRouter } from './src/routes/analysis'
+import { outreachRouter } from './src/routes/outreach'
+import { bulkRouter } from './src/routes/bulk'
+import { emailFinderRouter } from './src/routes/email-finder'
+import { emailVerifierRouter } from './src/routes/email-verifier'
+import { pipelineRouter } from './src/routes/pipeline'
+import { schedulerRouter } from './src/routes/scheduler'
+import { usersRouter } from './src/routes/users'
+import { extensionRouter } from './src/routes/extension'
+import { pipelinesRouter } from '../backend/routes/pipelines'
+
+import { runWithUser, type RequestUser } from './src/context'
+
+declare global {
+  var currentUserId: number | undefined;
+  var currentOrgId: number | undefined;
+  var currentUserRole: string | undefined;
+  var currentUserPermissions: string[] | undefined;
+}
+
+// ── App setup ──────────────────────────────────────────────────────
+
+const app = new Hono()
+
+const corsOrigin = process.env.CORS_ORIGIN?.split(',').map(s => s.trim()) || ['http://localhost:3000']
+
+app.use('*', cors({
+  origin: corsOrigin,
+  credentials: true,
+}))
+
+// ── Structured request logging (Pino) ──────────────────────────────
+
+app.use('*', logRequest())
+
+// ── Rate limiting ──────────────────────────────────────────────────
+
+const globalLimiter = rateLimiter({
+  windowMs: 60 * 1000,
+  maxRequests: 100,
+  keyGenerator: (c) => {
+    const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown'
+    return `ip:${ip}`
+  },
+})
+
+const authLimiter = rateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 10,
+  keyGenerator: (c) => {
+    const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown'
+    return `auth:${ip}`
+  },
+})
+
+app.use('/api/*', globalLimiter)
+app.use('/api/auth/*', authLimiter)
+
+// ── Auth middleware ────────────────────────────────────────────────
+
+app.use('/api/*', async (c, next) => {
+  if (c.req.path.startsWith('/api/auth/login') || c.req.path.startsWith('/api/auth/register')) {
+    return next()
+  }
+  const token = getCookie(c, 'leadhunter_token')
+  if (!token) return c.json({ error: 'Unauthorized' }, 401)
+  
+  const payload = verifyToken(token)
+  if (!payload) return c.json({ error: 'Unauthorized' }, 401)
+  
+  const userRepo = getDataSource().getRepository(UserEntity)
+  const user = await userRepo.findOneBy({ id: (payload as any).id })
+  if (!user) return c.json({ error: 'Unauthorized' }, 401)
+  
+  // Set global context for backward compatibility with shared DB queries
+  global.currentUserId = user.id
+  global.currentOrgId = user.org_id
+  global.currentUserRole = user.role
+  global.currentUserPermissions = JSON.parse(user.permissions || '[]')
+  
+  // Set Sentry user context for error tracking
+  setUserContext({ id: String(user.id), email: user.email, role: user.role })
+  
+  ;(c as any).set('user', user)
+  await next()
+})
+
+// ── Routes ─────────────────────────────────────────────────────────
+
+app.route('/api/leads', leadsRouter as any)
+app.route('/api/stats', statsRouter as any)
+app.route('/api/auth', authRouter as any)
+app.route('/api/settings', settingsRouter as any)
+app.route('/api/scraper', scraperRouter as any)
+app.route('/api/ai', aiRouter as any)
+app.route('/api/analysis', analysisRouter as any)
+app.route('/api/outreach', outreachRouter as any)
+app.route('/api/bulk', bulkRouter as any)
+app.route('/api/email-finder', emailFinderRouter as any)
+app.route('/api/email-verifier', emailVerifierRouter as any)
+app.route('/api/pipeline', pipelineRouter as any)
+app.route('/api/scheduler', schedulerRouter as any)
+app.route('/api/users', usersRouter as any)
+app.route('/api/extension', extensionRouter as any)
+app.route('/api/pipelines', pipelinesRouter as any)
+app.route('/api', apiRouter as any)
+
+// ── OpenAPI / Swagger UI ───────────────────────────────────────────
+
+app.get('/swagger', (c) => {
+  return c.html(`<!DOCTYPE html>
+<html><head>
+<title>LeadGen Desk API</title>
+<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+</head><body>
+<div id="swagger-ui"></div>
+<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+<script>SwaggerUIBundle({ url: '/doc', dom_id: '#swagger-ui' })</script>
+</body></html>`)
+})
+
+app.get('/doc', (c) => {
+  // Collect OpenAPI docs from all sub-routers that are OpenAPIHono instances
+  // For now, return the static spec metadata
+  return c.json({
+    openapi: '3.0.0',
+    info: {
+      title: 'LeadGen Desk API',
+      version: '1.0.0',
+      description: 'Lead Generation and Outreach Platform API',
+    },
+    servers: [
+      { url: 'http://localhost:4000', description: 'Development server' },
+    ],
+    security: [{ cookieAuth: [] }],
+    components: {
+      securitySchemes: {
+        cookieAuth: {
+          type: 'apiKey',
+          in: 'cookie',
+          name: 'leadhunter_token',
+        },
+      },
+    },
+    tags: [
+      { name: 'Leads', description: 'Lead management operations' },
+      { name: 'Stats', description: 'Dashboard statistics and analytics' },
+      { name: 'Scraper', description: 'Google Maps scraping operations' },
+      { name: 'AI', description: 'AI-powered lead scoring and email drafting' },
+      { name: 'Settings', description: 'Application settings management' },
+      { name: 'Auth', description: 'Authentication endpoints' },
+      { name: 'Analysis', description: 'Lead analysis and enrichment' },
+      { name: 'Outreach', description: 'Email outreach and sequences' },
+      { name: 'Bulk', description: 'Bulk operations on leads' },
+      { name: 'Notes', description: 'Lead notes and activity' },
+      { name: 'Scheduler', description: 'Scheduler status and control' },
+      { name: 'EmailFinder', description: 'Email finding operations' },
+      { name: 'EmailVerifier', description: 'Email verification operations' },
+      { name: 'Templates', description: 'Email template management' },
+      { name: 'Pipeline', description: 'Pipeline targets and digests' },
+      { name: 'QueryProfiles', description: 'Smart query profile management' },
+      { name: 'EmailAccounts', description: 'Email account management' },
+      { name: 'Users', description: 'User management' },
+      { name: 'Extension', description: 'Chrome extension endpoints' },
+      { name: 'Health', description: 'Health check endpoints' },
+    ],
+    paths: {},
+  })
+})
+
+// ── Health checks ──────────────────────────────────────────────────
+
+app.get('/health', (c) => {
+  return c.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    version: process.env.npm_package_version || '1.0.0',
+  })
+})
+
+app.get('/health/detailed', async (c) => {
+  const checks = {
+    database: 'unknown' as string,
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    version: process.env.npm_package_version || '1.0.0',
+  }
+
+  try {
+    await getDataSource().query('SELECT 1')
+    checks.database = 'healthy'
+  } catch {
+    checks.database = 'unhealthy'
+  }
+
+  const status = checks.database === 'healthy' ? 'healthy' : 'degraded'
+  const statusCode = status === 'healthy' ? 200 : 503
+
+  return c.json({ status, ...checks }, statusCode)
+})
+
+// ── WebSocket ──────────────────────────────────────────────────────
+
+app.get('/ws', (c) => {
+  const ws = (c.env as any).upgrade(c.req.raw)
+  
+  ws.addEventListener('open', () => {
+    logger.debug('WebSocket connected')
+  })
+
+  ws.addEventListener('message', (event: any) => {
+    try {
+      const msg = JSON.parse(event.data.toString())
+      if (msg.type === 'subscribe') {
+        const channels = Array.isArray(msg.channels) ? msg.channels : [msg.channel]
+        channels.forEach((ch: string) => wsHub.subscribe(ch, ws))
+      }
+    } catch {
+      // ignore malformed
+    }
+  })
+
+  ws.addEventListener('close', () => {
+    wsHub.unsubscribe(ws)
+  })
+
+  ws.addEventListener('error', () => {
+    wsHub.unsubscribe(ws)
+  })
+
+  return ws
+})
+
+// ── Start server ───────────────────────────────────────────────────
+
+const port = parseInt(process.env.PORT || '4000', 10)
+
+async function start() {
+  // Initialize Sentry (no-op if SENTRY_DSN not set)
+  initSentry()
+
+  // Initialize database
+  await initDb()
+  logger.info('Database initialized for web server')
+
+  // Initialize plugin registry (must be after DB)
+  await initPluginRegistry()
+  logger.info('Plugin registry initialized')
+  
+  serve({
+    fetch: app.fetch,
+    port,
+  }, (info) => {
+    logger.info({ port: info.port }, `Server started on http://localhost:${info.port}`)
+    logger.info(`Health Check: http://localhost:${info.port}/health`)
+    logger.info(`Swagger UI:  http://localhost:${info.port}/swagger`)
+    logger.info(`OpenAPI Spec: http://localhost:${info.port}/doc`)
+  })
+}
+
+start().catch((err) => {
+  captureException(err)
+  logger.fatal({ err }, 'Failed to start server')
+  process.exit(1)
+})
