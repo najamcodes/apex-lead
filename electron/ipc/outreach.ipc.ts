@@ -1,25 +1,25 @@
-// electron/ipc/outreach.ipc.ts
+﻿// electron/ipc/outreach.ipc.ts
 import { ipcMain } from 'electron'
-import { IPC } from '../../src/types'
+import { IPC } from '../../shared/types'
 import {
   sendOutreachRecord,
   processDueOutreach,
   createSequenceForLead,
   initSmtp
-} from '../outreach'
+} from '../../backend/core/outreach'
 import {
   getAllOutreach,
   updateOutreachStatus,
   getSequenceSummaries,
   getPendingOutreachQueue
-} from '../../src/db/queries/outreach.queries'
-import { exportLeadsToCsv } from '../outreach/csv-export'
-import { getChartData, getFunnelData } from '../../src/db/queries/stats.queries'
-import { logActivity } from '../../src/db/queries/activity.queries'
+} from '../../backend/db/queries/outreach.queries'
+import { exportLeadsToCsv } from './csv-export'
+import { getChartData, getFunnelData } from '../../backend/db/queries/stats.queries'
+import { logActivity } from '../../backend/db/queries/activity.queries'
 
-import type { SequenceInput } from '../outreach/sequence-engine'
-import { getDataSource } from '../../src/db'
-import { getCurrentUserRole, getCurrentUserPermissions } from '../../src/db/queries/tenant'
+import type { SequenceInput } from '../../backend/core/outreach/sequence-engine'
+import { getDataSource } from '../../backend/db'
+import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
 
 function requirePermission(perm: string) {
   if (getCurrentUserRole() === 'admin') return;
@@ -43,7 +43,7 @@ export function registerOutreachIpcHandlers(): void {
   })
 
   // Get all outreach records
-  ipcMain.handle(IPC.OUTREACH_GET_ALL, async (_event, status?: string, pagination?: import('../../src/types').PaginationParams) => {
+  ipcMain.handle(IPC.OUTREACH_GET_ALL, async (_event, status?: string, pagination?: import('../../shared/types').PaginationParams) => {
     return await getAllOutreach(status as any, pagination)
   })
 
@@ -94,7 +94,7 @@ export function registerOutreachIpcHandlers(): void {
   )
 
   // Get sequence summaries for all leads
-  ipcMain.handle(IPC.OUTREACH_GET_SEQUENCES, async (_event, pagination?: import('../../src/types').PaginationParams) => {
+  ipcMain.handle(IPC.OUTREACH_GET_SEQUENCES, async (_event, pagination?: import('../../shared/types').PaginationParams) => {
     return await getSequenceSummaries(pagination)
   })
 
@@ -115,3 +115,4 @@ export function registerOutreachIpcHandlers(): void {
   // Re-init SMTP (called after settings save)
   ipcMain.handle('smtp:reinit', () => initSmtp())
 }
+

@@ -1,7 +1,7 @@
-// electron/pipeline/digest-builder.ts
+﻿// electron/pipeline/digest-builder.ts
 // Builds a clean, professional HTML digest email.
 
-import type { DigestRun } from '../../src/types/pipeline.types'
+import type { DigestRun } from '../../shared/types/pipeline.types'
 
 interface TopLead {
   business_name:   string

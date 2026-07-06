@@ -1,13 +1,13 @@
-// electron/local-server/index.ts
+﻿// electron/local-server/index.ts
 // Lightweight Express server that listens on localhost only.
 // The Chrome extension connects here to push leads into LeadHunter.
 
 import express from 'express'
 import cors from 'cors'
 import type { Server } from 'http'
-import { insertLead } from '../../src/db/queries/leads.queries'
-import { logActivity } from '../../src/db/queries/activity.queries'
-import { getDataSource } from '../../src/db'
+import { insertLead } from '../../backend/db/queries/leads.queries'
+import { logActivity } from '../../backend/db/queries/activity.queries'
+import { getDataSource } from '../../backend/db'
 
 const PORT = 39521
 let _server: Server | null = null

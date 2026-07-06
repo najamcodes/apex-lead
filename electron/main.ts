@@ -1,4 +1,4 @@
-// electron/main.ts
+﻿// electron/main.ts
 import 'reflect-metadata'
 
 // Suppress punycode deprecation warning from dependencies
@@ -12,12 +12,13 @@ process.on('warning', (warning) => {
 
 import { app, BrowserWindow, shell } from 'electron'
 import path from 'path'
-import { initDb } from '../src/db'
+import { initDb } from '../backend/db'
 import { registerAllIpcHandlers } from './ipc'
 import { initScheduler } from './scheduler'
 import { startLocalServer, stopLocalServer } from './local-server'
-import { initSmtp } from './outreach'
+import { initSmtp } from '../backend/core/outreach'
 import { startNightlyRunner } from './pipeline/nightly-runner'
+import { initPluginRegistry } from '../plugins/registry'
 
 async function createWindow(): Promise<void> {
   const win = new BrowserWindow({
@@ -55,11 +56,12 @@ async function createWindow(): Promise<void> {
 }
 
 app.whenReady().then(async () => {
-  await initDb() // Initialize DB on startup
-  await initSmtp() // Initialize SMTP transporter
-  startLocalServer() // Start local HTTP server for Chrome extension
-  startNightlyRunner() // Start pipeline runner
-  await createWindow()
+  await initDb()                 // 1. Database first
+  await initPluginRegistry()     // 2. Plugins (need DB for config)
+  await initSmtp()               // 3. SMTP transporter
+  startLocalServer()             // 4. Chrome extension local server
+  startNightlyRunner()           // 5. Pipeline nightly runner
+  await createWindow()           // 6. UI
 })
 
 app.on('will-quit', () => {

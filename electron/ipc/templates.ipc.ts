@@ -1,9 +1,9 @@
-import { ipcMain } from 'electron'
-import { getDataSource } from '../../src/db'
-import { getTenantId } from '../../src/db/queries/tenant'
-import { EmailTemplateEntity } from '../../src/db/entities/EmailTemplateEntity'
-import { IPC } from '../../src/types'
-import { getCurrentUserRole, getCurrentUserPermissions } from '../../src/db/queries/tenant'
+﻿import { ipcMain } from 'electron'
+import { getDataSource } from '../../backend/db'
+import { getTenantId } from '../../backend/db/queries/tenant'
+import { EmailTemplateEntity } from '../../backend/db/entities/EmailTemplateEntity'
+import { IPC } from '../../shared/types'
+import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
 
 function requirePermission(perm: string) {
   if (getCurrentUserRole() === 'admin') return;

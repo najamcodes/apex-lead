@@ -1,9 +1,9 @@
-// electron/ipc/ai.ipc.ts
+﻿// electron/ipc/ai.ipc.ts
 import { ipcMain } from 'electron'
-import { IPC } from '../../src/types'
-import { scoreSite } from '../ai/tasks/score-site'
-import { draftOutreach } from '../ai/tasks/draft-outreach'
-import { getSettings } from '../../src/db/queries/settings.queries'
+import { IPC } from '../../shared/types'
+import { scoreSite } from '../../backend/core/ai/tasks/score-site'
+import { draftOutreach } from '../../backend/core/ai/tasks/draft-outreach'
+import { getSettings } from '../../backend/db/queries/settings.queries'
 
 export function registerAiIpcHandlers(): void {
   ipcMain.handle(IPC.AI_SCORE_SITE, async (_event, leadId: number, modelOverride?: string) => {

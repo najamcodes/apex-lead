@@ -1,11 +1,11 @@
-// electron/ipc/pipeline.ipc.ts
+﻿// electron/ipc/pipeline.ipc.ts
 import { ipcMain, BrowserWindow } from 'electron'
-import { IPC } from '../../src/types'
+import { IPC } from '../../shared/types'
 import {
   runNightlyPipeline,
   getPipelineStatus,
 } from '../pipeline'
-import { getCurrentUserRole, getCurrentUserPermissions } from '../../src/db/queries/tenant'
+import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
 
 function requirePermission(perm: string) {
   if (getCurrentUserRole() === 'admin') return;
@@ -28,8 +28,8 @@ import {
   updateTarget,
   toggleTarget,
   deleteTarget,
-} from '../../src/db/queries/targets.queries'
-import { getAllDigests } from '../../src/db/queries/digests.queries'
+} from '../../backend/db/queries/targets.queries'
+import { getAllDigests } from '../../backend/db/queries/digests.queries'
 
 export function registerPipelineIpcHandlers(win: BrowserWindow): void {
   // Targets CRUD

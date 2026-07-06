@@ -3,8 +3,8 @@
   "include": [
     "electron.vite.config.*",
     "electron/**/*",
-    "src/db/**/*",
-    "src/types/**/*"
+    "backend/**/*",
+    "shared/types/**/*"
   ],
   "compilerOptions": {
     "composite": true,

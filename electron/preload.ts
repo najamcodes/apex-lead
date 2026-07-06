@@ -1,6 +1,6 @@
-// electron/preload.ts
+﻿// electron/preload.ts
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC } from '../src/types'
+import { IPC } from '../shared/types'
 
 contextBridge.exposeInMainWorld('api', {
   leads: {
@@ -156,5 +156,12 @@ contextBridge.exposeInMainWorld('api', {
     add: (args: any) => ipcRenderer.invoke(IPC.USERS_ADD, args),
     updatePermissions: (userId: number, permissions: string[]) => ipcRenderer.invoke(IPC.USERS_UPDATE_PERMISSIONS, { userId, permissions }),
     delete: (userId: number) => ipcRenderer.invoke(IPC.USERS_DELETE, userId)
+  },
+  plugins: {
+    getAll:    ()                                          => ipcRenderer.invoke(IPC.PLUGINS_GET_ALL),
+    get:       (id: string)                               => ipcRenderer.invoke(IPC.PLUGINS_GET, id),
+    toggle:    (id: string, enabled: boolean)             => ipcRenderer.invoke(IPC.PLUGINS_TOGGLE, id, enabled),
+    setConfig: (id: string, config: Record<string, any>) => ipcRenderer.invoke(IPC.PLUGINS_SET_CONFIG, id, config),
+    test:      (id: string)                               => ipcRenderer.invoke(IPC.PLUGINS_TEST, id),
   }
 })

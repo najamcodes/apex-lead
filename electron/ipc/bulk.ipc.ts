@@ -1,24 +1,24 @@
-// electron/ipc/bulk.ipc.ts
+﻿// electron/ipc/bulk.ipc.ts
 import { ipcMain } from 'electron'
-import { IPC } from '../../src/types'
-import { analyzeBatch } from '../analysis'
-import { scoreSite } from '../ai/tasks/score-site'
-import { getSettings } from '../../src/db/queries/settings.queries'
-import { getDataSource } from '../../src/db'
-import { getTenantId } from '../../src/db/queries/tenant'
+import { IPC } from '../../shared/types'
+import { analyzeBatch } from '../../backend/core/analysis'
+import { scoreSite } from '../../backend/core/ai/tasks/score-site'
+import { getSettings } from '../../backend/db/queries/settings.queries'
+import { getDataSource } from '../../backend/db'
+import { getTenantId } from '../../backend/db/queries/tenant'
 import {
   logActivity,
   getActivityByLead,
   getRecentActivity
-} from '../../src/db/queries/activity.queries'
-import { getNoteByLead, saveNote } from '../../src/db/queries/notes.queries'
-import { EmailTemplateEntity } from '../../src/db/entities/EmailTemplateEntity'
-import { runEmailFinderBatch, findEmailForLead, runEmailVerifierBatch } from '../email-finder'
-import { createSequenceForLead } from '../outreach'
+} from '../../backend/db/queries/activity.queries'
+import { getNoteByLead, saveNote } from '../../backend/db/queries/notes.queries'
+import { EmailTemplateEntity } from '../../backend/db/entities/EmailTemplateEntity'
+import { runEmailFinderBatch, findEmailForLead, runEmailVerifierBatch } from '../../backend/core/email-finder'
+import { createSequenceForLead } from '../../backend/core/outreach'
 import { getSchedulerStatus } from '../scheduler'
-import { parseSpintax } from '../outreach/spintax'
-import { draftOutreach } from '../ai/tasks/draft-outreach'
-import { getCurrentUserRole, getCurrentUserPermissions } from '../../src/db/queries/tenant'
+import { parseSpintax } from '../../backend/core/outreach/spintax'
+import { draftOutreach } from '../../backend/core/ai/tasks/draft-outreach'
+import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
 
 function requirePermission(perm: string) {
   if (getCurrentUserRole() === 'admin') return;

@@ -13,6 +13,7 @@ import { registerQueryProfilesIpc } from './query-profiles.ipc'
 import { registerEmailAccountsIpc } from './email-accounts.ipc'
 import { registerAuthHandlers } from './auth.ipc'
 import { registerUsersHandlers } from './users.ipc'
+import { registerPluginIpcHandlers } from './plugins.ipc'
 
 export function registerAllIpcHandlers(win: BrowserWindow): void {
   registerLeadIpcHandlers()
@@ -28,4 +29,5 @@ export function registerAllIpcHandlers(win: BrowserWindow): void {
   registerEmailAccountsIpc()
   registerAuthHandlers()
   registerUsersHandlers()
+  registerPluginIpcHandlers()
 }

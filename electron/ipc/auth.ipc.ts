@@ -1,7 +1,7 @@
-import { ipcMain } from 'electron'
-import { getDataSource } from '../../src/db'
-import { UserEntity } from '../../src/db/entities/UserEntity'
-import { OrganizationEntity } from '../../src/db/entities/OrganizationEntity'
+﻿import { ipcMain } from 'electron'
+import { getDataSource } from '../../backend/db'
+import { UserEntity } from '../../backend/db/entities/UserEntity'
+import { OrganizationEntity } from '../../backend/db/entities/OrganizationEntity'
 import crypto from 'crypto'
 
 function hashPassword(password: string): string {

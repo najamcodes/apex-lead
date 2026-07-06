@@ -1,13 +1,13 @@
-import { ipcMain } from 'electron'
+﻿import { ipcMain } from 'electron'
 import {
   getAllQueryProfiles,
   getActiveQueryProfiles,
   insertQueryProfile,
   updateQueryProfileStatus,
   deleteQueryProfile
-} from '../../src/db/queries/query-profiles.queries'
-import type { QueryProfileInsert } from '../../src/types/pipeline.types'
-import { getCurrentUserRole, getCurrentUserPermissions } from '../../src/db/queries/tenant'
+} from '../../backend/db/queries/query-profiles.queries'
+import type { QueryProfileInsert } from '../../shared/types/pipeline.types'
+import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
 
 function requirePermission(perm: string) {
   if (getCurrentUserRole() === 'admin') return;

@@ -1,11 +1,11 @@
-// electron/scheduler/index.ts
+﻿// electron/scheduler/index.ts
 import * as cron from 'node-cron'
-import { getDataSource } from '../../src/db'
-import { UserEntity } from '../../src/db/entities/UserEntity'
-import { getSettings } from '../../src/db/queries/settings.queries'
-import { processDueOutreach } from '../outreach'
-import { listenForImapReplies } from '../outreach/imap-listener'
-import { runWarmupCycle } from '../outreach/warmup-engine'
+import { getDataSource } from '../../backend/db'
+import { UserEntity } from '../../backend/db/entities/UserEntity'
+import { getSettings } from '../../backend/db/queries/settings.queries'
+import { processDueOutreach } from '../../backend/core/outreach'
+import { listenForImapReplies } from '../../backend/core/outreach/imap-listener'
+import { runWarmupCycle } from '../../backend/core/outreach/warmup-engine'
 import { BrowserWindow } from 'electron'
 
 let activeTasks: cron.ScheduledTask[] = []

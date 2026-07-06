@@ -24,17 +24,17 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()]
   },
   renderer: {
-    root: '.',
+    root: 'frontend',
     build: {
       rollupOptions: {
         input: {
-          index: resolve(__dirname, 'index.html')
+          index: resolve(__dirname, 'frontend/index.html')
         }
       }
     },
     resolve: {
       alias: {
-        '@renderer': resolve('src')
+        '@renderer': resolve('frontend')
       }
     },
     plugins: [react()]

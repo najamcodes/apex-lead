@@ -1,13 +1,13 @@
-import { ipcMain } from 'electron'
-import { IPC } from '../../src/types'
+﻿import { ipcMain } from 'electron'
+import { IPC } from '../../shared/types'
 import {
   getEmailAccounts,
   addEmailAccount,
   updateEmailAccount,
   deleteEmailAccount,
   getRawEmailAccountById
-} from '../../src/db/queries/email-accounts.queries'
-import { getCurrentUserRole, getCurrentUserPermissions } from '../../src/db/queries/tenant'
+} from '../../backend/db/queries/email-accounts.queries'
+import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
 
 function requirePermission(perm: string) {
   if (getCurrentUserRole() === 'admin') return;

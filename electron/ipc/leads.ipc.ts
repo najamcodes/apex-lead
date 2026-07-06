@@ -1,16 +1,16 @@
-// electron/ipc/leads.ipc.ts
+﻿// electron/ipc/leads.ipc.ts
 import { ipcMain } from 'electron'
-import { IPC, LeadFilters } from '../../src/types'
+import { IPC, LeadFilters } from '../../shared/types'
 import {
   getAllLeads,
   getLeadById,
   insertLead,
   updateLeadStatus,
   deleteLead
-} from '../../src/db/queries/leads.queries'
-import { getDashboardStats, getCityRoiStats } from '../../src/db/queries/stats.queries'
-import { logActivity } from '../../src/db/queries/activity.queries'
-import { getCurrentUserRole, getCurrentUserPermissions } from '../../src/db/queries/tenant'
+} from '../../backend/db/queries/leads.queries'
+import { getDashboardStats, getCityRoiStats } from '../../backend/db/queries/stats.queries'
+import { logActivity } from '../../backend/db/queries/activity.queries'
+import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
 
 function requirePermission(perm: string) {
   if (getCurrentUserRole() === 'admin') return;

@@ -1,7 +1,7 @@
-// electron/ipc/analysis.ipc.ts
+﻿// electron/ipc/analysis.ipc.ts
 import { ipcMain, BrowserWindow } from 'electron'
-import { IPC } from '../../src/types'
-import { analyzeLead, analyzeBatch } from '../analysis'
+import { IPC } from '../../shared/types'
+import { analyzeLead, analyzeBatch } from '../../backend/core/analysis'
 
 export function registerAnalysisIpcHandlers(win: BrowserWindow): void {
   // Analyze a single lead

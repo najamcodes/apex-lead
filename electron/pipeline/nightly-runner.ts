@@ -1,14 +1,14 @@
-// electron/pipeline/nightly-runner.ts
+﻿// electron/pipeline/nightly-runner.ts
 // Manages the two cron jobs: nightly scrape + morning digest send.
 
 import cron from 'node-cron'
 import nodemailer from 'nodemailer'
 import { runNightlyPipeline } from './index'
 import { buildDigestHtml, buildDigestText } from './digest-builder'
-import { insertDigestRun } from '../../src/db/queries/digests.queries'
-import { getSettings } from '../../src/db/queries/settings.queries'
-import { getDataSource } from '../../src/db/index'
-import { UserEntity } from '../../src/db/entities/UserEntity'
+import { insertDigestRun } from '../../backend/db/queries/digests.queries'
+import { getSettings } from '../../backend/db/queries/settings.queries'
+import { getDataSource } from '../../backend/db/index'
+import { UserEntity } from '../../backend/db/entities/UserEntity'
 
 let _scrapeCronTasks: any[] = []
 let _digestCronTasks: any[] = []
@@ -184,19 +184,20 @@ export async function sendMorningDigest(pipelineResult?: any): Promise<void> {
 
 async function buildDigestFromDb(): Promise<any> {
   const db = getDataSource()
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
   const stats = await db.createQueryBuilder()
     .select('COUNT(*)', 'total_new')
     .addSelect("SUM(CASE WHEN website_status = 'none' THEN 1 ELSE 0 END)", 'total_no_website')
     .addSelect("SUM(CASE WHEN ai_site_score IS NOT NULL THEN 1 ELSE 0 END)", 'total_qualified')
     .from('leads', 'leads')
-    .where("scraped_at >= datetime('now', '-24 hours')")
+    .where('scraped_at >= :twentyFourHoursAgo', { twentyFourHoursAgo })
     .getRawOne()
 
   const topLeads = await db.createQueryBuilder()
     .select(['business_name', 'city', 'category', 'ai_site_score', 'website_status', 'phone', 'website_url'])
     .from('leads', 'leads')
-    .where("scraped_at >= datetime('now', '-24 hours')")
+    .where('scraped_at >= :twentyFourHoursAgo', { twentyFourHoursAgo })
     .orderBy("CASE WHEN website_status = 'none' THEN 0 ELSE 1 END", 'ASC')
     .addOrderBy("COALESCE(ai_site_score, 50)", 'ASC')
     .limit(8)

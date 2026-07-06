@@ -1,9 +1,8 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
   "include": [
-    "src/types/window.d.ts",
-    "src/**/*",
-    "src/**/*.tsx"
+    "frontend/**/*",
+    "shared/types/**/*"
   ],
   "compilerOptions": {
     "composite": true,
@@ -13,7 +12,7 @@
     "baseUrl": ".",
     "paths": {
       "@renderer/*": [
-        "src/*"
+        "frontend/*"
       ]
     }
   }

@@ -1,10 +1,10 @@
-// electron/ipc/scraper.ipc.ts
+﻿// electron/ipc/scraper.ipc.ts
 import { ipcMain, BrowserWindow } from 'electron'
-import { IPC } from '../../src/types'
-import { startScrapeJob, cancelScrapeJob, pauseScrapeJob, resumeScrapeJob } from '../scraper'
-import { getAllScrapeJobs, deleteScrapeJob, deleteScrapeJobs } from '../../src/db/queries/scrape-jobs.queries'
-import type { ScrapeJobConfig } from '../../src/types/scraper.types'
-import { getCurrentUserRole, getCurrentUserPermissions } from '../../src/db/queries/tenant'
+import { IPC } from '../../shared/types'
+import { startPipelineJob, cancelPipelineJob, pausePipelineJob, resumePipelineJob } from '../../backend/core/pipelines'
+import { getAllScrapeJobs, deleteScrapeJob, deleteScrapeJobs } from '../../backend/db/queries/scrape-jobs.queries'
+import type { ScrapeJobConfig } from '../../shared/types/scraper.types'
+import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
 
 function requirePermission(perm: string) {
   if (getCurrentUserRole() === 'admin') return;
@@ -17,7 +17,7 @@ function requirePermission(perm: string) {
 export function registerScraperIpcHandlers(win: BrowserWindow): void {
   ipcMain.handle(IPC.SCRAPER_START, async (_event, config: ScrapeJobConfig) => {
     requirePermission('run_scraper')
-    const jobId = await startScrapeJob(config, (progressEvent) => {
+    const jobId = await startPipelineJob('lead-generation', config, (progressEvent) => {
       // Push progress to renderer — one-way event
       if (!win.isDestroyed()) {
         win.webContents.send(IPC.SCRAPER_PROGRESS, progressEvent)
@@ -28,17 +28,17 @@ export function registerScraperIpcHandlers(win: BrowserWindow): void {
 
   ipcMain.handle(IPC.SCRAPER_CANCEL, async (_event, jobId: string) => {
     requirePermission('run_scraper')
-    await cancelScrapeJob(jobId)
+    await cancelPipelineJob(jobId)
   })
 
   ipcMain.handle(IPC.SCRAPER_PAUSE, async (_event, jobId: string) => {
     requirePermission('run_scraper')
-    pauseScrapeJob(jobId)
+    pausePipelineJob(jobId)
   })
 
   ipcMain.handle(IPC.SCRAPER_RESUME, async (_event, jobId: string) => {
     requirePermission('run_scraper')
-    resumeScrapeJob(jobId)
+    resumePipelineJob(jobId)
   })
 
   ipcMain.handle(IPC.SCRAPER_DELETE, async (_event, jobId: string) => {
@@ -51,7 +51,8 @@ export function registerScraperIpcHandlers(win: BrowserWindow): void {
     await deleteScrapeJobs(jobIds)
   })
 
-  ipcMain.handle(IPC.SCRAPER_GET_JOBS, (_event, pagination?: import('../../src/types').PaginationParams) => {
+  ipcMain.handle(IPC.SCRAPER_GET_JOBS, (_event, pagination?: import('../../shared/types').PaginationParams) => {
     return getAllScrapeJobs(pagination)
   })
 }
+
