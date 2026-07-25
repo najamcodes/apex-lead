@@ -1,11 +1,17 @@
-﻿import { getDataSource } from '../index'
+import { getDataSource } from '../index'
 import type { DashboardStats, CityRoiStat } from '../../../shared/types'
-import { getTenantId } from './tenant'
+import { getTenantId, getCurrentUserId, canViewAllData } from './tenant'
+
+const userScopeQb = (qb: any, alias: string = 'leads') => {
+  if (!canViewAllData()) {
+    qb.andWhere(`${alias}.scraped_by_user_id = :scopedUserId`, { scopedUserId: getCurrentUserId() })
+  }
+}
 
 export async function getDashboardStats(): Promise<DashboardStats> {
   const ds = getDataSource()
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  const result = await ds.createQueryBuilder()
+  const qb = ds.createQueryBuilder()
     .select('COUNT(*)', 'total_leads')
     .addSelect("SUM(CASE WHEN website_status = 'none' THEN 1 ELSE 0 END)", 'no_website')
     .addSelect("SUM(CASE WHEN website_status = 'outdated' THEN 1 ELSE 0 END)", 'outdated_website')
@@ -18,8 +24,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     .from('leads', 'leads')
     .where('leads.org_id = :orgId', { orgId: getTenantId() })
     .setParameters({ weekAgo })
-    .getRawOne()
 
+  userScopeQb(qb)
+
+  const result = await qb.getRawOne()
   const row = result || {}
   return {
     total_leads: Number(row?.total_leads) || 0,
@@ -52,43 +60,40 @@ export async function getChartData(days = 14): Promise<ChartDataPoint[]> {
     dates.push(d.toISOString().split('T')[0]!)
   }
 
-  const scrapedRows = await ds.createQueryBuilder()
+  const makeQb = () => {
+    const qb = ds.createQueryBuilder()
+      .from('leads', 'l')
+      .where('l.org_id = :orgId', { orgId: getTenantId() })
+    userScopeQb(qb, 'l')
+    return qb
+  }
+
+  const scrapedRows = await makeQb()
     .select('date(scraped_at)', 'date')
     .addSelect('COUNT(*)', 'count')
-    .from('leads', 'l')
-    .where('l.org_id = :orgId', { orgId: getTenantId() })
     .andWhere('scraped_at >= :cutoff', { cutoff })
     .groupBy('date(scraped_at)')
     .getRawMany()
 
-  const analyzedRows = await ds.createQueryBuilder()
+  const analyzedRows = await makeQb()
     .select('date(updated_at)', 'date')
     .addSelect('COUNT(*)', 'count')
-    .addSelect('COUNT(*)', 'count')
-    .from('leads', 'l')
-    .where('l.org_id = :orgId', { orgId: getTenantId() })
     .andWhere('updated_at >= :cutoff', { cutoff })
     .andWhere('ai_site_score IS NOT NULL')
     .groupBy('date(updated_at)')
     .getRawMany()
 
-  const approvedRows = await ds.createQueryBuilder()
+  const approvedRows = await makeQb()
     .select('date(updated_at)', 'date')
     .addSelect('COUNT(*)', 'count')
-    .addSelect('COUNT(*)', 'count')
-    .from('leads', 'l')
-    .where('l.org_id = :orgId', { orgId: getTenantId() })
     .andWhere('updated_at >= :cutoff', { cutoff })
     .andWhere("status = 'approved'")
     .groupBy('date(updated_at)')
     .getRawMany()
 
-  const closedRows = await ds.createQueryBuilder()
+  const closedRows = await makeQb()
     .select('date(updated_at)', 'date')
     .addSelect('COUNT(*)', 'count')
-    .addSelect('COUNT(*)', 'count')
-    .from('leads', 'l')
-    .where('l.org_id = :orgId', { orgId: getTenantId() })
     .andWhere('updated_at >= :cutoff', { cutoff })
     .andWhere("status = 'closed'")
     .groupBy('date(updated_at)')
@@ -111,7 +116,7 @@ export interface FunnelDataPoint {
 
 export async function getFunnelData(): Promise<FunnelDataPoint[]> {
   const ds = getDataSource()
-  const result = await ds.createQueryBuilder()
+  const qb = ds.createQueryBuilder()
     .select('COUNT(*)', 'total')
     .addSelect("SUM(CASE WHEN status IN ('scraped', 'qualified') THEN 1 ELSE 0 END)", 'scraped')
     .addSelect("SUM(CASE WHEN status = 'review' OR ai_site_score IS NOT NULL THEN 1 ELSE 0 END)", 'analyzed')
@@ -119,11 +124,12 @@ export async function getFunnelData(): Promise<FunnelDataPoint[]> {
     .addSelect("SUM(CASE WHEN status = 'outreach' THEN 1 ELSE 0 END)", 'outreach')
     .addSelect("SUM(CASE WHEN status = 'replied' THEN 1 ELSE 0 END)", 'replied')
     .addSelect("SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END)", 'closed')
-    .addSelect("SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END)", 'closed')
     .from('leads', 'leads')
     .where('leads.org_id = :orgId', { orgId: getTenantId() })
-    .getRawOne()
 
+  userScopeQb(qb)
+
+  const result = await qb.getRawOne()
   const counts = result || {}
 
   return [
@@ -141,7 +147,6 @@ export async function getCityRoiStats(): Promise<CityRoiStat[]> {
   const rows = await ds.createQueryBuilder()
     .select('city')
     .addSelect('COUNT(*)', 'lead_count')
-    .addSelect('ROUND(AVG(ai_site_score), 1)', 'avg_ai_score')
     .addSelect('ROUND(AVG(ai_site_score), 1)', 'avg_ai_score')
     .from('leads', 'leads')
     .where('leads.org_id = :orgId', { orgId: getTenantId() })

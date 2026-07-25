@@ -21,6 +21,9 @@ export class CollectionRecordEntity {
   @Column({ type: 'varchar', length: 200, nullable: true })
   source!: string | null
 
+  @Column({ type: 'integer', nullable: true })
+  scraped_by_user_id!: number | null
+
   @Column({ type: 'varchar', length: 50 })
   created_at!: string
 

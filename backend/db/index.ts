@@ -1,24 +1,27 @@
 import 'reflect-metadata'
 import { DataSource } from 'typeorm'
-import path from 'path'
+const path = require('path')
 
 import { OrganizationEntity } from './entities/OrganizationEntity'
 import { LeadEntity } from './entities/LeadEntity'
 import { UserEntity } from './entities/UserEntity'
+import { UserOrganizationEntity } from './entities/UserOrganizationEntity'
+import { ProxyConfigEntity } from './entities/ProxyConfigEntity'
 import { SettingsEntity } from './entities/SettingsEntity'
 import { OutreachEntity } from './entities/OutreachEntity'
 import { NoteEntity } from './entities/NoteEntity'
 import { ActivityEntity } from './entities/ActivityEntity'
 import { ScrapeJobEntity } from './entities/ScrapeJobEntity'
 import { EmailTemplateEntity } from './entities/EmailTemplateEntity'
-import { QueryProfileEntity } from './entities/QueryProfileEntity'
-import { ScrapeTargetEntity } from './entities/ScrapeTargetEntity'
-import { DigestRunEntity } from './entities/DigestRunEntity'
 import { EmailAccountEntity } from './entities/EmailAccountEntity'
 import { PluginSettingsEntity } from './entities/PluginSettingsEntity'
 import { PipelineDefinitionEntity } from './entities/PipelineDefinitionEntity'
 import { PipelineRunEntity } from './entities/PipelineRunEntity'
 import { CollectionRecordEntity } from './entities/CollectionRecordEntity'
+import { WorkerNodeEntity } from './entities/WorkerNodeEntity'
+import { ApprovalEntity } from './entities/ApprovalEntity'
+import { AIConnectionEntity } from './entities/AIConnectionEntity'
+import { CustomNodeEntity } from './entities/CustomNodeEntity'
 
 let _dataSource: DataSource | null = null
 
@@ -28,6 +31,8 @@ export async function initDb(): Promise<DataSource> {
   const entities = [
     OrganizationEntity,
     UserEntity,
+    UserOrganizationEntity,
+    ProxyConfigEntity,
     LeadEntity,
     SettingsEntity,
     OutreachEntity,
@@ -35,14 +40,15 @@ export async function initDb(): Promise<DataSource> {
     ActivityEntity,
     ScrapeJobEntity,
     EmailTemplateEntity,
-    QueryProfileEntity,
-    ScrapeTargetEntity,
-    DigestRunEntity,
     EmailAccountEntity,
     PluginSettingsEntity,
     PipelineDefinitionEntity,
     PipelineRunEntity,
     CollectionRecordEntity,
+    WorkerNodeEntity,
+    ApprovalEntity,
+    AIConnectionEntity,
+    CustomNodeEntity,
   ]
 
   const isPostgres = process.env.DB_TYPE === 'postgres'
@@ -98,11 +104,23 @@ export async function initDb(): Promise<DataSource> {
     adminUser = userRepo.create({
       email: 'admin@leadhunter.local',
       password_hash: 'local_admin_no_password_yet',
-      org_id: defaultOrg.id,
-      role: 'admin',
-      permissions: JSON.stringify(['view_leads', 'run_scraper', 'manage_settings', 'send_outreach'])
+      default_org_id: defaultOrg.id,
+      role: 'super_admin',
+      permissions: JSON.stringify(['view_leads', 'run_scraper', 'manage_settings', 'send_outreach', 'manage_users', 'manage_org'])
     })
     await userRepo.save(adminUser)
+  }
+
+  // Create user-organization link for admin
+  const userOrgRepo = _dataSource.getRepository(UserOrganizationEntity)
+  let userOrgLink = await userOrgRepo.findOneBy({ user_id: adminUser.id, org_id: defaultOrg.id })
+  if (!userOrgLink) {
+    userOrgLink = userOrgRepo.create({
+      user_id: adminUser.id,
+      org_id: defaultOrg.id,
+      role: 'super_admin'
+    })
+    await userOrgRepo.save(userOrgLink)
   }
 
   // Update all existing tables where org_id IS NULL to use org_id = 1

@@ -1,4 +1,4 @@
-﻿import { getTenantId } from './tenant'
+import { getTenantId } from './tenant'
 import { getDataSource } from '../index'
 import { NoteEntity } from '../entities/NoteEntity'
 import type { NoteRecord } from '../../../shared/types/activity.types'
@@ -9,7 +9,7 @@ export async function getNoteByLead(leadId: number): Promise<NoteRecord | null> 
     where: { lead_id: leadId, org_id: getTenantId() },
     order: { updated_at: 'DESC' }
   })
-  return (res as NoteRecord) || null
+  return (res as unknown as NoteRecord) || null
 }
 
 export async function saveNote(leadId: number, body: string): Promise<NoteRecord> {
@@ -24,5 +24,5 @@ export async function saveNote(leadId: number, body: string): Promise<NoteRecord
   const result = await repo.save(repo.create({
     org_id: getTenantId(),
     lead_id: leadId, body }))
-  return result as NoteRecord
+  return result as unknown as NoteRecord
 }

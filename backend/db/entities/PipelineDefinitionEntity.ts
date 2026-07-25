@@ -32,6 +32,18 @@ export class PipelineDefinitionEntity {
   @Column({ type: 'integer', default: 1 })
   version!: number
 
+  /** Proxy configuration id for this pipeline (null = use default/no proxy). */
+  @Column({ type: 'int', nullable: true })
+  proxy_id!: number | null
+
+  /** Minimum role required to run this pipeline (default 'user'). */
+  @Column({ type: 'varchar', length: 20, default: 'user' })
+  min_role!: string
+
+  /** JSON-encoded per-node role gates: { nodeId: minRole }. */
+  @Column({ type: 'text', nullable: true })
+  role_gates!: string | null
+
   @Column({ type: 'varchar', length: 50 })
   created_at!: string
 

@@ -1,4 +1,4 @@
-﻿import { getTenantId } from './tenant'
+import { getTenantId } from './tenant'
 import { getDataSource } from '../index'
 import { SettingsEntity } from '../entities/SettingsEntity'
 import type { AppSettings } from '../../../shared/types'
@@ -12,6 +12,11 @@ export const SENSITIVE_KEYS = [
   'openai_api_key',
   'groq_api_key',
   'gemini_api_key',
+  'anthropic_api_key',
+  'custom_openai_key',
+  'custom_claude_key',
+  'lmstudio_key',
+  'ollama_key',
   'smtp_password',
   'hunter_api_key',
   'two_captcha_key'
@@ -35,7 +40,15 @@ export const DEFAULTS: AppSettings = {
   groq_api_key: '',
   gemini_api_key: '',
   lmstudio_url: 'http://127.0.0.1:1234/v1',
+  lmstudio_key: '',
   ollama_url: 'http://127.0.0.1:11434/v1',
+  ollama_key: '',
+  anthropic_api_key: '',
+  anthropic_url: 'https://api.anthropic.com/v1',
+  custom_openai_url: 'http://localhost:8080/v1',
+  custom_openai_key: '',
+  custom_claude_url: 'http://localhost:8000/v1',
+  custom_claude_key: '',
   ai_model_site_scoring: 'anthropic/claude-3-haiku',
   ai_model_email_draft: 'anthropic/claude-3-5-sonnet',
   ai_enabled: false,
@@ -60,7 +73,7 @@ export const DEFAULTS: AppSettings = {
   pipeline_scrape_cron: '0 2 * * *',
   pipeline_digest_cron: '0 7 * * *',
   digest_recipient_email: '',
-  digest_from_name: 'LeadHunter',
+  digest_from_name: 'ApexLead',
   auto_approve_threshold: 0,
   auto_sequence_on_approve: false,
   discord_webhook_url: '',

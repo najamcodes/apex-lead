@@ -1,4 +1,4 @@
-﻿import { getTenantId } from './tenant'
+﻿import { getTenantId, getCurrentUserId, getUserScopeFilter, canViewAllData } from './tenant'
 import { getDataSource } from '../index'
 import { LeadEntity } from '../entities/LeadEntity'
 import type { LeadInsert, LeadFilters, LeadStatus } from '../../../shared/types'
@@ -10,6 +10,7 @@ export async function insertLead(data: LeadInsert): Promise<LeadEntity | null> {
   try {
     const lead = repo.create({
     org_id: getTenantId(),
+    scraped_by_user_id: getCurrentUserId(),
     business_name: data.business_name,
       category: data.category,
       city: data.city,
@@ -52,13 +53,23 @@ export async function insertLead(data: LeadInsert): Promise<LeadEntity | null> {
 
 export async function getLeadById(id: number): Promise<LeadEntity | null> {
   const repo = getDataSource().getRepository(LeadEntity)
-  return await repo.findOne({ where: { id, org_id: getTenantId() } })
+  const where: any = { id, org_id: getTenantId() }
+  if (!canViewAllData()) {
+    where.scraped_by_user_id = getCurrentUserId()
+  }
+  return await repo.findOne({ where })
 }
 
 export async function getAllLeads(filters: LeadFilters = {}): Promise<import('../../../shared/types').PaginatedResponse<LeadEntity>> {
   const repo = getDataSource().getRepository(LeadEntity)
   const qb = repo.createQueryBuilder('lead')
   qb.where('lead.org_id = :orgId', { orgId: getTenantId() })
+
+  // Per-user data isolation: regular users only see their own scraped data
+  const scope = getUserScopeFilter('lead')
+  if (scope.clause) {
+    qb.andWhere(scope.clause.replace('AND ', ''), scope.params)
+  }
 
   if (filters.status && filters.status !== 'all') {
     qb.andWhere('lead.status = :status', { status: filters.status })
@@ -128,10 +139,18 @@ export async function updateLeadStatus(id: number, status: LeadStatus, notes?: s
   if (notes !== undefined) {
     updateData.reviewer_notes = notes
   }
-  await repo.update({ id, org_id: getTenantId() }, updateData)
+  const where: any = { id, org_id: getTenantId() }
+  if (!canViewAllData()) {
+    where.scraped_by_user_id = getCurrentUserId()
+  }
+  await repo.update(where, updateData)
 }
 
 export async function deleteLead(id: number): Promise<void> {
   const repo = getDataSource().getRepository(LeadEntity)
-  await repo.delete({ id, org_id: getTenantId() })
+  const where: any = { id, org_id: getTenantId() }
+  if (!canViewAllData()) {
+    where.scraped_by_user_id = getCurrentUserId()
+  }
+  await repo.delete(where)
 }

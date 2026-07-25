@@ -1,4 +1,4 @@
-﻿import { getTenantId } from './tenant'
+import { getTenantId } from './tenant'
 import { getDataSource } from '../index'
 import { ActivityEntity } from '../entities/ActivityEntity'
 import type { ActivityEvent, ActivityRecord } from '../../../shared/types/activity.types'
@@ -21,20 +21,27 @@ export async function getActivityByLead(leadId: number, limit = 20): Promise<Act
     order: { created_at: 'DESC' },
     take: limit
   })
-  return rows as ActivityRecord[]
+  return rows as unknown as ActivityRecord[]
 }
 
 export async function getRecentActivity(limit = 30): Promise<(ActivityRecord & { business_name: string })[]> {
   const repo = getDataSource().getRepository(ActivityEntity)
-  const rows = await repo.createQueryBuilder('activity')
+  const qb = repo.createQueryBuilder('activity')
     .innerJoinAndSelect('activity.lead', 'lead')
     .where('activity.org_id = :orgId', { orgId: getTenantId() })
-    .orderBy('activity.created_at', 'DESC')
+    
+  const { getUserScopeFilter } = require('./tenant')
+  const scope = getUserScopeFilter('lead')
+  if (scope.clause) {
+    qb.andWhere(scope.clause.replace('AND ', ''), scope.params)
+  }
+
+  const rows = await qb.orderBy('activity.created_at', 'DESC')
     .take(limit)
     .getMany()
   
   return rows.map(r => ({
     ...r,
     business_name: r.lead.business_name
-  })) as (ActivityRecord & { business_name: string })[]
+  })) as unknown as (ActivityRecord & { business_name: string })[]
 }

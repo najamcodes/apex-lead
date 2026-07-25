@@ -1,8 +1,8 @@
-﻿import { Entity, PrimaryGeneratedColumn, Column, Index, CreateDateColumn, UpdateDateColumn } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, Index, CreateDateColumn, UpdateDateColumn } from 'typeorm'
 import type { LeadStatus } from '../../../shared/types'
 
 @Entity('leads')
-@Index('idx_leads_unique_biz', ['business_name', 'city'], { unique: true })
+@Index('idx_leads_unique_biz', ['org_id', 'business_name', 'city'], { unique: true })
 export class LeadEntity {
   @PrimaryGeneratedColumn()
   id!: number
@@ -105,6 +105,9 @@ export class LeadEntity {
 
   @Column({ type: 'text', nullable: true })
   priority_breakdown!: string | null
+
+  @Column({ type: 'int', nullable: true })
+  scraped_by_user_id!: number | null
 
   @CreateDateColumn()
   scraped_at!: Date

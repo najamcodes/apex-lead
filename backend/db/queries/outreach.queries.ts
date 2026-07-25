@@ -1,4 +1,4 @@
-﻿import { getTenantId } from './tenant'
+import { getTenantId } from './tenant'
 import { getDataSource } from '../index'
 import { OutreachEntity } from '../entities/OutreachEntity'
 import type {
@@ -38,13 +38,24 @@ export async function getAllOutreach(
   const pageSize = pagination?.pageSize || 50
   const offset = (page - 1) * pageSize
 
-  const [data, total] = await repo.findAndCount({
-    where: status ? { status, org_id: getTenantId() } : { org_id: getTenantId() },
-    order: status ? { scheduled_at: 'ASC' } : { scheduled_at: 'DESC' },
-    skip: offset,
-    take: pageSize
-  })
+  const qb = repo.createQueryBuilder('outreach')
+    .innerJoin('outreach.lead', 'lead')
+    .where('outreach.org_id = :orgId', { orgId: getTenantId() })
 
+  if (status) {
+    qb.andWhere('outreach.status = :status', { status })
+  }
+
+  const { getUserScopeFilter } = require('./tenant')
+  const scope = getUserScopeFilter('lead')
+  if (scope.clause) {
+    qb.andWhere(scope.clause.replace('AND ', ''), scope.params)
+  }
+
+  qb.orderBy('outreach.scheduled_at', status ? 'ASC' : 'DESC')
+  qb.skip(offset).take(pageSize)
+
+  const [data, total] = await qb.getManyAndCount()
   return { data: data as OutreachRecord[], total }
 }
 
@@ -101,12 +112,19 @@ export async function getSequenceSummaries(
   const countRes = await ds.createQueryBuilder()
     .select('COUNT(DISTINCT lead_id)', 'count')
     .from('outreach', 'o')
+    .innerJoin('leads', 'l', 'l.id = o.lead_id')
     .where('o.org_id = :orgId', { orgId: getTenantId() })
-    .getRawOne()
     
-  const total = Number(countRes?.count) || 0
+  const { getUserScopeFilter } = require('./tenant')
+  const scope = getUserScopeFilter('l')
+  if (scope.clause) {
+    countRes.andWhere(scope.clause.replace('AND ', ''), scope.params)
+  }
 
-  const data = await ds.createQueryBuilder()
+  const countResult = await countRes.getRawOne()
+  const total = Number(countResult?.count) || 0
+
+  const dataQb = ds.createQueryBuilder()
     .select('l.id', 'lead_id')
     .addSelect('l.business_name', 'business_name')
     .addSelect("MAX(CASE WHEN o.step = 1 THEN o.status END)", 'step1_status')
@@ -120,14 +138,19 @@ export async function getSequenceSummaries(
     .orderBy('next_scheduled', 'ASC', 'NULLS LAST')
     .limit(pageSize)
     .offset(offset)
-    .getRawMany()
+    
+  if (scope.clause) {
+    dataQb.andWhere(scope.clause.replace('AND ', ''), scope.params)
+  }
+
+  const data = await dataQb.getRawMany()
 
   return { data: data as SequenceSummary[], total }
 }
 
 export async function getPendingOutreachQueue(): Promise<any[]> {
   const ds = getDataSource()
-  const data = await ds.createQueryBuilder()
+  const qb = ds.createQueryBuilder()
     .select('o.id', 'id')
     .addSelect('o.step', 'step')
     .addSelect('o.subject', 'subject')
@@ -139,7 +162,14 @@ export async function getPendingOutreachQueue(): Promise<any[]> {
     .where('o.status = :status', { status: 'queued' })
     .andWhere('o.org_id = :orgId', { orgId: getTenantId() })
     .orderBy('o.scheduled_at', 'ASC')
-    .getRawMany()
+
+  const { getUserScopeFilter } = require('./tenant')
+  const scope = getUserScopeFilter('l')
+  if (scope.clause) {
+    qb.andWhere(scope.clause.replace('AND ', ''), scope.params)
+  }
+
+  const data = await qb.getRawMany()
   
   return data
 }

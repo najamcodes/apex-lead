@@ -8,6 +8,8 @@ export class ScrapeJobEntity {
   @Column({ type: 'int', default: 1 })
   org_id!: number
 
+  @Column({ type: 'int', nullable: true })
+  created_by_user_id!: number | null
 
   @Column({ type: 'text' })
   query!: string

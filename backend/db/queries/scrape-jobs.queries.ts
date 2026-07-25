@@ -1,4 +1,4 @@
-﻿import { getTenantId } from './tenant'
+import { getTenantId, getCurrentUserId, getUserScopeFilter, canViewAllData } from './tenant'
 import { getDataSource } from '../index'
 import { ScrapeJobEntity } from '../entities/ScrapeJobEntity'
 import type { ScrapeJob } from '../../../shared/types/scraper.types'
@@ -13,6 +13,7 @@ export async function insertScrapeJob(
   const repo = getDataSource().getRepository(ScrapeJobEntity)
   await repo.save(repo.create({
     org_id: getTenantId(),
+    created_by_user_id: getCurrentUserId(),
     id: job.id,
     query: job.query,
     city: job.city,
@@ -35,28 +36,45 @@ export async function getAllScrapeJobs(
   const pageSize = pagination?.pageSize || 50
   const offset = (page - 1) * pageSize
 
-  const [data, total] = await repo.findAndCount({
-    where: { org_id: getTenantId() },
-    order: { started_at: 'DESC' },
-    skip: offset,
-    take: pageSize
-  })
+  const qb = repo.createQueryBuilder('job')
+  qb.where('job.org_id = :orgId', { orgId: getTenantId() })
 
+  const scope = getUserScopeFilter('job')
+  if (scope.clause) {
+    qb.andWhere(scope.clause.replace('scraped_by_user_id', 'created_by_user_id').replace('AND ', ''), scope.params)
+  }
+
+  qb.orderBy('job.started_at', 'DESC')
+  qb.skip(offset).take(pageSize)
+
+  const [data, total] = await qb.getManyAndCount()
   return { data: data as ScrapeJob[], total }
 }
 
 export async function getScrapeJobById(id: string): Promise<ScrapeJob | null> {
   const repo = getDataSource().getRepository(ScrapeJobEntity)
-  const res = await repo.findOne({ where: { id, org_id: getTenantId() } })
+  const where: any = { id, org_id: getTenantId() }
+  if (!canViewAllData()) {
+    where.created_by_user_id = getCurrentUserId()
+  }
+  const res = await repo.findOne({ where })
   return (res as ScrapeJob) || null
 }
 
 export async function deleteScrapeJob(id: string): Promise<void> {
   const repo = getDataSource().getRepository(ScrapeJobEntity)
-  await repo.delete({ id, org_id: getTenantId() })
+  const where: any = { id, org_id: getTenantId() }
+  if (!canViewAllData()) {
+    where.created_by_user_id = getCurrentUserId()
+  }
+  await repo.delete(where)
 }
 
 export async function deleteScrapeJobs(ids: string[]): Promise<void> {
   const repo = getDataSource().getRepository(ScrapeJobEntity)
-  await repo.delete({ id: In(ids), org_id: getTenantId() })
+  const where: any = { id: In(ids), org_id: getTenantId() }
+  if (!canViewAllData()) {
+    where.created_by_user_id = getCurrentUserId()
+  }
+  await repo.delete(where)
 }

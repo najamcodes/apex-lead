@@ -1,60 +1,133 @@
 import { getDataSource } from '../index'
 import { UserEntity } from '../entities/UserEntity'
-import { getTenantId, getCurrentUserRole } from './tenant'
-import crypto from 'crypto'
+import { UserOrganizationEntity } from '../entities/UserOrganizationEntity'
+import { getTenantId, getCurrentUserRole, canManageOrg, roleLevel } from './tenant'
+import { hashPassword } from '../../core/utils/crypto'
 
-function hashPassword(password: string): string {
-  const salt = crypto.randomBytes(16).toString('hex')
-  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex')
-  return `${salt}:${hash}`
-}
+/**
+ * Get all users who are members of the current org, by joining user_organizations.
+ * Returns user objects with the org-specific role, not the global user role.
+ */
+export async function getUsersInOrg(): Promise<Array<UserEntity & { org_role: string; org_permissions: string[] }>> {
+  if (!canManageOrg()) throw new Error('Unauthorized')
+  const ds = getDataSource()
+  const orgId = getTenantId()
 
-export async function getUsersInOrg(): Promise<UserEntity[]> {
-  if (getCurrentUserRole() !== 'admin') throw new Error('Unauthorized');
-  const repo = getDataSource().getRepository(UserEntity)
-  // Mask passwords
-  const users = await repo.find({ where: { org_id: getTenantId() } })
-  return users.map(u => ({ ...u, password_hash: '' } as UserEntity))
+  const links = await ds.getRepository(UserOrganizationEntity).find({
+    where: { org_id: orgId },
+    relations: { user: true },
+    order: { created_at: 'ASC' },
+  })
+
+  return links.map(link => ({
+    ...(link.user as UserEntity),
+    password_hash: '', // never expose
+    org_role: link.role,
+    org_permissions: (() => {
+      try { return JSON.parse(link.permissions || '[]') } catch { return [] }
+    })(),
+  }))
 }
 
 export async function updateUserPermissions(userId: number, permissions: string[]): Promise<void> {
-  if (getCurrentUserRole() !== 'admin') throw new Error('Unauthorized');
-  const repo = getDataSource().getRepository(UserEntity)
-  const user = await repo.findOne({ where: { id: userId, org_id: getTenantId() } })
-  if (!user) throw new Error('User not found')
+  if (!canManageOrg()) throw new Error('Unauthorized')
+  const ds = getDataSource()
+  const orgId = getTenantId()
 
-  // Don't allow removing permissions from admin
-  if (user.role === 'admin') throw new Error('Cannot modify admin permissions directly')
+  // Update permissions in user_organizations (org-scoped)
+  const link = await ds.getRepository(UserOrganizationEntity).findOne({
+    where: { user_id: userId, org_id: orgId },
+  })
+  if (!link) throw new Error('User not found in this organization')
+  if (link.role === 'org_admin') throw new Error('Cannot modify org_admin permissions directly')
 
-  user.permissions = JSON.stringify(permissions)
-  await repo.save(user)
+  link.permissions = JSON.stringify(permissions)
+  await ds.getRepository(UserOrganizationEntity).save(link)
 }
 
-export async function createTeamMember(email: string, password: string): Promise<UserEntity> {
-  if (getCurrentUserRole() !== 'admin') throw new Error('Unauthorized');
-  const repo = getDataSource().getRepository(UserEntity)
-  
-  const existing = await repo.findOneBy({ email })
+export async function updateUserRole(userId: number, role: string): Promise<void> {
+  if (!canManageOrg()) throw new Error('Unauthorized')
+  if (roleLevel(role) >= roleLevel(getCurrentUserRole())) {
+    throw new Error('Cannot assign a role equal to or higher than your own')
+  }
+  const ds = getDataSource()
+  const orgId = getTenantId()
+
+  // Update role in user_organizations (org-scoped)
+  const link = await ds.getRepository(UserOrganizationEntity).findOne({
+    where: { user_id: userId, org_id: orgId },
+  })
+  if (!link) throw new Error('User not found in this organization')
+
+  link.role = role
+  await ds.getRepository(UserOrganizationEntity).save(link)
+
+  // Also update global user role for consistency (e.g., hierarchy_level)
+  const user = await ds.getRepository(UserEntity).findOne({ where: { id: userId } })
+  if (user) {
+    user.hierarchy_level = roleLevel(role)
+    user.updated_at = new Date()
+    await ds.getRepository(UserEntity).save(user)
+  }
+}
+
+export async function createTeamMember(
+  email: string,
+  password: string,
+  role: string = 'user',
+  name?: string
+): Promise<UserEntity> {
+  if (!canManageOrg()) throw new Error('Unauthorized')
+  if (roleLevel(role) >= roleLevel(getCurrentUserRole())) {
+    throw new Error('Cannot create a user with a role equal to or higher than your own')
+  }
+  const ds = getDataSource()
+  const orgId = getTenantId()
+
+  const existing = await ds.getRepository(UserEntity).findOneBy({ email })
   if (existing) throw new Error('Email already registered')
 
-  const user = repo.create({
+  // Create user record
+  const user = ds.getRepository(UserEntity).create({
     email,
     password_hash: hashPassword(password),
-    role: 'user',
-    org_id: getTenantId(),
-    permissions: '[]' // Explicitly empty initially
+    role,
+    default_org_id: orgId,
+    permissions: '[]',
+    name: name ?? null,
+    hierarchy_level: roleLevel(role),
   })
+  await ds.getRepository(UserEntity).save(user)
 
-  await repo.save(user)
+  // Create org membership link
+  const link = ds.getRepository(UserOrganizationEntity).create({
+    user_id: user.id,
+    org_id: orgId,
+    role,
+    permissions: '[]',
+    is_default: true,
+  })
+  await ds.getRepository(UserOrganizationEntity).save(link)
+
   return user
 }
 
 export async function deleteUser(userId: number): Promise<void> {
-  if (getCurrentUserRole() !== 'admin') throw new Error('Unauthorized');
-  const repo = getDataSource().getRepository(UserEntity)
-  const user = await repo.findOne({ where: { id: userId, org_id: getTenantId() } })
-  if (!user) throw new Error('User not found')
-  if (user.role === 'admin') throw new Error('Cannot delete admin user')
+  if (!canManageOrg()) throw new Error('Unauthorized')
+  const ds = getDataSource()
+  const orgId = getTenantId()
 
-  await repo.remove(user)
+  // Only remove from org if they have other orgs; otherwise delete entirely
+  const allLinks = await ds.getRepository(UserOrganizationEntity).find({ where: { user_id: userId } })
+  const thisOrgLink = allLinks.find(l => l.org_id === orgId)
+  if (!thisOrgLink) throw new Error('User not found in this organization')
+  if (thisOrgLink.role === 'org_admin') throw new Error('Cannot remove org admin')
+
+  // Remove org membership
+  await ds.getRepository(UserOrganizationEntity).delete({ user_id: userId, org_id: orgId })
+
+  // If user has no more orgs, delete the user entirely
+  if (allLinks.length <= 1) {
+    await ds.getRepository(UserEntity).delete({ id: userId })
+  }
 }
