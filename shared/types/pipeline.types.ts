@@ -50,6 +50,16 @@ export type NodeType =
   | 'loop'         // iterates over an array field
   | 'filter'       // drops records not matching a condition
   | 'code'         // user-provided JS sandbox (advanced)
+  | 'set'          // create / override record fields with static or expression values
+  | 'aggregate'    // collect all incoming records and produce a single summary record
+  | 'notify'       // fire-and-forget notification (email, Discord webhook, HTTP)
+  | 'spreadsheet'  // read/write CSV data as pipeline records
+  | 'subworkflow'  // executes a nested sub-pipeline
+  | 'agent'        // autonomous multi-step reasoning agent with tool use
+  | 'vision'       // multimodal vision extraction / screenshot OCR
+  | 'approval'     // human-in-the-loop approval & interactive pause/resume
+  | 'custom'       // user-created custom node / plugin
+  | (string & {})
 
 // ─────────────────────────────────────────────────────────────────
 // Ports — how nodes declare their data contracts
@@ -168,6 +178,12 @@ export interface PipelineDefinition {
   edges: NodeEdge[]
   /** Trigger config (cron schedule, webhook, manual). */
   trigger?: TriggerConfig
+  /** Proxy configuration id for this pipeline (null = use default/no proxy). */
+  proxy_id?: number | null
+  /** Minimum role required to run this pipeline. */
+  min_role?: string
+  /** Per-node role gates: { nodeId: minRole }. */
+  role_gates?: Record<string, string> | null
   /** JSON schema version for future migrations. */
   version: number
   created_at: string
@@ -205,6 +221,15 @@ export interface PipelineRun {
   error: string | null
   /** Final log lines (capped). */
   log: RunLogEntry[]
+  /** Node input/output payload snapshots for time-travel inspection & replay. */
+  snapshots?: Record<string, NodeSnapshotData>
+}
+
+export interface NodeSnapshotData {
+  inputs: Array<Record<string, unknown>>
+  outputs: Array<Record<string, unknown>>
+  durationMs?: number
+  lastUpdated?: string
 }
 
 export interface NodeRunStats {
@@ -235,7 +260,7 @@ export interface NodeTypeDescriptor {
   name: string
   description: string
   /** Category for palette grouping. */
-  category: 'Trigger' | 'Source' | 'Process' | 'Logic' | 'Storage' | 'Output' | 'Advanced'
+  category: 'Trigger' | 'Source' | 'Process' | 'Transform' | 'Logic' | 'Storage' | 'Output' | 'Notify' | 'Advanced' | 'Custom'
   /** Icon name (lucide) for the palette. */
   icon: string
   /** Default color for the node card. */
@@ -252,77 +277,6 @@ export interface NodeTypeDescriptor {
   produces: boolean
   /** Help text shown in the config panel. */
   help?: string
-}
-
-// ─────────────────────────────────────────────────────────────────
-// Legacy types — preserved for backward compatibility with the old
-// lead-generation pipeline (ScrapeTarget, QueryProfile, DigestRun).
-// These power the existing Pipeline screen and its DB queries.
-// ─────────────────────────────────────────────────────────────────
-
-export type TargetStatus = 'active' | 'paused' | 'error'
-
-export interface ScrapeTarget {
-  id:             number
-  label:          string
-  query:          string
-  city:           string
-  country:        string
-  max_per_run:    number
-  min_ai_score:   number
-  website_filter: 'all' | 'none_only' | 'outdated_only'
-  status:         TargetStatus
-  use_proxy:      boolean
-  last_run_at:    string | null
-  next_run_at:    string | null
-  total_found:    number
-  created_at:     string
-}
-
-export interface ScrapeTargetInsert {
-  label:          string
-  query:          string
-  city:           string
-  country:        string
-  max_per_run:    number
-  min_ai_score:   number
-  website_filter: ScrapeTarget['website_filter']
-  use_proxy:      boolean
-}
-
-export interface DigestRun {
-  id:               number
-  run_at:           string
-  targets_run:      number
-  total_scraped:    number
-  total_qualified:  number
-  total_no_website: number
-  total_new:        number
-  digest_sent:      boolean
-  digest_error:     string | null
-  top_leads:        string
-}
-
-export type QueryProfileStatus = 'active' | 'paused' | 'error'
-
-export interface QueryProfile {
-  id:               number
-  label:            string
-  target_audience:  string
-  core_offer:       string
-  cities:           string
-  countries:        string
-  status:           QueryProfileStatus
-  queries_generated: number
-  created_at:       string
-  updated_at:       string
-}
-
-export interface QueryProfileInsert {
-  label:            string
-  target_audience:  string
-  core_offer:       string
-  cities:           string[]
-  countries:        string[]
-  status?:          QueryProfileStatus
+  /** Whether this is a user-created custom node */
+  isCustom?: boolean
 }

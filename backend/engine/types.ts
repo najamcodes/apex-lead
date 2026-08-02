@@ -30,6 +30,23 @@ export interface NodeExecutionContext {
   isPaused: () => Promise<void>
   /** Emit a record on the named output port (default 'main'). */
   emit: (record: PipelineRecord | PipelineRecord[], port?: string) => void
+  /**
+   * Optional proxy configuration for this pipeline.
+   * Nodes making outbound HTTP requests (scraper, enricher, connector) should
+   * use this when present.
+   */
+  proxyConfig?: {
+    server: string
+    port: number
+    username?: string | null
+    password?: string | null
+    type: 'http' | 'https' | 'socks5'
+  } | null
+  /**
+   * Role of the user who initiated this pipeline run.
+   * Nodes can use this for fine-grained per-record decisions.
+   */
+  userRole: string
 }
 
 /**
@@ -50,3 +67,5 @@ export interface NodeHandler {
 export type RunStatsMap = Record<string, NodeRunStats>
 
 export type RunLog = RunLogEntry[]
+
+export type RunSnapshotMap = Record<string, { inputs: Array<Record<string, unknown>>; outputs: Array<Record<string, unknown>>; durationMs?: number }>

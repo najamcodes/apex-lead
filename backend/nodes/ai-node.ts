@@ -3,7 +3,7 @@
 // This generalizes the old hardcoded score-site.ts / draft-outreach.ts.
 
 import { registerNode } from '../engine/registry'
-import { makeDescriptor, strField, textField, selectField, jsonField, mainOutput, mainInput } from './descriptors'
+import { makeDescriptor, strField, textField, selectField, mainOutput, mainInput, getPath } from './descriptors'
 import { randomUUID } from 'crypto'
 import type { NodeHandler } from '../engine/types'
 import type { PipelineRecord } from '../../shared/types/pipeline.types'
@@ -27,26 +27,26 @@ export function registerAiNode() {
 
       try {
         // Lazy import to avoid loading the AI client when this node isn't used
-        const { getAIClient } = await import('../core/ai/ai-client')
+        const { resolveAiClient } = await import('../core/ai/ai-client')
         const { getSettings } = await import('../db/queries/settings.queries')
         const settings = await getSettings()
-        const client = getAIClient(settings)
+        const client = await resolveAiClient(settings, ctx.config.ai_connection_id as string, ctx.orgId)
 
         const response = await client.complete({
           model,
-          prompt: resolvedPrompt,
-          temperature: (ctx.config.temperature as number) ?? 0.7,
-          max_tokens: (ctx.config.max_tokens as number) ?? 1000,
+          messages: [{ role: 'user', content: resolvedPrompt }],
+          temperature: typeof ctx.config.temperature === 'number' ? ctx.config.temperature : parseFloat(String(ctx.config.temperature || '0.7')),
+          max_tokens: typeof ctx.config.max_tokens === 'number' ? ctx.config.max_tokens : parseInt(String(ctx.config.max_tokens || '1000'), 10),
         })
 
         // Emit a record that merges the input + the AI result
         const outData: Record<string, unknown> = { ...ctx.input }
-        outData[outputField] = response.text
+        outData[outputField] = response.content
 
         // If the AI returned JSON (structured output), parse and merge
-        if (ctx.config.parse_json === true) {
+        if (ctx.config.parse_json === true || ctx.config.parse_json === 'true') {
           try {
-            const parsed = JSON.parse(response.text)
+            const parsed = JSON.parse(response.content)
             outData[outputField] = parsed
           } catch {
             // keep raw text
@@ -67,7 +67,7 @@ export function registerAiNode() {
           },
         }
         ctx.emit(rec)
-        ctx.log('info', `AI responded (${response.text.length} chars)`)
+        ctx.log('info', `AI responded (${response.content.length} chars) via ${client.getProvider()}`)
       } catch (err) {
         ctx.log('error', `AI call failed: ${err instanceof Error ? err.message : String(err)}`)
       }
@@ -84,6 +84,7 @@ export function registerAiNode() {
     inputs: [mainInput],
     outputs: [mainOutput],
     configSchema: {
+      ai_connection_id: selectField('AI Connection Profile', [''], 'Choose a specific AI setup (e.g. Local Ollama, LM Studio, OpenAI) or use the global default.', ''),
       model: strField('Model', false, 'e.g. anthropic/claude-3-haiku, gpt-4o', 'anthropic/claude-3-haiku'),
       prompt: textField('Prompt template', true, 'Use {{input.field}} to inject mapped input values. e.g. "Score this site: {{input.website_url}}"'),
       output_field: strField('Output field', false, 'Where to store the AI response on the record.', 'ai_result'),
@@ -105,19 +106,4 @@ function resolvePrompt(template: string, input: Record<string, unknown>): string
     const val = getPath(path, input)
     return val !== undefined ? String(val) : ''
   })
-}
-
-function getPath(path: string, obj: Record<string, unknown> | undefined): unknown {
-  if (!obj) return undefined
-  if (!path.includes('.')) return obj[path]
-  const parts = path.split('.')
-  let cur: unknown = obj
-  for (const p of parts) {
-    if (cur && typeof cur === 'object' && p in (cur as Record<string, unknown>)) {
-      cur = (cur as Record<string, unknown>)[p]
-    } else {
-      return undefined
-    }
-  }
-  return cur
 }

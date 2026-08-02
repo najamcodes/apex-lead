@@ -6,7 +6,6 @@ import { makeDescriptor, jsonField, mainOutput, mainInput } from './descriptors'
 import { applyMappings } from '../engine/graph'
 import type { FieldMapping } from '../../shared/types/pipeline.types'
 import type { NodeHandler } from '../engine/types'
-import type { PipelineRecord } from '../../shared/types/pipeline.types'
 
 export function registerTransformNode() {
   const handler: NodeHandler = {

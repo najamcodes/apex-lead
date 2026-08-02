@@ -1,9 +1,9 @@
-﻿// backend/core/pipelines/runner.ts
+// backend/core/pipelines/runner.ts
 import { randomUUID as uuid } from 'crypto'
 import { insertScrapeJob, updateScrapeJob } from '../../db/queries/scrape-jobs.queries'
 import { LeadGenerationPipeline } from './lead-pipeline'
 import type { PipelineConfig, PipelineControlToken, PipelineProgressCallback, Pipeline } from './base-pipeline'
-import type { ScrapeJobConfig, ScrapeProgressEvent } from '../../../shared/types/scraper.types'
+import type { ScrapeJobConfig } from '../../../shared/types/scraper.types'
 import { getSettings } from '../../db/queries/settings.queries'
 
 const activeJobs = new Map<string, PipelineControlToken>()
@@ -26,7 +26,7 @@ export async function startPipelineJob(
 ): Promise<string> {
   const pipeline = pipelines.get(pipelineId)
   if (!pipeline) {
-    throw new Error(\Pipeline not found: \\)
+    throw new Error(`Pipeline not found: ${pipelineId}`)
   }
 
   const jobId = uuid()

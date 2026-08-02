@@ -2,10 +2,10 @@
 import { registerNode } from '../engine/registry'
 import { makeDescriptor, strField, numField, boolField, selectField, mainOutput, mainInput } from './descriptors'
 import { getEnabledScrapers, getAllPlugins } from '../../plugins/registry'
-import type { ScraperPlugin } from '../../plugins/types'
+import type { ScraperPlugin, ScrapedItem } from '../../plugins/types'
 import { randomUUID } from 'crypto'
 import type { NodeHandler } from '../engine/types'
-import type { PipelineRecord, ScrapedItem } from '../../shared/types/pipeline.types'
+import type { PipelineRecord } from '../../shared/types/pipeline.types'
 
 export function registerScraperNode() {
   const handler: NodeHandler = {

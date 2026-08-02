@@ -3,6 +3,7 @@
 // (so they can be serialized to the UI without Zod instances).
 
 import type { NodeTypeDescriptor, NodePort, PortSchema } from '../../shared/types/pipeline.types'
+export { getPath } from '../engine/graph'
 
 export const anySchema: PortSchema = { fields: {}, multiple: true, description: 'Any record' }
 
@@ -29,8 +30,8 @@ export function boolField(label: string, description?: string, defaultValue = fa
 export function selectField(label: string, options: string[], description?: string, defaultValue?: string) {
   return { type: 'select', label, options, description, default: defaultValue }
 }
-export function textField(label: string, required = false, description?: string) {
-  return { type: 'text', label, required, description }
+export function textField(label: string, required = false, description?: string, defaultValue?: string) {
+  return { type: 'text', label, required, description, default: defaultValue }
 }
 export function jsonField(label: string, description?: string, defaultValue: unknown = {}) {
   return { type: 'json', label, description, default: defaultValue }

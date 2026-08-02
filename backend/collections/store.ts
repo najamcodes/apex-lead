@@ -12,6 +12,7 @@ export interface StoreRecordInput {
   data: Record<string, unknown>
   mode?: 'upsert' | 'insert' | 'update'
   source?: string
+  scrapedByUserId?: number
 }
 
 export interface StoreRecordResult {

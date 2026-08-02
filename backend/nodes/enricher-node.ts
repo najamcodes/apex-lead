@@ -3,7 +3,6 @@
 
 import { registerNode } from '../engine/registry'
 import { makeDescriptor, selectField, mainOutput, mainInput } from './descriptors'
-import { getAllPlugins } from '../../plugins/registry'
 import { runEnrichers, makeLeadSnapshot } from '../../plugins/runner'
 import type { NodeHandler } from '../engine/types'
 

@@ -9,7 +9,7 @@ import type {
   FieldMapping,
 } from '../../shared/types/pipeline.types'
 import { getNodeHandler } from './registry'
-import type { NodeExecutionContext, RunStatsMap, RunLog } from './types'
+import type { NodeExecutionContext, RunStatsMap, RunLog, RunSnapshotMap } from './types'
 import { randomUUID } from 'crypto'
 
 // ─────────────────────────────────────────────────────────────────
@@ -132,14 +132,38 @@ export interface RunHandle {
   getStats: () => RunStatsMap
   /** Live snapshot of the run log (capped). */
   getLog: () => RunLog
+  /** Live snapshot of per-node input/output payloads. */
+  getSnapshots: () => RunSnapshotMap
 }
 
 export interface ExecuteOptions {
   runId?: string
   /** Input config passed to start nodes (e.g. query, city for a manual run). */
   input?: Record<string, unknown>
+  /** Replay from a specific intermediate node id instead of root start nodes. */
+  replayFromNodeId?: string
+  /** Seed records to inject into the replay node's queue. */
+  seedRecords?: PipelineRecord[]
   /** Progress callback (for WS broadcast). */
   onProgress?: (msg: { nodeId?: string; level: 'info' | 'warn' | 'error'; message: string }) => void
+  /** Record emission callback (for streaming to central backend or listeners). */
+  onRecord?: (record: PipelineRecord) => void
+  /**
+   * Resolved proxy configuration for this pipeline run.
+   * Looked up from pipeline.proxy_id before calling executePipeline.
+   */
+  proxyConfig?: {
+    server: string
+    port: number
+    username?: string | null
+    password?: string | null
+    type: 'http' | 'https' | 'socks5'
+  } | null
+  /**
+   * Role of the user triggering this run.
+   * Used for per-node role gate enforcement.
+   */
+  userRole?: string
 }
 
 /**
@@ -156,12 +180,27 @@ export async function executePipeline(
   const runId = opts.runId ?? randomUUID()
   const log: RunLog = []
   const stats: RunStatsMap = {}
+  const snapshots: RunSnapshotMap = {}
   let cancelled = false
   let paused = false
   let done = false
 
+  // Initialize stats & snapshots structure for all nodes
+  for (const node of pipeline.nodes) {
+    snapshots[node.id] = { inputs: [], outputs: [] }
+  }
+
   const incoming = buildIncoming(pipeline)
-  const startNodes = findStartNodes(pipeline)
+  let startNodes = findStartNodes(pipeline)
+
+  // Support Time-Travel Replay from specific intermediate node
+  if (opts.replayFromNodeId) {
+    const replayNode = pipeline.nodes.find(n => n.id === opts.replayFromNodeId && n.enabled)
+    if (!replayNode) {
+      throw new Error(`Replay target node '${opts.replayFromNodeId}' not found or is disabled`)
+    }
+    startNodes = [replayNode]
+  }
 
   if (startNodes.length === 0) {
     throw new Error('Pipeline has no start nodes (all nodes have inputs or are disabled)')
@@ -175,6 +214,11 @@ export async function executePipeline(
     if (!node.enabled) continue
     queues.set(node.id, [])
     upstreamDone.set(node.id, new Set())
+  }
+
+  // If replay seed records are provided, inject into replay node's queue
+  if (opts.replayFromNodeId && opts.seedRecords?.length) {
+    queues.set(opts.replayFromNodeId, [...opts.seedRecords])
   }
 
   const logFn = (nodeId: string | undefined, level: 'info' | 'warn' | 'error', message: string) => {
@@ -195,13 +239,37 @@ export async function executePipeline(
   async function runNode(node: PipelineNode): Promise<void> {
     if (cancelled || !node.enabled) return
 
+    const nodeStartTime = Date.now()
+
+    // Check per-node role gate (from pipeline.role_gates JSON)
+    const roleGates = pipeline.role_gates ? (typeof pipeline.role_gates === 'string' ? JSON.parse(pipeline.role_gates as any) : pipeline.role_gates) : {}
+    const nodeMinRole = roleGates[node.id]
+    if (nodeMinRole) {
+      const { roleLevel } = await import('../db/queries/tenant')
+      const userRoleLevel = roleLevel(opts.userRole ?? 'user')
+      const minRoleLevel = roleLevel(nodeMinRole)
+      if (userRoleLevel < minRoleLevel) {
+        logFn(node.id, 'info', `Skipping node '${node.label}' (requires role '${nodeMinRole}', user has '${opts.userRole ?? 'user'}')`)
+        // Still mark as done so downstreams can proceed
+        stats[node.id] ??= { received: 0, produced: 0, errors: 0, started_at: new Date().toISOString(), completed_at: new Date().toISOString() }
+        return
+      }
+    }
+
     stats[node.id] ??= { received: 0, produced: 0, errors: 0, started_at: new Date().toISOString() }
     const nodeStats = stats[node.id]
+    snapshots[node.id] ??= { inputs: [], outputs: [] }
 
     const incomingEdges = incoming.get(node.id) ?? []
     // Merge inputs from all incoming records (apply per-edge mappings)
     const incomingRecords = queues.get(node.id) ?? []
     nodeStats.received += incomingRecords.length
+
+    // Record up to 25 input record samples for time-travel inspection
+    if (incomingRecords.length > 0 && snapshots[node.id].inputs.length < 25) {
+      const remainingSlots = 25 - snapshots[node.id].inputs.length
+      snapshots[node.id].inputs.push(...incomingRecords.slice(0, remainingSlots).map(r => r.data))
+    }
 
     let mergedInput: Record<string, unknown> = {}
     for (const rec of incomingRecords) {
@@ -228,9 +296,18 @@ export async function executePipeline(
       log: (level, message) => logFn(node.id, level, message),
       isCancelled,
       isPaused,
+      proxyConfig: opts.proxyConfig ?? null,
+      userRole: opts.userRole ?? 'user',
       emit: (records, port = 'main') => {
         const arr = Array.isArray(records) ? records : [records]
         nodeStats.produced += arr.length
+
+        // Record up to 25 output record samples for time-travel inspection
+        if (arr.length > 0 && snapshots[node.id].outputs.length < 25) {
+          const remainingSlots = 25 - snapshots[node.id].outputs.length
+          snapshots[node.id].outputs.push(...arr.slice(0, remainingSlots).map(r => r.data))
+        }
+
         // Route emitted records to downstream nodes via matching edges
         const outEdges = pipeline.edges.filter(
           e => e.from === node.id && (e.fromPort ?? 'main') === port && e.to !== node.id,
@@ -238,6 +315,11 @@ export async function executePipeline(
         for (const outRec of arr) {
           outRec.meta.sourceNodeId = node.id
           outRec.meta.trace.push(node.id)
+
+          if (opts.onRecord) {
+            try { opts.onRecord(outRec) } catch {}
+          }
+
           for (const oe of outEdges) {
             // Branch condition: skip records that don't match
             if (oe.condition && !evalCondition(oe.condition, outRec.data)) continue
@@ -261,6 +343,7 @@ export async function executePipeline(
       logFn(node.id, 'error', `Node failed: ${err instanceof Error ? err.message : String(err)}`)
     } finally {
       nodeStats.completed_at = new Date().toISOString()
+      snapshots[node.id].durationMs = Date.now() - nodeStartTime
     }
 
     // Mark downstream nodes that this upstream is done
@@ -281,14 +364,16 @@ export async function executePipeline(
     await Promise.all(readyToRun.map(runNode))
   }
 
-  // Kick off: start nodes get an empty incoming list + the run input as their config input.
+  // Kick off: start nodes get an empty incoming list + the run input as their config input (unless seedRecords provided)
   for (const start of startNodes) {
-    queues.set(start.id, [])
+    if (!queues.has(start.id) || queues.get(start.id)!.length === 0) {
+      queues.set(start.id, [])
+    }
   }
 
   ;(async () => {
     try {
-      logFn(undefined, 'info', `Run ${runId} started for pipeline '${pipeline.name}'`)
+      logFn(undefined, 'info', `Run ${runId} started for pipeline '${pipeline.name}'${opts.replayFromNodeId ? ` (Replaying from node: ${opts.replayFromNodeId})` : ''}`)
       await Promise.all(startNodes.map(runNode))
       logFn(undefined, 'info', `Run ${runId} completed`)
     } catch (err) {
@@ -306,10 +391,11 @@ export async function executePipeline(
     isDone: () => done,
     getStats: () => ({ ...stats }),
     getLog: () => [...log],
+    getSnapshots: () => ({ ...snapshots }),
   }
 }
 
-/** Expose run stats/log for persistence (called by the runner after completion). */
-export function getRunState(handle: RunHandle): { stats: RunStatsMap; log: RunLog } {
-  return { stats: handle.getStats(), log: handle.getLog() }
+/** Expose run stats, log, and snapshots for persistence (called by the runner after completion). */
+export function getRunState(handle: RunHandle): { stats: RunStatsMap; log: RunLog; snapshots: RunSnapshotMap } {
+  return { stats: handle.getStats(), log: handle.getLog(), snapshots: handle.getSnapshots() }
 }

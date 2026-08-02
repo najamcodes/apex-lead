@@ -1,4 +1,4 @@
-﻿import { getDataSource } from '../../db'
+import { getDataSource } from '../../db'
 import { logActivity } from '../../db/queries/activity.queries'
 import { getSettings } from '../../db/queries/settings.queries'
 import { scoreSite } from '../ai/tasks/score-site'
@@ -11,7 +11,7 @@ import type { AnalysisResult } from '../../../shared/types/analysis.types'
 export async function analyzeLead(leadId: number): Promise<AnalysisResult> {
   const leadRepo = getDataSource().getRepository(LeadEntity)
   const lead = await leadRepo.findOneBy({ id: leadId })
-  if (!lead) throw new Error(\Lead \ not found\)
+  if (!lead) throw new Error(`Lead ${leadId} not found`)
 
   const settings = await getSettings()
 
@@ -76,7 +76,7 @@ export async function analyzeLead(leadId: number): Promise<AnalysisResult> {
   await logActivity(
     leadId,
     'lead_analyzed',
-    \Priority: \/100 — \\
+    `Priority: ${priorityResult.priority_score}/100 — ${priorityResult.reasons.join(', ')}`
   )
 
   return {

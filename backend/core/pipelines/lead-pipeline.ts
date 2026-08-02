@@ -1,4 +1,4 @@
-﻿// backend/core/pipelines/lead-pipeline.ts
+// backend/core/pipelines/lead-pipeline.ts
 import { insertLead } from '../../db/queries/leads.queries'
 import { connectorHook } from '../outreach/connector-hook'
 import { classifyWebsiteStatus } from '../scraper/classify-website'
@@ -18,7 +18,6 @@ export class LeadGenerationPipeline extends Pipeline {
     onProgress: PipelineProgressCallback
   ): Promise<void> {
     const insertedIds: number[] = []
-    let found = 0
 
     // STAGE 1: Scrape
     if (config.stages.scrape) {
@@ -32,10 +31,10 @@ export class LeadGenerationPipeline extends Pipeline {
 
       const runConfig = {
         ...config,
+        use_proxy: config.use_proxy ?? false,
         pluginConfig: {},
         isCancelled: () => cancelToken.cancelled,
         onProgress: (count: number, current: string) => {
-          found = count
           onProgress({
             job_id:           config.jobId,
             found:            count,
@@ -90,7 +89,7 @@ export class LeadGenerationPipeline extends Pipeline {
           status:           'running',
         })
         const promoted = await autoApproveLeads(config.settings.auto_approve_threshold)
-        console.log(\[Pipeline] Auto-approved \ leads\)
+        console.log(`[Pipeline] Auto-approved ${promoted} leads`)
       }
     }
 

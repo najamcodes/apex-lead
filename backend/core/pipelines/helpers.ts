@@ -1,7 +1,7 @@
-﻿// backend/core/pipelines/helpers.ts
 import { getDataSource } from '../../db'
 import { logActivity } from '../../db/queries/activity.queries'
 import { getSettings } from '../../db/queries/settings.queries'
+import { EmailTemplateEntity } from '../../db/entities/EmailTemplateEntity'
 
 // ─── Auto-approve high-scoring leads ─────────────────────────────────────────
 
@@ -22,13 +22,13 @@ export async function autoApproveLeads(threshold: number): Promise<number> {
     .update('leads')
     .set({
       status: 'approved',
-      updated_at: new Date()
+      updated_at: () => "datetime('now')"
     })
     .where('id IN (:...ids)', { ids })
     .execute()
 
   for (const id of ids) {
-    await logActivity(id, 'lead_approved', \Auto-approved (score >= \)\)
+    await logActivity(id, 'lead_approved', `Auto-approved (score >= ${threshold})`)
   }
 
   return ids.length
@@ -40,14 +40,14 @@ export async function autoScheduleSequences(onProgress: (msg: string) => void): 
   const settings = await getSettings()
   if (settings.use_ai_for_outreach && !settings.ai_enabled) return
 
-  let template: any = null
+  let template: EmailTemplateEntity | null = null
   if (!settings.use_ai_for_outreach) {
     if (!settings.default_email_template_id) {
       onProgress('No default email template configured for outreach.')
       return
     }
     template = await getDataSource()
-      .getRepository(require('../../db/entities/EmailTemplateEntity').EmailTemplateEntity)
+      .getRepository(EmailTemplateEntity)
       .findOneBy({ id: settings.default_email_template_id })
       
     if (!template) {
@@ -69,7 +69,7 @@ export async function autoScheduleSequences(onProgress: (msg: string) => void): 
 
   if (eligibleLeads.length === 0) return
 
-  onProgress(\Auto-scheduling sequences for \ approved leads with emails...\)
+  onProgress(`Auto-scheduling sequences for ${eligibleLeads.length} approved leads with emails...`)
 
   const { draftOutreach } = await import('../ai/tasks/draft-outreach')
   const { scheduleSequence } = await import('../outreach/sequence-engine')
@@ -85,7 +85,7 @@ export async function autoScheduleSequences(onProgress: (msg: string) => void): 
           settings.developer_name || 'Your Name',
           settings.ai_model_email_draft
         )
-      } else {
+      } else if (template) {
         draft = { subject: template.subject, email_body: template.body }
       }
       scheduleSequence(
@@ -104,5 +104,5 @@ export async function autoScheduleSequences(onProgress: (msg: string) => void): 
     await new Promise((r) => setTimeout(r, 500))
   }
 
-  onProgress(\Auto-scheduled \ sequences\)
+  onProgress(`Auto-scheduled ${scheduled} sequences`)
 }

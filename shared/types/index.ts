@@ -101,6 +101,138 @@ export interface EmailAccountInsert {
   daily_limit?: number
 }
 
+export interface ProxyConfig {
+  id: number
+  org_id: number
+  name: string
+  server: string
+  port: number
+  username: string | null
+  password: string | null
+  type: string
+  enabled: boolean
+  success_count: number
+  fail_count: number
+  avg_latency_ms: number | null
+  last_used_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ProxyConfigInsert {
+  name: string
+  server: string
+  port?: number
+  username?: string | null
+  password?: string | null
+  type?: string
+  enabled?: boolean
+}
+
+export interface ProxyConfigUpdate {
+  name?: string
+  server?: string
+  port?: number
+  username?: string | null
+  password?: string | null
+  type?: string
+  enabled?: boolean
+}
+
+export interface UserOrganization {
+  id: number
+  user_id: number
+  org_id: number
+  role: string
+  permissions: string[]
+  is_default: boolean
+  created_at: string
+  updated_at: string
+  org?: {
+    id: number
+    name: string
+    tier: string
+  }
+  user?: {
+    id: number
+    email: string
+    name: string | null
+    role: string
+  }
+}
+
+export interface UserOrgInsert {
+  user_id: number
+  org_id: number
+  role?: string
+  permissions?: string[]
+  is_default?: boolean
+}
+
+export interface UserOrgUpdate {
+  role?: string
+  permissions?: string[]
+  is_default?: boolean
+}
+
+export interface Organization {
+  id: number
+  name: string
+  tier: string
+  settings: string
+  billing_email: string | null
+  logo_url: string | null
+  max_users: number
+  created_at: string
+  updated_at: string
+}
+
+export interface OrganizationInsert {
+  name: string
+  tier?: string
+  settings?: string
+  billing_email?: string | null
+  logo_url?: string | null
+  max_users?: number
+}
+
+export interface OrganizationUpdate {
+  name?: string
+  tier?: string
+  settings?: string
+  billing_email?: string | null
+  logo_url?: string | null
+  max_users?: number
+}
+
+export interface User {
+  id: number
+  email: string
+  password_hash?: string
+  default_org_id: number | null
+  role: string
+  permissions: string[]
+  name: string | null
+  avatar_url: string | null
+  hierarchy_level: number
+  created_at: string
+  updated_at: string
+}
+
+export interface UserInsert {
+  email: string
+  password: string
+  role?: string
+  name?: string
+}
+
+export interface UserUpdate {
+  role?: string
+  permissions?: string[]
+  name?: string
+  avatar_url?: string
+}
+
 export interface LeadInsert {
   business_name: string
   category: string
@@ -181,12 +313,20 @@ export interface AppSettings {
   openrouter_api_key: string
   
   // AI Settings
-  ai_provider: 'openrouter' | 'openai' | 'groq' | 'lmstudio' | 'ollama' | 'gemini'
+  ai_provider: 'openrouter' | 'openai' | 'groq' | 'lmstudio' | 'ollama' | 'gemini' | 'anthropic' | 'custom_openai' | 'custom_claude'
   openai_api_key: string
   groq_api_key: string
   gemini_api_key: string
   lmstudio_url: string
+  lmstudio_key?: string
   ollama_url: string
+  ollama_key?: string
+  anthropic_api_key: string
+  anthropic_url: string
+  custom_openai_url: string
+  custom_openai_key: string
+  custom_claude_url: string
+  custom_claude_key: string
 
   ai_model_site_scoring: string
   ai_model_email_draft: string

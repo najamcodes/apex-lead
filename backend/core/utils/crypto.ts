@@ -51,3 +51,24 @@ export function decrypt(hash: string): string {
     return '' // Return empty if decryption fails to prevent crash, but this will fail authentication
   }
 }
+
+/**
+ * Standard password hashing with PBKDF2 (SHA-512).
+ * Output format: `<saltHex>:<hashHex>`
+ */
+export function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString('hex')
+  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex')
+  return `${salt}:${hash}`
+}
+
+/**
+ * Securely verify a password against stored `<saltHex>:<hashHex>`.
+ */
+export function verifyPassword(password: string, storedHash: string): boolean {
+  if (!storedHash || !storedHash.includes(':')) return false
+  const [salt, hash] = storedHash.split(':')
+  if (!salt || !hash) return false
+  const derived = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex')
+  return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(derived, 'hex'))
+}

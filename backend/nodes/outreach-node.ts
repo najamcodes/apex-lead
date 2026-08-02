@@ -2,7 +2,7 @@
 // Schedules/sends outreach sequences via the outreach engine.
 
 import { registerNode } from '../engine/registry'
-import { makeDescriptor, selectField, strField, boolField, mainOutput, mainInput } from './descriptors'
+import { makeDescriptor, strField, boolField, mainOutput, mainInput } from './descriptors'
 import type { NodeHandler } from '../engine/types'
 
 export function registerOutreachNode() {
@@ -10,7 +10,6 @@ export function registerOutreachNode() {
     type: 'outreach',
     async execute(ctx) {
       const requireEmail = (ctx.config.require_email as boolean) ?? true
-      const templateId = ctx.config.template_id as number | undefined
       const sendImmediately = (ctx.config.send_immediately as boolean) ?? false
       const subject = ctx.config.subject as string | undefined
       const body = ctx.config.body as string | undefined
