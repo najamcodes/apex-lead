@@ -120,34 +120,6 @@ export const EmailVerifierBatchSchema = z.object({
   leadIds: z.array(z.coerce.number().int().positive()).min(1),
 })
 
-export const PipelineTargetInsertSchema = z.object({
-  label: z.string().min(1).max(255),
-  query: z.string().min(1).max(500),
-  city: z.string().max(100),
-  country: z.string().max(100).default('United States'),
-  max_per_run: z.coerce.number().int().min(1).max(500).default(50),
-  min_ai_score: z.coerce.number().int().min(0).max(100).default(0),
-  website_filter: z.enum(['all', 'none_only', 'outdated_only']).default('all'),
-  use_proxy: z.boolean().default(false),
-})
-
-export const PipelineTargetUpdateSchema = PipelineTargetInsertSchema.partial()
-
-export const PipelineRunSchema = z.object({})
-
-export const QueryProfileInsertSchema = z.object({
-  label: z.string().min(1).max(255),
-  target_audience: z.string().min(1).max(1000),
-  core_offer: z.string().min(1).max(1000),
-  cities: z.array(z.string().max(100)).min(1),
-  countries: z.array(z.string().max(100)).min(1),
-  status: z.enum(['active', 'paused', 'error']).default('active'),
-})
-
-export const QueryProfileUpdateSchema = z.object({
-  status: z.enum(['active', 'paused', 'error']),
-})
-
 export const EmailAccountInsertSchema = z.object({
   email_address: z.string().email(),
   app_password: z.string().min(1),
@@ -231,3 +203,41 @@ export const TemplateInsertSchema = z.object({
 })
 
 export const TemplateUpdateSchema = TemplateInsertSchema.partial()
+
+export const ProxyConfigInsertSchema = z.object({
+  name: z.string().min(1).max(255),
+  server: z.string().min(1).max(255),
+  port: z.coerce.number().int().min(1).max(65535).default(8080),
+  username: z.string().optional().nullable(),
+  password: z.string().optional().nullable(),
+  type: z.enum(['http', 'https', 'socks5']).default('http'),
+  enabled: z.boolean().default(true),
+})
+
+export const ProxyConfigUpdateSchema = ProxyConfigInsertSchema.partial()
+
+export const OrganizationInsertSchema = z.object({
+  name: z.string().min(1).max(255),
+  tier: z.enum(['free', 'starter', 'pro', 'enterprise']).default('free'),
+  billing_email: z.string().email().optional().nullable(),
+  logo_url: z.string().url().optional().nullable(),
+  max_users: z.coerce.number().int().min(1).default(5),
+})
+
+export const OrganizationUpdateSchema = OrganizationInsertSchema.partial()
+
+export const UserOrgInsertSchema = z.object({
+  user_id: z.coerce.number().int().positive(),
+  org_id: z.coerce.number().int().positive(),
+  role: z.enum(['org_admin', 'manager', 'user', 'viewer']).default('user'),
+  permissions: z.array(z.string()).default([]),
+})
+
+export const UserOrgUpdateSchema = z.object({
+  role: z.enum(['org_admin', 'manager', 'user', 'viewer']).optional(),
+  permissions: z.array(z.string()).optional(),
+})
+
+export const SwitchOrgSchema = z.object({
+  org_id: z.coerce.number().int().positive(),
+})

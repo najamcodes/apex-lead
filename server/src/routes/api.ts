@@ -1,4 +1,4 @@
-﻿import { OpenAPIHono } from '@hono/zod-openapi'
+import { OpenAPIHono } from '@hono/zod-openapi'
 import { z } from 'zod'
 import { getDataSource } from '../../../backend/db'
 import { EmailTemplateEntity } from '../../../backend/db/entities/EmailTemplateEntity'
@@ -8,16 +8,11 @@ import {
 } from '../../../backend/db/queries/email-accounts.queries'
 import { verifySmtp } from '../../../backend/core/outreach/smtp-sender'
 import {
-  getAllQueryProfiles, getActiveQueryProfiles, insertQueryProfile, updateQueryProfileStatus, deleteQueryProfile
-} from '../../../backend/db/queries/query-profiles.queries'
-import {
   IdParamSchema,
   TemplateInsertSchema,
   TemplateUpdateSchema,
   EmailAccountInsertSchema,
   EmailAccountUpdateSchema,
-  QueryProfileInsertSchema,
-  QueryProfileUpdateSchema,
 } from '../validation/schemas'
 
 export const apiRouter = new OpenAPIHono()
@@ -178,81 +173,6 @@ apiRouter.openapi({
   if (!account) return c.json({ ok: false, error: 'Account not found' }, 404)
   const result = await verifySmtp(account)
   return c.json(result)
-})
-
-// ── Query Profiles ─────────────────────────────────────────────────
-
-apiRouter.openapi({
-  method: 'get',
-  path: '/query-profiles',
-  summary: 'Get all query profiles',
-  tags: ['QueryProfiles'],
-  responses: {
-    200: { description: 'List of query profiles', content: { 'application/json': { schema: z.array(z.any()) } } },
-  },
-}, async (c) => {
-  return c.json(await getAllQueryProfiles())
-})
-
-apiRouter.openapi({
-  method: 'get',
-  path: '/query-profiles/active',
-  summary: 'Get active query profiles',
-  tags: ['QueryProfiles'],
-  responses: {
-    200: { description: 'Active query profiles', content: { 'application/json': { schema: z.array(z.any()) } } },
-  },
-}, async (c) => {
-  return c.json(await getActiveQueryProfiles())
-})
-
-apiRouter.openapi({
-  method: 'post',
-  path: '/query-profiles',
-  summary: 'Create query profile',
-  tags: ['QueryProfiles'],
-  request: {
-    body: { content: { 'application/json': { schema: QueryProfileInsertSchema } } },
-  },
-  responses: {
-    201: { description: 'Profile created', content: { 'application/json': { schema: z.any() } } },
-    400: { description: 'Invalid request body' },
-  },
-}, async (c) => {
-  const body = c.req.valid('json')
-  return c.json(await insertQueryProfile(body), 201)
-})
-
-apiRouter.openapi({
-  method: 'patch',
-  path: '/query-profiles/:id/status',
-  summary: 'Update query profile status',
-  tags: ['QueryProfiles'],
-  request: {
-    params: IdParamSchema,
-    body: { content: { 'application/json': { schema: QueryProfileUpdateSchema } } },
-  },
-  responses: {
-    200: { description: 'Status updated', content: { 'application/json': { schema: z.any() } } },
-  },
-}, async (c) => {
-  const { id } = c.req.valid('param')
-  const { status } = c.req.valid('json')
-  return c.json(await updateQueryProfileStatus(id, status))
-})
-
-apiRouter.openapi({
-  method: 'delete',
-  path: '/query-profiles/:id',
-  summary: 'Delete query profile',
-  tags: ['QueryProfiles'],
-  request: { params: IdParamSchema },
-  responses: {
-    200: { description: 'Profile deleted', content: { 'application/json': { schema: z.any() } } },
-  },
-}, async (c) => {
-  const { id } = c.req.valid('param')
-  return c.json(await deleteQueryProfile(id))
 })
 
 // ── Plugins ────────────────────────────────────────────────────────

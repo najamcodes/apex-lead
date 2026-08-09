@@ -1,6 +1,6 @@
-﻿import { getEnabledScrapers, getEnabledEnrichers, getEnabledConnectors } from './registry'
+import { getEnabledScrapers, getEnabledEnrichers, getEnabledConnectors } from './registry'
 import type {
-  RawLead, ScrapedItem,
+  ScrapedItem,
   LeadSnapshot,
   LeadEnrichment,
   PluginEvent,
@@ -23,13 +23,13 @@ export async function* runExtraScrapers(
 
   for (const record of scrapers) {
     const plugin = record.plugin as ScraperPlugin
-    console.log([runner] Scraper plugin ${plugin.id} starting for query: )
+    console.log(`[runner] Scraper plugin ${plugin.id} starting for query: ${config.query}`)
     try {
       for await (const lead of plugin.scrape({ ...config, pluginConfig: record.config })) {
         yield lead
       }
     } catch (err) {
-      console.error([runner] Scraper plugin ${plugin.id} failed:, err)
+      console.error(`[runner] Scraper plugin ${plugin.id} failed:`, err)
     }
   }
 }
@@ -50,7 +50,7 @@ export async function runEnrichers(
       try {
         return await plugin.enrich(lead, record.config)
       } catch (err) {
-        console.error([runner] Enricher plugin ${plugin.id} failed for lead :, err)
+        console.error(`[runner] Enricher plugin ${plugin.id} failed for lead ${lead.id}:`, err)
         return null
       }
     })
@@ -100,14 +100,14 @@ export async function fireConnectors(
     } else {
       errors++
       console.error(
-        [runner] Connector ${connectors[i].manifest.id} failed on trigger ${trigger} for lead :,
+        `[runner] Connector ${connectors[i].manifest.id} failed on trigger ${trigger} for lead ${lead.id}:`,
         (results[i] as PromiseRejectedResult).reason
       )
     }
   }
 
   if (fired > 0 || errors > 0) {
-    console.log([runner] Connectors fired for ${trigger}:  ok,  failed)
+    console.log(`[runner] Connectors fired for ${trigger}: ${fired} ok, ${errors} failed`)
   }
 
   return { fired, errors }
@@ -137,4 +137,3 @@ export function makeLeadSnapshot(row: Record<string, unknown>): LeadSnapshot {
     scraped_at:     (row.scraped_at as string) ?? new Date().toISOString(),
   }
 }
-

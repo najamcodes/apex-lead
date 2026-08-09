@@ -1,4 +1,4 @@
-﻿import { OpenAPIHono } from '@hono/zod-openapi'
+import { OpenAPIHono } from '@hono/zod-openapi'
 import { z } from 'zod'
 import { wsHub } from '../ws'
 import { scoreSite } from '../../../backend/core/ai/tasks/score-site'
@@ -46,4 +46,48 @@ aiRouter.openapi({
   const settings = await getSettings()
   const result = await draftOutreach(settings, leadId, settings.developer_name ?? 'Your Name', model)
   return c.json(result)
+})
+
+aiRouter.post('/test-connection', async (c) => {
+  const body = await c.req.json().catch(() => ({}))
+  const currentSettings = await getSettings()
+  const mergedSettings = { ...currentSettings, ...body }
+  const { AIClient } = await import('../../../backend/core/ai/ai-client')
+  const client = new AIClient(mergedSettings)
+
+  const testModel = body.model ||
+    (mergedSettings.ai_provider === 'anthropic' || mergedSettings.ai_provider === 'custom_claude'
+      ? 'claude-3-5-sonnet-20241022'
+      : mergedSettings.ai_provider === 'ollama'
+      ? 'llama3'
+      : mergedSettings.ai_provider === 'lmstudio'
+      ? 'default'
+      : mergedSettings.ai_model_site_scoring || 'gpt-4o-mini')
+
+  const start = Date.now()
+  try {
+    const res = await client.complete({
+      model: testModel,
+      messages: [
+        { role: 'user', content: 'Reply with the exact word "PONG" and nothing else.' },
+      ],
+      max_tokens: 20,
+      temperature: 0.1,
+    })
+    const latencyMs = Date.now() - start
+    return c.json({
+      ok: true,
+      provider: mergedSettings.ai_provider,
+      model: res.model || testModel,
+      response: res.content.trim(),
+      latencyMs,
+    })
+  } catch (err: any) {
+    return c.json({
+      ok: false,
+      provider: mergedSettings.ai_provider,
+      error: err.message,
+      latencyMs: Date.now() - start,
+    }, 400)
+  }
 })

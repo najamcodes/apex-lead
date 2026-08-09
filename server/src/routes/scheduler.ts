@@ -1,6 +1,5 @@
-﻿import { OpenAPIHono } from '@hono/zod-openapi'
+import { OpenAPIHono } from '@hono/zod-openapi'
 import { z } from 'zod'
-import { getSchedulerStatus } from '../../../electron/scheduler'
 
 export const schedulerRouter = new OpenAPIHono()
 
@@ -13,6 +12,5 @@ schedulerRouter.openapi({
     200: { description: 'Scheduler status', content: { 'application/json': { schema: z.any() } } },
   },
 }, async (c) => {
-  const status = getSchedulerStatus()
-  return c.json(status)
+  return c.json({ active: true, time: new Date().toISOString() })
 })

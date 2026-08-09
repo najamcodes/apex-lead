@@ -45,7 +45,6 @@ export function createOpenAPIApp() {
       { name: 'QueryProfiles', description: 'Smart query profile management' },
       { name: 'EmailAccounts', description: 'Email account management' },
       { name: 'Users', description: 'User management' },
-      { name: 'Extension', description: 'Chrome extension endpoints' },
       { name: 'Health', description: 'Health check endpoints' },
     ],
   })

@@ -9,8 +9,6 @@ import type {
   Plugin,
   PluginRecord,
   PluginManifest,
-  ScraperPlugin,
-  EnricherPlugin,
   ConnectorPlugin,
   PluginTrigger,
 } from './types'
@@ -83,7 +81,7 @@ async function loadDbConfig(pluginId: string, orgId: number): Promise<{ enabled:
 
   try {
     // Lazy-import to avoid circular dependency; DB may not be ready at module load
-    const { getDataSource } = require('../src/db') as typeof import('../src/db')
+    const { getDataSource } = require('../backend/db') as typeof import('../backend/db')
     const ds = getDataSource()
     if (!ds.isInitialized) return { enabled: false, config: {} }
 
@@ -236,7 +234,7 @@ export async function setPluginEnabled(id: string, enabled: boolean, orgId: numb
   // Invalidate cache
   _configCache.delete(`${orgId}:${id}`)
 
-  const { getDataSource } = require('../src/db') as typeof import('../src/db')
+  const { getDataSource } = require('../backend/db') as typeof import('../backend/db')
   const ds = getDataSource()
   await ds.createQueryBuilder()
     .insert()
@@ -260,7 +258,7 @@ export async function setPluginConfig(id: string, config: Record<string, unknown
   record.config = parsed.data as Record<string, unknown>
   _configCache.delete(`${orgId}:${id}`)
 
-  const { getDataSource } = require('../src/db') as typeof import('../src/db')
+  const { getDataSource } = require('../backend/db') as typeof import('../backend/db')
   const ds = getDataSource()
   await ds.createQueryBuilder()
     .insert()

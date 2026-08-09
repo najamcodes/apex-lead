@@ -5,8 +5,8 @@ import { getCookie } from 'hono/cookie'
 import { serve } from '@hono/node-server'
 import { verifyToken } from './src/auth'
 import { wsHub } from './src/ws'
-import { initDb, getDataSource } from '../src/db'
-import { UserEntity } from '../src/db/entities/UserEntity'
+import { initDb, getDataSource } from '../backend/db'
+import { UserEntity } from '../backend/db/entities/UserEntity'
 import { initSentry, captureException, setUserContext } from './src/utils/sentry'
 import { logger } from './src/utils/logger'
 import { logRequest } from './src/middleware/logger'
@@ -23,13 +23,20 @@ import { outreachRouter } from './src/routes/outreach'
 import { bulkRouter } from './src/routes/bulk'
 import { emailFinderRouter } from './src/routes/email-finder'
 import { emailVerifierRouter } from './src/routes/email-verifier'
-import { pipelineRouter } from './src/routes/pipeline'
 import { schedulerRouter } from './src/routes/scheduler'
 import { usersRouter } from './src/routes/users'
-import { extensionRouter } from './src/routes/extension'
 import { pipelinesRouter } from '../backend/routes/pipelines'
+import { collectionsRouter } from '../backend/routes/collections'
+import { analyticsRouter } from '../backend/routes/analytics'
+import { approvalsRouter } from '../backend/routes/approvals'
+import { aiConnectionsRouter } from '../backend/routes/ai-connections'
+import { customNodesRouter } from '../backend/routes/custom-nodes'
+import { orgRouter, proxyConfigRouter } from './src/routes/orgs'
+import { workersRouter } from './src/routes/workers'
+import { workerHub } from './src/ws/worker-hub'
 
 import { runWithUser, type RequestUser } from './src/context'
+import { UserOrganizationEntity } from '../backend/db/entities/UserOrganizationEntity'
 
 declare global {
   var currentUserId: number | undefined;
@@ -92,17 +99,49 @@ app.use('/api/*', async (c, next) => {
   const user = await userRepo.findOneBy({ id: (payload as any).id })
   if (!user) return c.json({ error: 'Unauthorized' }, 401)
   
-  // Set global context for backward compatibility with shared DB queries
-  global.currentUserId = user.id
-  global.currentOrgId = user.org_id
-  global.currentUserRole = user.role
-  global.currentUserPermissions = JSON.parse(user.permissions || '[]')
+  // Resolve current org: prefer token's org_id, fallback to user's default_org_id
+  const tokenOrgId: number = (payload as any).org_id ?? user.default_org_id ?? 1
   
+  // Resolve org-specific role from user_organizations table
+  let orgRole = user.role // fallback to global role (e.g. super_admin)
+  let orgPermissions: string[] = JSON.parse(user.permissions || '[]')
+  if (user.role !== 'super_admin') {
+    try {
+      const userOrgRepo = getDataSource().getRepository(UserOrganizationEntity)
+      const link = await userOrgRepo.findOne({ where: { user_id: user.id, org_id: tokenOrgId } })
+      if (link) {
+        orgRole = link.role
+        orgPermissions = JSON.parse(link.permissions || '[]')
+      }
+    } catch {
+      // fallback to user's global role if query fails
+    }
+  }
+
+  const requestUser: RequestUser = {
+    id: user.id,
+    org_id: tokenOrgId,
+    role: orgRole,
+    permissions: orgPermissions,
+    name: user.name,
+    email: user.email,
+  }
+
   // Set Sentry user context for error tracking
-  setUserContext({ id: String(user.id), email: user.email, role: user.role })
+  setUserContext({ id: String(user.id), email: user.email, role: orgRole })
   
-  ;(c as any).set('user', user)
-  await next()
+  // Store full user on Hono context for direct access in route handlers
+  ;(c as any).set('user', requestUser)
+
+  // Set legacy globals for Electron / non-server contexts (backward compat)
+  global.currentUserId = user.id
+  global.currentOrgId = tokenOrgId
+  global.currentUserRole = orgRole
+  global.currentUserPermissions = orgPermissions
+
+  // PRIMARY: wrap next() in AsyncLocalStorage so all downstream calls
+  // (queries, engine, plugins) get the correct per-request user context
+  await runWithUser(requestUser, async () => { await next() })
 })
 
 // ── Routes ─────────────────────────────────────────────────────────
@@ -118,11 +157,17 @@ app.route('/api/outreach', outreachRouter as any)
 app.route('/api/bulk', bulkRouter as any)
 app.route('/api/email-finder', emailFinderRouter as any)
 app.route('/api/email-verifier', emailVerifierRouter as any)
-app.route('/api/pipeline', pipelineRouter as any)
 app.route('/api/scheduler', schedulerRouter as any)
 app.route('/api/users', usersRouter as any)
-app.route('/api/extension', extensionRouter as any)
 app.route('/api/pipelines', pipelinesRouter as any)
+app.route('/api/collections', collectionsRouter as any)
+app.route('/api/analytics', analyticsRouter as any)
+app.route('/api/approvals', approvalsRouter as any)
+app.route('/api/ai-connections', aiConnectionsRouter as any)
+app.route('/api/custom-nodes', customNodesRouter as any)
+app.route('/api/workers', workersRouter as any)
+app.route('/api/orgs', orgRouter as any)
+app.route('/api/proxy-configs', proxyConfigRouter as any)
 app.route('/api', apiRouter as any)
 
 // ── OpenAPI / Swagger UI ───────────────────────────────────────────
@@ -181,7 +226,6 @@ app.get('/doc', (c) => {
       { name: 'QueryProfiles', description: 'Smart query profile management' },
       { name: 'EmailAccounts', description: 'Email account management' },
       { name: 'Users', description: 'User management' },
-      { name: 'Extension', description: 'Chrome extension endpoints' },
       { name: 'Health', description: 'Health check endpoints' },
     ],
     paths: {},
@@ -224,6 +268,7 @@ app.get('/health/detailed', async (c) => {
 
 app.get('/ws', (c) => {
   const ws = (c.env as any).upgrade(c.req.raw)
+  const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip')
   
   ws.addEventListener('open', () => {
     logger.debug('WebSocket connected')
@@ -235,6 +280,9 @@ app.get('/ws', (c) => {
       if (msg.type === 'subscribe') {
         const channels = Array.isArray(msg.channels) ? msg.channels : [msg.channel]
         channels.forEach((ch: string) => wsHub.subscribe(ch, ws))
+      } else if (typeof msg.type === 'string' && msg.type.startsWith('worker:')) {
+        // Forward directly to workerHub if connected via /ws
+        workerHub.handleConnection(ws, ip)
       }
     } catch {
       // ignore malformed
@@ -249,6 +297,13 @@ app.get('/ws', (c) => {
     wsHub.unsubscribe(ws)
   })
 
+  return ws
+})
+
+app.get('/ws/workers', (c) => {
+  const ws = (c.env as any).upgrade(c.req.raw)
+  const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip')
+  workerHub.handleConnection(ws, ip)
   return ws
 })
 
