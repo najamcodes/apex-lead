@@ -1,4 +1,4 @@
-﻿// src/services/api.interface.ts
+// src/services/api.interface.ts
 // Typed interface for the API service layer.
 // Both the Electron adapter (api) and the Web adapter (fetch)
 // implement this same interface. Stores and screens import `api` from
@@ -23,11 +23,6 @@ import type { AnalysisResult } from '../../shared/types/analysis.types'
 import type { OutreachRecord, SendResult, SequenceSummary } from '../../shared/types/outreach.types'
 import type { ActivityRecord, NoteRecord } from '../../shared/types/activity.types'
 import type {
-  ScrapeTarget,
-  ScrapeTargetInsert,
-  DigestRun,
-  QueryProfile,
-  QueryProfileInsert,
   PipelineDefinition,
   PipelineRun,
   NodeTypeDescriptor,
@@ -59,6 +54,7 @@ export interface IApiService {
   ai: {
     scoreSite: (leadId: number, model?: string) => Promise<SiteScoreResult>
     draftEmail: (leadId: number, model?: string) => Promise<OutreachDraft>
+    testConnection: (params?: Record<string, any>) => Promise<{ ok: boolean; provider: string; model: string; response?: string; error?: string; latencyMs: number }>
   }
   settings: {
     get: () => Promise<AppSettings>
@@ -126,26 +122,6 @@ export interface IApiService {
     update: (id: number, data: Partial<EmailTemplate>) => Promise<EmailTemplate>
     delete: (id: number) => Promise<void>
   }
-  pipeline: {
-    getTargets: () => Promise<ScrapeTarget[]>
-    addTarget: (data: ScrapeTargetInsert) => Promise<ScrapeTarget>
-    updateTarget: (id: number, patch: Partial<ScrapeTarget>) => Promise<void>
-    toggleTarget: (id: number) => Promise<void>
-    deleteTarget: (id: number) => Promise<void>
-    getDigests: () => Promise<DigestRun[]>
-    getStatus: () => Promise<any>
-    runNow: () => Promise<any>
-    sendDigestNow: () => Promise<void>
-    restartRunner: () => Promise<void>
-    onLog: (cb: (msg: string) => void) => () => void
-  }
-  queryProfiles: {
-    getAll: () => Promise<QueryProfile[]>
-    getActive: () => Promise<QueryProfile[]>
-    insert: (data: QueryProfileInsert) => Promise<QueryProfile>
-    updateStatus: (id: number, status: 'active' | 'paused' | 'error') => Promise<boolean>
-    delete: (id: number) => Promise<boolean>
-  }
   emailAccounts: {
     getAll: () => Promise<EmailAccount[]>
     add: (data: EmailAccountInsert) => Promise<EmailAccount>
@@ -160,8 +136,9 @@ export interface IApiService {
   }
   users: {
     list: () => Promise<any>
-    add: (args: { email: string; password: string }) => Promise<any>
+    add: (args: { email: string; password: string; role?: string; name?: string }) => Promise<any>
     updatePermissions: (userId: number, permissions: string[]) => Promise<any>
+    updateRole: (userId: number, role: string) => Promise<any>
     delete: (userId: number) => Promise<any>
   }
   pipelines: {
@@ -170,11 +147,155 @@ export interface IApiService {
     create: (data: Partial<PipelineDefinition>) => Promise<PipelineDefinition>
     update: (id: string, data: Partial<PipelineDefinition>) => Promise<PipelineDefinition>
     delete: (id: string) => Promise<void>
-    run: (id: string, input: Record<string, unknown>) => Promise<{ runId: string; status: string }>
+    duplicate: (id: string) => Promise<PipelineDefinition>
+    run: (id: string, input: Record<string, unknown>, target?: string) => Promise<{ runId: string; status: string; execution_target?: string; workerId?: string; workerName?: string }>
+    replay: (pipelineId: string, runId: string, fromNodeId: string) => Promise<{ runId: string; status: string; replayOf: string; fromNodeId: string }>
     getRun: (runId: string) => Promise<PipelineRun>
     listRuns: (pipelineId: string) => Promise<{ runs: PipelineRun[] }>
     cancelRun: (runId: string) => Promise<void>
     nodeTypes: () => Promise<{ types: NodeTypeDescriptor[] }>
     collections: () => Promise<{ collections: CollectionDefinition[] }>
+    templates: () => Promise<{ templates: any[] }>
+    instantiateTemplate: (templateId: string) => Promise<PipelineDefinition>
+  }
+  collections: {
+    list: () => Promise<{ collections: Array<{ name: string; label: string; totalRecords: number; lastUpdated: string | null; isSystem: boolean }> }>
+    get: (name: string, params?: { page?: number; limit?: number; search?: string; sortBy?: string; sortDir?: 'ASC' | 'DESC' }) => Promise<{
+      collection: string
+      total: number
+      page: number
+      limit: number
+      totalPages: number
+      columns: Array<{ key: string; label: string; type: string }>
+      records: Array<Record<string, unknown>>
+    }>
+    update: (name: string, id: string, body: Record<string, unknown>) => Promise<{ success: boolean; record: Record<string, unknown> }>
+    delete: (name: string, id: string) => Promise<{ success: boolean }>
+    export: (name: string, format?: 'csv' | 'json') => Promise<Blob | string>
+  }
+  analytics: {
+    getRoi: () => Promise<{
+      funnel: Array<{ name: string; key: string; count: number; percentage: number; dropoffRate: number; color: string }>
+      metrics: {
+        totalLeads: number
+        qualifiedRate: number
+        emailDiscoveryRate: number
+        outreachSent: number
+        openRate: number
+        replyRate: number
+        pipelineRunsTotal: number
+        pipelineSuccessRate: number
+      }
+      topCategories: Array<{ category: string; total: number; qualified: number; emailFound: number }>
+      topCities: Array<{ city: string; total: number; qualified: number; emailFound: number }>
+      sources: Array<{ source: string; total: number; percentage: number }>
+    }>
+  }
+  approvals: {
+    list: (status?: string) => Promise<{ approvals: ApprovalSummary[]; pendingCount: number }>
+    get: (id: string) => Promise<ApprovalDetail>
+    action: (id: string, action: 'approve' | 'reject', modifiedRecords?: any[], reviewerNotes?: string) => Promise<{ success: boolean; status: string }>
+  }
+  aiConnections: {
+    list: () => Promise<{ data: AIConnectionProfile[] }>
+    get: (id: string) => Promise<{ data: AIConnectionProfile }>
+    create: (data: Partial<AIConnectionProfile>) => Promise<{ data: AIConnectionProfile }>
+    update: (id: string, data: Partial<AIConnectionProfile>) => Promise<{ data: AIConnectionProfile }>
+    delete: (id: string) => Promise<{ ok: boolean }>
+    setDefault: (id: string) => Promise<{ ok: boolean; data: AIConnectionProfile }>
+    test: (id: string) => Promise<{ ok: boolean; name: string; provider: string; model: string; response?: string; error?: string; latencyMs: number }>
+  }
+  customNodes: {
+    list: () => Promise<{ data: CustomNode[] }>
+    get: (id: string) => Promise<{ data: CustomNode }>
+    create: (data: Partial<CustomNode>) => Promise<{ data: CustomNode }>
+    update: (id: string, data: Partial<CustomNode>) => Promise<{ data: CustomNode }>
+    delete: (id: string) => Promise<{ ok: boolean }>
+    test: (id: string, args: { input?: any; config?: any }) => Promise<{ ok: boolean; nodeName?: string; durationMs: number; emitted?: any[]; logs?: any[]; error?: string }>
+  }
+  workers: {
+    list: () => Promise<{ workers: WorkerNodeSummary[]; summary: WorkerFarmSummary }>
+    generateToken: () => Promise<{ token: string; org_id: number }>
+    delete: (id: string) => Promise<{ success: boolean }>
+    dispatch: (args: { runId: string; pipeline: any; input?: Record<string, unknown>; targetWorkerId?: string }) => Promise<any>
+    getLocalStatus: () => Promise<any>
+    saveLocalConfig: (config: any) => Promise<any>
+    connectLocal: () => Promise<any>
+    disconnectLocal: () => Promise<any>
   }
 }
+
+export interface WorkerNodeSummary {
+  id: string
+  name: string
+  platform: string
+  status: 'online' | 'busy' | 'idle' | 'offline'
+  capabilities: string[]
+  max_concurrency: number
+  active_jobs: number
+  ip_address: string | null
+  version: string | null
+  last_heartbeat_at: string | null
+  created_at: string
+}
+
+export interface WorkerFarmSummary {
+  total: number
+  online: number
+  busy: number
+  idle: number
+}
+
+export interface ApprovalSummary {
+  id: string
+  pipelineId: string
+  runId: string
+  nodeId: string
+  nodeLabel: string
+  recordCount: number
+  sampleRecords: any[]
+  records: any[]
+  modifiedRecords: any[] | null
+  status: 'pending' | 'approved' | 'rejected' | 'timeout'
+  reviewerNotes: string | null
+  reviewedBy: string | null
+  reviewedAt: string | null
+  createdAt: string
+}
+
+export interface ApprovalDetail extends ApprovalSummary {}
+
+export interface AIConnectionProfile {
+  id: string
+  org_id: number
+  name: string
+  provider: 'openrouter' | 'openai' | 'groq' | 'gemini' | 'anthropic' | 'lmstudio' | 'ollama' | 'custom_openai' | 'custom_claude'
+  base_url: string | null
+  api_key: string | null
+  default_model: string | null
+  is_default: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface CustomNode {
+  id: string
+  org_id: number
+  name: string
+  node_key: string | null
+  description: string | null
+  category: string
+  icon: string
+  color: string
+  code: string
+  config_schema: string
+  inputs: string
+  outputs: string
+  enabled: boolean
+  created_by: number | null
+  created_at: string
+  updated_at: string
+}
+
+export type ApiClient = IApiService
+

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import type { NodeTypeDescriptor, PipelineNode } from '../../../shared/types/pipeline.types'
+import { api } from '../../services/api'
+import type { AIConnectionProfile } from '../../services/api.interface'
 
 interface NodeConfigPanelProps {
   node: PipelineNode
@@ -15,11 +17,19 @@ interface NodeConfigPanelProps {
 export function NodeConfigPanel({ node, descriptor, onUpdate, onToggleEnabled, onDelete, onClose }: NodeConfigPanelProps) {
   const [label, setLabel] = useState(node.label)
   const [config, setConfig] = useState<Record<string, unknown>>(node.config)
+  const [aiConnections, setAiConnections] = useState<AIConnectionProfile[]>([])
 
   useEffect(() => {
     setLabel(node.label)
     setConfig(node.config)
   }, [node.id, node.label, node.config])
+
+  useEffect(() => {
+    // Load available AI connection profiles for nodes with AI capabilities
+    api.aiConnections.list().then(res => {
+      if (res.data) setAiConnections(res.data)
+    }).catch(() => {})
+  }, [])
 
   const handleFieldChange = (key: string, value: unknown) => {
     const next = { ...config, [key]: value }
@@ -67,9 +77,25 @@ export function NodeConfigPanel({ node, descriptor, onUpdate, onToggleEnabled, o
           <p className="text-xs text-slate-400 leading-relaxed">{descriptor.description}</p>
         )}
 
+        {/* Webhook URL Helper for Webhook Triggers */}
+        {node.type === 'trigger' && config.type === 'webhook' && (
+          <div className="p-3 bg-emerald-950/40 border border-emerald-800/60 rounded-md text-xs space-y-1.5">
+            <div className="flex items-center justify-between text-emerald-400 font-medium">
+              <span>Webhook Trigger Endpoint</span>
+              <span className="text-[10px] uppercase tracking-wider bg-emerald-900/60 px-1.5 py-0.5 rounded">POST</span>
+            </div>
+            <div className="font-mono text-[11px] bg-slate-950/80 p-2 rounded border border-emerald-900/50 text-emerald-300 break-all select-all">
+              {`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:4000'}/api/pipelines/webhook/${config.webhook_slug || 'your-slug'}`}
+            </div>
+            <p className="text-[11px] text-slate-400">
+              Send an HTTP POST request with JSON body to this URL to trigger this pipeline immediately.
+            </p>
+          </div>
+        )}
+
         {/* Help */}
         {descriptor?.help && (
-          <div className="p-2 bg-slate-800 rounded text-xs text-slate-400 border border-slate-700">
+          <div className="p-2.5 bg-slate-800/80 rounded text-xs text-slate-400 border border-slate-700 whitespace-pre-line leading-relaxed">
             💡 {descriptor.help}
           </div>
         )}
@@ -77,15 +103,30 @@ export function NodeConfigPanel({ node, descriptor, onUpdate, onToggleEnabled, o
         {/* Config fields */}
         <div className="space-y-3">
           <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wide">Configuration</h4>
-          {descriptor && Object.entries(descriptor.configSchema).map(([key, schema]) => (
-            <ConfigField
-              key={key}
-              fieldKey={key}
-              schema={schema as ConfigFieldSchema}
-              value={config[key]}
-              onChange={(value) => handleFieldChange(key, value)}
-            />
-          ))}
+          {descriptor && Object.entries(descriptor.configSchema).map(([key, schema]) => {
+            const fieldSchema = { ...(schema as ConfigFieldSchema) }
+
+            // Dynamically inject AI connection options
+            if (key === 'ai_connection_id') {
+              fieldSchema.options = [
+                { label: 'Default (From Settings)', value: '' },
+                ...aiConnections.map(c => ({
+                  label: `${c.name} (${c.provider}${c.default_model ? ` / ${c.default_model}` : ''})${c.is_default ? ' [Default]' : ''}`,
+                  value: c.id,
+                }))
+              ]
+            }
+
+            return (
+              <ConfigField
+                key={key}
+                fieldKey={key}
+                schema={fieldSchema}
+                value={config[key]}
+                onChange={(value) => handleFieldChange(key, value)}
+              />
+            )
+          })}
           {descriptor && Object.keys(descriptor.configSchema).length === 0 && (
             <p className="text-xs text-slate-500 italic">No configuration needed.</p>
           )}
@@ -138,13 +179,18 @@ export function NodeConfigPanel({ node, descriptor, onUpdate, onToggleEnabled, o
   )
 }
 
+interface SelectOption {
+  label: string
+  value: string
+}
+
 interface ConfigFieldSchema {
   type: 'string' | 'text' | 'number' | 'boolean' | 'select' | 'json'
   label: string
   required?: boolean
   description?: string
   default?: unknown
-  options?: string[]
+  options?: Array<string | SelectOption>
 }
 
 function ConfigField({ fieldKey, schema, value, onChange }: {
@@ -204,9 +250,13 @@ function FieldInput({ schema, value, onChange }: {
           className={baseClass}
         >
           <option value="">— Select —</option>
-          {(schema.options ?? []).map(opt => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
+          {(schema.options ?? []).map(opt => {
+            const optValue = typeof opt === 'string' ? opt : opt.value
+            const optLabel = typeof opt === 'string' ? opt : opt.label
+            return (
+              <option key={optValue} value={optValue}>{optLabel}</option>
+            )
+          })}
         </select>
       )
     case 'text':

@@ -7,11 +7,15 @@ import { Scraper } from './screens/Scraper'
 import { Settings } from './screens/Settings'
 import { Review } from './screens/Review'
 import { Login } from './screens/Auth/Login'
-import { useAuthStore } from './store/auth.store'
+import { useAuthStore, canManageOrg, roleLevel } from './store/auth.store'
 import { Outreach } from './screens/Outreach'
 import { Tutorial } from './screens/Tutorial'
-import { Pipeline } from './screens/Pipeline'
 import { Pipelines } from './screens/Pipelines'
+import WorkersScreen from './screens/Workers'
+import DataStudio from './screens/DataStudio'
+import AnalyticsDashboard from './screens/Analytics'
+import ApprovalsScreen from './screens/Approvals'
+import { OrgManager } from './screens/Settings/OrgManager'
 import { useEffect, useState } from 'react'
 import { useThemeStore } from './store/theme.store'
 import { useNavigate } from 'react-router-dom'
@@ -19,7 +23,8 @@ import { api } from './services/api'
 
 function ProtectedRoute({ children, perm }: { children: React.ReactNode, perm: string | null }) {
   const { role, permissions } = useAuthStore()
-  if (role === 'admin') return <>{children}</>
+  // org_admin and above bypass all permission checks
+  if (canManageOrg(role ?? 'user')) return <>{children}</>
   if (!perm) return <>{children}</>
   if (permissions.includes(perm)) return <>{children}</>
 
@@ -27,6 +32,18 @@ function ProtectedRoute({ children, perm }: { children: React.ReactNode, perm: s
     <div className="flex flex-col items-center justify-center h-full text-center space-y-4 font-sans">
       <h2 className="text-2xl font-bold text-red-500">Access Denied</h2>
       <p className="text-zinc-400">You do not have permission to view this page.</p>
+    </div>
+  )
+}
+
+/** Route guard for minimum role level (e.g. super_admin only pages) */
+function MinRoleRoute({ children, minRole }: { children: React.ReactNode, minRole: string }) {
+  const { role } = useAuthStore()
+  if (roleLevel(role ?? 'user') >= roleLevel(minRole)) return <>{children}</>
+  return (
+    <div className="flex flex-col items-center justify-center h-full text-center space-y-4 font-sans">
+      <h2 className="text-2xl font-bold text-red-500">Access Denied</h2>
+      <p className="text-zinc-400">This area requires {minRole} access or higher.</p>
     </div>
   )
 }
@@ -118,10 +135,15 @@ export default function App() {
           <Route path="/scraper" element={<ProtectedRoute perm="run_scraper"><Scraper /></ProtectedRoute>} />
           <Route path="/review" element={<ProtectedRoute perm="view_leads"><Review /></ProtectedRoute>} />
           <Route path="/outreach" element={<ProtectedRoute perm="send_outreach"><Outreach /></ProtectedRoute>} />
-          <Route path="/pipeline" element={<ProtectedRoute perm="manage_settings"><Pipeline /></ProtectedRoute>} />
+          <Route path="/pipeline" element={<Navigate to="/pipelines" replace />} />
           <Route path="/pipelines" element={<ProtectedRoute perm={null}><Pipelines /></ProtectedRoute>} />
+          <Route path="/approvals" element={<ProtectedRoute perm={null}><ApprovalsScreen /></ProtectedRoute>} />
+          <Route path="/data-studio" element={<ProtectedRoute perm={null}><DataStudio /></ProtectedRoute>} />
+          <Route path="/analytics" element={<ProtectedRoute perm={null}><AnalyticsDashboard /></ProtectedRoute>} />
+          <Route path="/workers" element={<ProtectedRoute perm={null}><WorkersScreen /></ProtectedRoute>} />
           <Route path="/tutorial" element={<ProtectedRoute perm={null}><Tutorial /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute perm={null}><Settings /></ProtectedRoute>} />
+          <Route path="/orgs" element={<MinRoleRoute minRole="org_admin"><OrgManager /></MinRoleRoute>} />
         </Route>
       </Routes>
     </HashRouter>

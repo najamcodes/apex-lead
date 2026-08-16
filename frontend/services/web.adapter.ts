@@ -4,6 +4,7 @@
 
 import type { IApiService } from './api.interface'
 import { wsClient } from './ws-client'
+import { sharedServerAdapters } from './pipelines.adapter'
 
 // In Next.js use NEXT_PUBLIC_API_URL; in Vite use VITE_API_URL
 const BASE = (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_URL)
@@ -118,7 +119,8 @@ export const webAdapter: IApiService = {
 
   ai: {
     scoreSite: (leadId, model) => post('/api/ai/score-site', { leadId, model }),
-    draftEmail: (leadId, model) => post('/api/ai/draft-email', { leadId, model })
+    draftEmail: (leadId, model) => post('/api/ai/draft-email', { leadId, model }),
+    testConnection: (params) => post('/api/ai/test-connection', params || {})
   },
 
   settings: {
@@ -188,28 +190,6 @@ export const webAdapter: IApiService = {
     delete: (id) => del(`/api/templates/${id}`)
   },
 
-  pipeline: {
-    getTargets: () => get('/api/pipeline/targets'),
-    addTarget: (data) => post('/api/pipeline/targets', data),
-    updateTarget: (id, patch_) => put(`/api/pipeline/targets/${id}`, patch_),
-    toggleTarget: (id) => patch(`/api/pipeline/targets/${id}/toggle`),
-    deleteTarget: (id) => del(`/api/pipeline/targets/${id}`),
-    getDigests: () => get('/api/pipeline/digests'),
-    getStatus: () => get('/api/pipeline/status'),
-    runNow: () => post('/api/pipeline/run'),
-    sendDigestNow: () => post('/api/pipeline/digest'),
-    restartRunner: () => post('/api/pipeline/restart'),
-    onLog: (cb) => wsClient.subscribe('pipeline:log', cb)
-  },
-
-  queryProfiles: {
-    getAll: () => get('/api/query-profiles'),
-    getActive: () => get('/api/query-profiles/active'),
-    insert: (data) => post('/api/query-profiles', data),
-    updateStatus: (id, status) => patch(`/api/query-profiles/${id}/status`, { status }),
-    delete: (id) => del(`/api/query-profiles/${id}`)
-  },
-
   emailAccounts: {
     getAll: () => get('/api/email-accounts'),
     add: (data) => post('/api/email-accounts', data),
@@ -228,19 +208,15 @@ export const webAdapter: IApiService = {
     list: () => get('/api/users'),
     add: (args) => post('/api/users', args),
     updatePermissions: (userId, permissions) => put(`/api/users/${userId}/permissions`, { permissions }),
+    updateRole: (userId, role) => put(`/api/users/${userId}/role`, { role }),
     delete: (userId) => del(`/api/users/${userId}`)
   },
-  pipelines: {
-    list: () => get('/api/pipelines'),
-    get: (id) => get(`/api/pipelines/${id}`),
-    create: (data) => post('/api/pipelines', data),
-    update: (id, data) => put(`/api/pipelines/${id}`, data),
-    delete: (id) => del(`/api/pipelines/${id}`),
-    run: (id, input) => post(`/api/pipelines/${id}/run`, input),
-    getRun: (runId) => get(`/api/pipelines/runs/${runId}`),
-    listRuns: (pipelineId) => get(`/api/pipelines/${pipelineId}/runs`),
-    cancelRun: (runId) => post(`/api/pipelines/runs/${runId}/cancel`, {}),
-    nodeTypes: () => get('/api/pipelines/node-types'),
-    collections: () => get('/api/pipelines/collections')
-  }
-}
+  ...sharedServerAdapters,
+  workers: {
+    ...sharedServerAdapters.workers,
+    getLocalStatus: async () => ({ connected: false, enabled: false, message: 'Web environment' }),
+    saveLocalConfig: async () => ({}),
+    connectLocal: async () => ({}),
+    disconnectLocal: async () => ({}),
+  } as any
+} as unknown as IApiService

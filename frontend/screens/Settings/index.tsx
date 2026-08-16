@@ -4,9 +4,12 @@ import { useSettingsStore } from '../../store/settings.store'
 import { Card } from '../../components/ui/Card'
 import { Input } from '../../components/ui/Input'
 import { ApiKeySettings } from './ApiKeySettings'
+import { AIConnectionsManager } from './AIConnectionsManager'
+import { CustomNodesManager } from './CustomNodesManager'
 import { EmailAccountsManager } from './EmailAccountsManager'
 import { EmailTemplatesManager } from './EmailTemplatesManager'
 import { TeamManager } from './TeamManager'
+import { WorkerSettings } from './WorkerSettings'
 import { api } from '../../services/api'
 
 export function Settings() {
@@ -113,6 +116,14 @@ export function Settings() {
 
         <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">Manage Templates</h4>
         <EmailTemplatesManager />
+      </Card>
+
+      <Card>
+        <CustomNodesManager />
+      </Card>
+
+      <Card>
+        <AIConnectionsManager />
       </Card>
 
       <Card>
@@ -350,7 +361,6 @@ export function Settings() {
               defaultChecked={settings.pipeline_enabled}
               onChange={async (e) => {
                 await save({ pipeline_enabled: e.target.checked })
-                await api.pipeline.restartRunner()
               }}
               className="w-4 h-4 rounded border-zinc-600 bg-zinc-800 text-emerald-500"
             />
@@ -358,10 +368,10 @@ export function Settings() {
           <div className="grid grid-cols-2 gap-3">
             <Input label="Scrape time (cron)" placeholder="0 2 * * *"
               defaultValue={settings.pipeline_scrape_cron}
-              onBlur={async (e) => { await save({ pipeline_scrape_cron: e.target.value }); await api.pipeline.restartRunner() }} />
+              onBlur={async (e) => { await save({ pipeline_scrape_cron: e.target.value }) }} />
             <Input label="Digest time (cron)" placeholder="0 7 * * *"
               defaultValue={settings.pipeline_digest_cron}
-              onBlur={async (e) => { await save({ pipeline_digest_cron: e.target.value }); await api.pipeline.restartRunner() }} />
+              onBlur={async (e) => { await save({ pipeline_digest_cron: e.target.value }) }} />
           </div>
           <Input label="Digest recipient email" type="email"
             placeholder="you@email.com"
@@ -420,6 +430,10 @@ export function Settings() {
       <EmailAccountsManager />
       
       <TeamManager />
+
+      <Card>
+        <WorkerSettings />
+      </Card>
 
       <div className="flex items-center gap-4">
         <button

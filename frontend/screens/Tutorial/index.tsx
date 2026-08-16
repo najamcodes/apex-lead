@@ -6,7 +6,7 @@ export function Tutorial() {
   return (
     <div className="space-y-6 max-w-4xl font-sans pb-12">
       <div className="flex flex-col gap-2 mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-100">Welcome to LeadHunter</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-100">Welcome to ApexLead</h1>
         <p className="text-zinc-400">
           Everything you need to know to automate your lead generation and outreach.
         </p>
@@ -27,7 +27,7 @@ export function Tutorial() {
               <div className="space-y-3 text-zinc-300">
                 <p><strong>1. Configure Settings:</strong> Head to the Settings page and input your API keys (like OpenAI, OpenRouter, Google PageSpeed) to enable AI scoring and website analysis.</p>
                 <p><strong>2. Add Email Accounts:</strong> On the Settings page, add the Gmail/SMTP accounts you want to use for outreach.</p>
-                <p><strong>3. Scrape Leads:</strong> Go to the Scraper page, type in your search query (e.g., "Plumbers in Austin, TX"), and click "Scrape". LeadHunter will use stealth automation to find Google Maps businesses and their websites.</p>
+                <p><strong>3. Scrape Leads:</strong> Go to the Scraper page, type in your search query (e.g., "Plumbers in Austin, TX"), and click "Scrape". ApexLead will use stealth automation to find Google Maps businesses and their websites.</p>
                 <p><strong>4. Review & Approve:</strong> Go to the Review page. The AI will have automatically scored the leads based on their website quality and contact info. Click "Approve" for the ones you want to contact.</p>
                 <p><strong>5. Outreach Pipeline:</strong> Once approved, the system takes over. Background tasks will draft personalized emails using AI, run email validation, and gradually send emails through your configured accounts on a schedule. You can view all activity on the Dashboard or the Leads tab.</p>
               </div>
@@ -48,7 +48,7 @@ export function Tutorial() {
             </div>
             <div className="space-y-4">
               <h2 className="text-xl font-semibold text-blue-100">Integrating Services</h2>
-              <p className="text-zinc-400 text-sm">LeadHunter relies on a few external APIs to be fully effective. All of these can be configured in the Settings tab inside the app.</p>
+              <p className="text-zinc-400 text-sm">ApexLead relies on a few external APIs to be fully effective. All of these can be configured in the Settings tab inside the app.</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-800">
@@ -112,7 +112,7 @@ export function Tutorial() {
                     <h3 className="font-semibold text-zinc-200">2. IPRoyal</h3>
                   </div>
                   <p className="text-sm text-zinc-400 mb-2"><strong className="text-zinc-300">Cost:</strong> ~$1.75/GB for Residential Proxies (Pay as you go).</p>
-                  <p className="text-sm text-zinc-300">Residential IPs rarely get blocked by Google. Since LeadHunter doesn't download large files, 1GB will last a very long time.</p>
+                  <p className="text-sm text-zinc-300">Residential IPs rarely get blocked by Google. Since ApexLead doesn't download large files, 1GB will last a very long time.</p>
                 </div>
 
                 <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-800">

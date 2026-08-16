@@ -1,10 +1,11 @@
 // src/components/layout/AppShell.tsx
 import { ReactNode } from 'react'
+import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { ErrorBoundary } from '../ui/ErrorBoundary'
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children }: { children?: ReactNode }) {
   return (
     <div className="relative flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden select-none font-sans">
       {/* Ambient background glows */}
@@ -17,7 +18,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <TopBar />
           <main className="flex-1 overflow-y-auto p-6 bg-transparent animate-in slide-in-from-bottom-4 fade-in duration-500">
             <ErrorBoundary>
-              {children}
+              {children ?? <Outlet />}
             </ErrorBoundary>
           </main>
         </div>

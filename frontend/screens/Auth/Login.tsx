@@ -26,14 +26,28 @@ export function Login() {
         // We will implement an IPC call for auth:login
         const result = await api.auth.login({ email, password })
         if (result.success) {
-          login(result.user.id, result.user.org_id, result.user.email, result.user.role, result.user.permissions)
+          login({
+            userId: result.user.id,
+            orgId: result.user.org_id,
+            email: result.user.email,
+            role: result.user.role,
+            permissions: result.user.permissions,
+            name: result.user.name,
+          })
         } else {
           setError(result.error || 'Invalid credentials')
         }
       } else {
         const result = await api.auth.register({ email, password })
         if (result.success) {
-          login(result.user.id, result.user.org_id, result.user.email, result.user.role, result.user.permissions)
+          login({
+            userId: result.user.id,
+            orgId: result.user.org_id,
+            email: result.user.email,
+            role: result.user.role,
+            permissions: result.user.permissions,
+            name: result.user.name,
+          })
         } else {
           setError(result.error || 'Registration failed')
         }

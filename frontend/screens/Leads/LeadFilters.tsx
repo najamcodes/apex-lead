@@ -1,4 +1,4 @@
-﻿// src/screens/Leads/LeadFilters.tsx
+// src/screens/Leads/LeadFilters.tsx
 import { Search } from 'lucide-react'
 import { useLeadsStore } from '../../store/leads.store'
 import type { LeadFilters as Filters } from '../../../shared/types'
@@ -58,7 +58,6 @@ export function LeadFilters() {
       >
         <option value="all">All sources</option>
         <option value="google_maps">Google Maps</option>
-        <option value="extension">Chrome Extension</option>
         <option value="manual">Manual</option>
       </select>
 
