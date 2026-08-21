@@ -8,12 +8,11 @@ import { registerAnalysisIpcHandlers } from './analysis.ipc'
 import { registerOutreachIpcHandlers } from './outreach.ipc'
 import { registerBulkIpcHandlers } from './bulk.ipc'
 import { registerTemplatesIpc } from './templates.ipc'
-import { registerPipelineIpcHandlers } from './pipeline.ipc'
-import { registerQueryProfilesIpc } from './query-profiles.ipc'
 import { registerEmailAccountsIpc } from './email-accounts.ipc'
 import { registerAuthHandlers } from './auth.ipc'
 import { registerUsersHandlers } from './users.ipc'
 import { registerPluginIpcHandlers } from './plugins.ipc'
+import { registerWorkerIpc } from './worker.ipc'
 
 export function registerAllIpcHandlers(win: BrowserWindow): void {
   registerLeadIpcHandlers()
@@ -24,10 +23,9 @@ export function registerAllIpcHandlers(win: BrowserWindow): void {
   registerOutreachIpcHandlers()
   registerBulkIpcHandlers()
   registerTemplatesIpc()
-  registerPipelineIpcHandlers(win)
-  registerQueryProfilesIpc()
   registerEmailAccountsIpc()
   registerAuthHandlers()
   registerUsersHandlers()
   registerPluginIpcHandlers()
+  registerWorkerIpc()
 }

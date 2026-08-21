@@ -1,4 +1,4 @@
-﻿// electron/main.ts
+// electron/main.ts
 import 'reflect-metadata'
 
 // Suppress punycode deprecation warning from dependencies
@@ -15,10 +15,9 @@ import path from 'path'
 import { initDb } from '../backend/db'
 import { registerAllIpcHandlers } from './ipc'
 import { initScheduler } from './scheduler'
-import { startLocalServer, stopLocalServer } from './local-server'
 import { initSmtp } from '../backend/core/outreach'
-import { startNightlyRunner } from './pipeline/nightly-runner'
 import { initPluginRegistry } from '../plugins/registry'
+import { workerAgent } from './worker/worker-agent'
 
 async function createWindow(): Promise<void> {
   const win = new BrowserWindow({
@@ -59,13 +58,8 @@ app.whenReady().then(async () => {
   await initDb()                 // 1. Database first
   await initPluginRegistry()     // 2. Plugins (need DB for config)
   await initSmtp()               // 3. SMTP transporter
-  startLocalServer()             // 4. Chrome extension local server
-  startNightlyRunner()           // 5. Pipeline nightly runner
-  await createWindow()           // 6. UI
-})
-
-app.on('will-quit', () => {
-  stopLocalServer()
+  await workerAgent.init()       // 4. Child worker agent (farm node)
+  await createWindow()           // 5. UI
 })
 
 app.on('window-all-closed', () => {

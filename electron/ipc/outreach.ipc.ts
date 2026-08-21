@@ -1,5 +1,5 @@
-﻿// electron/ipc/outreach.ipc.ts
-import { ipcMain } from 'electron'
+import { ipcMain, dialog } from 'electron'
+import fs from 'fs'
 import { IPC } from '../../shared/types'
 import {
   sendOutreachRecord,
@@ -7,13 +7,13 @@ import {
   createSequenceForLead,
   initSmtp
 } from '../../backend/core/outreach'
+import { exportLeadsToCsv as generateCsv } from '../../backend/core/outreach/csv-export'
 import {
   getAllOutreach,
   updateOutreachStatus,
   getSequenceSummaries,
   getPendingOutreachQueue
 } from '../../backend/db/queries/outreach.queries'
-import { exportLeadsToCsv } from './csv-export'
 import { getChartData, getFunnelData } from '../../backend/db/queries/stats.queries'
 import { logActivity } from '../../backend/db/queries/activity.queries'
 
@@ -99,7 +99,17 @@ export function registerOutreachIpcHandlers(): void {
   })
 
   // Export leads to CSV
-  ipcMain.handle(IPC.OUTREACH_EXPORT_CSV, async () => exportLeadsToCsv())
+  ipcMain.handle(IPC.OUTREACH_EXPORT_CSV, async () => {
+    const { filePath, canceled } = await dialog.showSaveDialog({
+      title: 'Export Leads',
+      defaultPath: `leadhunter-export-${new Date().toISOString().slice(0, 10)}.csv`,
+      filters: [{ name: 'CSV Files', extensions: ['csv'] }]
+    })
+    if (canceled || !filePath) return null
+    const csv = await generateCsv()
+    fs.writeFileSync(filePath, csv, 'utf8')
+    return filePath
+  })
 
   // Chart data
   ipcMain.handle(IPC.STATS_GET_CHART_DATA, async () => ({

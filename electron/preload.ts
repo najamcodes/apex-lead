@@ -1,4 +1,4 @@
-﻿// electron/preload.ts
+// electron/preload.ts
 import { contextBridge, ipcRenderer } from 'electron'
 import { IPC } from '../shared/types'
 
@@ -114,30 +114,6 @@ contextBridge.exposeInMainWorld('api', {
     create: (data: any) => ipcRenderer.invoke(IPC.TEMPLATES_CREATE, data),
     update: (id: number, data: any) => ipcRenderer.invoke(IPC.TEMPLATES_UPDATE, id, data),
     delete: (id: number) => ipcRenderer.invoke(IPC.TEMPLATES_DELETE, id)
-  },
-  pipeline: {
-    getTargets:     ()             => ipcRenderer.invoke(IPC.TARGETS_GET_ALL),
-    addTarget:      (data: unknown) => ipcRenderer.invoke(IPC.TARGETS_INSERT, data),
-    updateTarget:   (id: number, patch: unknown) => ipcRenderer.invoke(IPC.TARGETS_UPDATE, id, patch),
-    deleteTarget:   (id: number)   => ipcRenderer.invoke(IPC.TARGETS_DELETE, id),
-    toggleTarget:   (id: number)   => ipcRenderer.invoke(IPC.TARGETS_TOGGLE, id),
-    runNow:         ()             => ipcRenderer.invoke(IPC.PIPELINE_RUN_NOW),
-    getStatus:      ()             => ipcRenderer.invoke(IPC.PIPELINE_GET_STATUS),
-    getDigests:     ()             => ipcRenderer.invoke(IPC.DIGESTS_GET_ALL),
-    sendDigestNow:  ()             => ipcRenderer.invoke('pipeline:sendDigestNow'),
-    restartRunner:  ()             => ipcRenderer.invoke('pipeline:restartRunner'),
-    onLog: (cb: (msg: string) => void) => {
-      const listener = (_e: any, msg: string) => cb(msg)
-      ipcRenderer.on('pipeline:log', listener)
-      return () => ipcRenderer.removeListener('pipeline:log', listener)
-    }
-  },
-  queryProfiles: {
-    getAll:       () => ipcRenderer.invoke('query-profiles:get-all'),
-    getActive:    () => ipcRenderer.invoke('query-profiles:get-active'),
-    insert:       (data: any) => ipcRenderer.invoke('query-profiles:insert', data),
-    updateStatus: (id: number, status: string) => ipcRenderer.invoke('query-profiles:update-status', id, status),
-    delete:       (id: number) => ipcRenderer.invoke('query-profiles:delete', id)
   },
   emailAccounts: {
     getAll: () => ipcRenderer.invoke('emailAccounts:getAll'),

@@ -1,4 +1,4 @@
-﻿// electron/scheduler/index.ts
+// electron/scheduler/index.ts
 import * as cron from 'node-cron'
 import { getDataSource } from '../../backend/db'
 import { UserEntity } from '../../backend/db/entities/UserEntity'
@@ -8,11 +8,16 @@ import { listenForImapReplies } from '../../backend/core/outreach/imap-listener'
 import { runWarmupCycle } from '../../backend/core/outreach/warmup-engine'
 import { BrowserWindow } from 'electron'
 
+import { initPipelineScheduler } from './pipeline-scheduler'
+
 let activeTasks: cron.ScheduledTask[] = []
 let imapTasks: cron.ScheduledTask[] = []
 let warmupTasks: cron.ScheduledTask[] = []
 
 export async function initScheduler(mainWindow: BrowserWindow): Promise<void> {
+  // Initialize generic pipeline cron tasks
+  await initPipelineScheduler()
+
   // Clear old tasks
   activeTasks.forEach(t => t.stop())
   activeTasks = []

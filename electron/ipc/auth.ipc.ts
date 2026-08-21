@@ -1,27 +1,8 @@
-﻿import { ipcMain } from 'electron'
+import { ipcMain } from 'electron'
 import { getDataSource } from '../../backend/db'
 import { UserEntity } from '../../backend/db/entities/UserEntity'
 import { OrganizationEntity } from '../../backend/db/entities/OrganizationEntity'
-import crypto from 'crypto'
-
-function hashPassword(password: string): string {
-  const salt = crypto.randomBytes(16).toString('hex')
-  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex')
-  return `${salt}:${hash}`
-}
-
-function verifyPassword(password: string, storedHash: string): boolean {
-  // If it's the old sha256 or placeholder, we might not have a colon
-  if (!storedHash.includes(':')) {
-    // legacy check
-    if (storedHash === 'local_admin_no_password_yet') return false;
-    return crypto.createHash('sha256').update(password).digest('hex') === storedHash;
-  }
-
-  const [salt, key] = storedHash.split(':')
-  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex')
-  return key === hash
-}
+import { hashPassword, verifyPassword } from '../../backend/core/utils/crypto'
 
 export function registerAuthHandlers() {
   ipcMain.handle('auth:login', async (_, args: { email: string, password: string }) => {
@@ -46,7 +27,7 @@ export function registerAuthHandlers() {
 
       // Set global tenant context for Phase 3 queries
       global.currentUserId = user.id;
-      global.currentOrgId = user.org_id;
+      global.currentOrgId = user.default_org_id ?? undefined;
       global.currentUserRole = user.role;
 
       let permissions: string[] = []
@@ -56,7 +37,7 @@ export function registerAuthHandlers() {
 
       return { 
         success: true, 
-        user: { id: user.id, email: user.email, role: user.role, org_id: user.org_id, permissions } 
+        user: { id: user.id, email: user.email, role: user.role, org_id: user.default_org_id ?? undefined, permissions } 
       }
     } catch (err: any) {
       return { success: false, error: err.message }
@@ -80,14 +61,14 @@ export function registerAuthHandlers() {
         email: args.email,
         password_hash: hashPassword(args.password),
         role: 'admin',
-        org_id: org.id,
+        default_org_id: org.id,
         permissions: JSON.stringify(['view_leads', 'run_scraper', 'manage_settings', 'send_outreach'])
       })
       await userRepo.save(user)
 
       // Set global tenant context for Phase 3 queries
       global.currentUserId = user.id;
-      global.currentOrgId = user.org_id;
+      global.currentOrgId = user.default_org_id ?? undefined;
       global.currentUserRole = user.role;
 
       let permissions: string[] = []
@@ -97,7 +78,7 @@ export function registerAuthHandlers() {
 
       return { 
         success: true, 
-        user: { id: user.id, email: user.email, role: user.role, org_id: user.org_id, permissions } 
+        user: { id: user.id, email: user.email, role: user.role, org_id: user.default_org_id ?? undefined, permissions } 
       }
     } catch (err: any) {
       return { success: false, error: err.message }
@@ -111,7 +92,7 @@ export function registerAuthHandlers() {
       if (!user) return { success: false }
 
       global.currentUserId = user.id;
-      global.currentOrgId = user.org_id;
+      global.currentOrgId = user.default_org_id ?? undefined;
       global.currentUserRole = user.role;
 
       let permissions: string[] = []
