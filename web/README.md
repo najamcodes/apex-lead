@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ApexLead Web Edition (`web/`)
 
-## Getting Started
+The `web/` directory contains the **Next.js frontend** for running ApexLead in web browsers and cloud deployments.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🏗️ Directory Structure
+
+```
+web/
+├── app/                   # Next.js App Router
+│   ├── dashboard/         # Dashboard route wrapper
+│   ├── leads/             # Leads table route wrapper
+│   ├── outreach/          # Outreach & campaign route wrapper
+│   ├── pipeline/          # Visual automation pipeline route wrapper
+│   ├── review/            # Lead review & approval queue
+│   ├── scraper/           # Scraper launcher route wrapper
+│   ├── settings/          # Application settings route wrapper
+│   ├── tutorial/          # Onboarding guide route wrapper
+│   ├── login/             # Authentication page
+│   ├── layout.tsx         # Root layout with Geist font & theme provider
+│   └── providers.tsx      # App wrapper with WebSocket client initialization
+├── middleware.ts          # Route protection and JWT session verification
+└── next.config.ts         # Next.js configuration
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Setup & Execution
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Install Dependencies
+```bash
+cd web
+npm install
+```
 
-## Learn More
+### 2. Configure Environment
+Create `web/.env.local`:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXT_PUBLIC_ADAPTER=web
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Run Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. Build for Production
+```bash
+npm run build
+npm start
+```

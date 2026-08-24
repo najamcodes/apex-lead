@@ -1,105 +1,132 @@
-# LeadHunter
+# 🚀 ApexLead — AI Lead Generation & Outreach Engine
 
-An Electron application with React and TypeScript designed to automate finding, enriching, and emailing potential leads using Artificial Intelligence and Stealth Web Scraping.
-
-## Basic Tutorial
-
-Welcome to LeadHunter! This tool helps you automate the entire lead generation pipeline:
-
-1. **Configure Settings:** Head to the `Settings` page and input your API keys (like OpenAI, OpenRouter, Google PageSpeed) to enable AI scoring and website analysis.
-2. **Add Email Accounts:** On the `Settings` page, add the Gmail/SMTP accounts you want to use for outreach. 
-3. **Scrape Leads:** Go to the `Scraper` page, type in your search query (e.g., "Plumbers in Austin, TX"), and click "Scrape". LeadHunter will use stealth automation to find Google Maps businesses and their websites.
-4. **Review & Approve:** Go to the `Review` page. The AI will have automatically scored the leads based on their website quality and contact info. Click "Approve" for the ones you want to contact.
-5. **Outreach Pipeline:** Once approved, the system takes over. Background tasks will draft personalized emails using AI, run email validation, and gradually send emails through your configured accounts on a schedule. You can view all activity on the `Dashboard` or the `Leads` tab.
+**ApexLead** is an end-to-end lead discovery, enrichment, scoring, and cold email outreach platform. It automates finding business prospects via stealth web scraping, analyzes their websites and performance bottlenecks using AI, discovers verified contact info, and dispatches hyper-personalized outreach sequences.
 
 ---
 
-## Integrating Services
+## 🏛️ System Architecture & Monorepo Map
 
-LeadHunter relies on a few external APIs to be fully effective. All of these can be configured in the `Settings` tab inside the app.
+The repository is structured as a modular TypeScript monorepo with platform-agnostic core logic and interchangeable frontends and runtimes:
 
-### AI Engine (OpenAI / OpenRouter / Groq / Local)
-LeadHunter uses AI to draft personalized emails and score lead websites. It supports any provider that uses the OpenAI standard format.
+```
+lead-gen-desk/
+├── backend/               # 🧠 Core domain logic, DB entities, scraping engines & AI pipelines
+├── electron/              # 🖥️ Native Desktop runtime, IPC handlers, stealth scraper & worker agent
+├── frontend/              # 🎨 Shared React 19 UI (screens, state stores, visual canvas & adapters)
+├── server/                # 🌐 Standalone Hono REST + WebSocket server (for web & cloud mode)
+├── web/                   # 📱 Next.js 15 Web Edition frontend
+├── plugins/               # 🔌 Extensible plugin engine (Discord, Slack, Webhook, HubSpot)
+├── shared/                # 📦 Shared TypeScript models, contracts, and IPC enums
+├── scripts/               # 🛠️ Database seeders and migration helpers
+└── docker-compose.yml     # 🐳 Multi-container deployment for cloud/home server hosting
+```
 
-- **OpenRouter (Recommended):** Gives you access to top models like Anthropic's Claude 3.5 Sonnet, GPT-4o, and Llama 3 at cheap rates. 
-  - *Provider:* `OpenRouter`
-  - *API Key:* Get one at `openrouter.ai`
-  - *Model:* e.g., `anthropic/claude-3.5-sonnet`
-- **OpenAI:** 
-  - *Provider:* `OpenAI`
-  - *Model:* `gpt-4o-mini` or `gpt-4o`
-- **Groq:** Fast and cheap Llama models.
-  - *Provider:* `Groq`
-  - *Model:* `llama3-70b-8192`
-- **LM Studio / Ollama:** Run AI for free locally!
-  - *Provider:* `LM Studio` or `Ollama`
-  - *Model:* Leave blank or put your local model name.
-  - *URL:* `http://localhost:1234/v1` (LM Studio) or `http://localhost:11434/v1` (Ollama)
-
-### Google PageSpeed API
-Used to determine if a prospect's website is slow or outdated (a great sales angle!).
-- Get a free API key from the **Google Cloud Console**.
-- Enable the **PageSpeed Insights API**.
-- Paste the key in Settings.
-
-### 2Captcha
-Used to automatically solve CAPTCHAs while scraping Google Maps and Google Search.
-- Create an account at `2captcha.com`.
-- Add funds ($2 is enough for thousands of captchas).
-- Paste the API key into Settings.
+### Directory Breakdown
+| Directory | Role & Description | Documentation |
+| :--- | :--- | :--- |
+| [`backend/`](./backend/README.md) | Shared business logic, TypeORM entities (SQLite/Postgres), graph execution engine, AI agents, SMTP/IMAP outreach. | [backend/README.md](./backend/README.md) |
+| [`electron/`](./electron/README.md) | Desktop shell with direct OS access, Playwright stealth browser, embedded SQLite DB, and slave worker node. | [electron/README.md](./electron/README.md) |
+| [`frontend/`](./frontend/README.md) | Modern React 19 UI with dual IPC/HTTP adapters, Zustand stores, and visual workflow builder. | [frontend/README.md](./frontend/README.md) |
+| [`server/`](./server/README.md) | Hono REST API & WebSocket server with JWT auth, multi-tenancy, Swagger docs, and distributed worker coordinator. | [server/README.md](./server/README.md) |
+| [`web/`](./web/README.md) | Standalone Next.js web application for browser access on local networks or the cloud. | [web/README.md](./web/README.md) |
+| [`plugins/`](./plugins/README.md) | Extensible event hook system for external CRM synchronization and notification alerts. | [plugins/README.md](./plugins/README.md) |
+| [`shared/`](./shared/README.md) | Cross-package TypeScript interfaces, schemas, and IPC channel definitions. | [shared/README.md](./shared/README.md) |
+| [`scripts/`](./scripts/README.md) | CLI utilities for database initialization, seeding sample data, and testing. | [scripts/README.md](./scripts/README.md) |
 
 ---
 
-## Cheapest Proxy Options
+## 🛠️ How Many Setups Can Be Done? (4 Deployment Modes)
 
-Because scraping Google heavily will eventually result in rate limits, using a Proxy is highly recommended. You can paste your proxy details into the **Settings -> Network** tab. The scraper will use these proxies to mask your IP address.
+ApexLead is designed to support **4 distinct deployment setups** depending on your workflow:
 
-Here are the best, budget-friendly options that work perfectly with LeadHunter:
+```mermaid
+flowchart TB
+    subgraph Setup 1: Standalone Desktop
+        DesktopApp[Electron Desktop App] --> EmbeddedDB[(Embedded SQLite)]
+    end
 
-1. **Webshare.io**
-   - **Cost:** Starts at ~$3/month for 10 proxies.
-   - **Pros:** Excellent free tier (10 proxies free forever), cheap datacenter IPs, very easy to setup.
-   - **Type:** Datacenter (Datacenter proxies work fine for basic scraping if rotated properly).
+    subgraph Setup 2: Master-Slave Farm
+        CentralServer[Central Hono Server] <-->|WebSocket /ws/worker| Worker1[Desktop Worker 1]
+        CentralServer <-->|WebSocket /ws/worker| Worker2[Desktop Worker 2]
+    end
 
-2. **IPRoyal**
-   - **Cost:** ~$1.75/GB for Residential Proxies (Pay as you go).
-   - **Pros:** Residential IPs rarely get blocked by Google. Since LeadHunter doesn't download large files, 1GB will last a very long time.
+    subgraph Setup 3: Cloud Web / Docker
+        DockerNginx[Docker / Reverse Proxy] --> WebUI[Next.js Web UI :3000]
+        DockerNginx --> APIServer[Hono API Server :4000]
+        APIServer --> ServerDB[(PostgreSQL / SQLite)]
+    end
 
-3. **Proxy-Cheap**
-   - **Cost:** ~$5/GB for Residential, ~$2/month for Datacenter.
-   - **Pros:** Fast and reliable without monthly subscriptions for residential IPs.
-
-*Note: You can test if your proxy is working by checking the "Run Scraper in Headful mode" setting. This will visibly open the browser so you can watch it navigate through your proxy!*
+    subgraph Setup 4: Local Web Dev Stack
+        DevBrowser[Web Browser :3000] --> DevWeb[Next.js Dev Server]
+        DevWeb --> DevServer[Hono Dev Server :4000]
+    end
+```
 
 ---
 
-## Recommended IDE Setup
+### Setup 1: Standalone Desktop App (All-in-One)
+* **Best for:** Individual users on Windows, macOS, or Linux who want zero server setup.
+* **Architecture:** Electron desktop app bundles the embedded SQLite database, Playwright scraping, and UI into a single self-contained application.
+* **How to run:**
+  ```bash
+  npm install
+  npm run dev
+  ```
+* **Build binary:** `npm run build:win`, `npm run build:mac`, or `npm run build:linux`.
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+---
 
-## Project Setup
+### Setup 2: Distributed Master-Slave Farm (Central Hub + Desktop Workers)
+* **Best for:** Scaling scrapers across multiple machines and residential IP addresses while keeping a single unified CRM database.
+* **Architecture:** 
+  1. A central API server (`server/`) is hosted on a cloud VPS or central machine.
+  2. Multiple desktop instances run `electron/worker/worker-agent.ts` on local PCs, connecting via WebSocket (`/ws/worker`).
+  3. The central server dispatches scraping tasks to the desktop workers, which execute them locally and stream the scraped leads back to the central database.
+* **How to run:**
+  1. Start Central Server: `cd server && bun run index.ts`
+  2. In each Electron client, open **Settings → Workers** and enter the Central Server URL & token.
 
-### Install
+---
 
-```bash
-$ npm install
-```
+### Setup 3: Cloud / Home Server Web Edition (Docker Compose)
+* **Best for:** Accessing ApexLead from any phone, tablet, or browser over your local network or VPS.
+* **Architecture:** Runs the Next.js frontend (`:3000`) and the Hono API server (`:4000`) in Docker containers.
+* **How to run:**
+  ```bash
+  docker-compose up -d --build
+  ```
+  Access at `http://localhost:3000` (or `http://<your-server-ip>:3000`).
 
-### Development
+---
 
-```bash
-$ npm run dev
-```
+### Setup 4: Local Web Development Stack
+* **Best for:** Developers working on the web interface without running Electron.
+* **How to run:**
+  ```bash
+  # Terminal 1: Backend API
+  cd server && bun run index.ts
 
-### Build
+  # Terminal 2: Web Frontend
+  cd web && npm run dev
+  ```
+  Access at `http://localhost:3000`.
 
-```bash
-# For windows
-$ npm run build:win
+---
 
-# For macOS
-$ npm run build:mac
+## ⚡ External Services & API Configuration
 
-# For Linux
-$ npm run build:linux
-```
+All services can be configured in the **Settings** tab in the UI:
+
+### 1. AI Engines (Scoring & Email Copywriting)
+* **OpenRouter (Recommended):** Use Claude 3.5 Sonnet or GPT-4o cheaply via `openrouter.ai`.
+* **OpenAI / Groq:** Standard API keys.
+* **Local AI (Ollama / LM Studio):** Set base URL to `http://localhost:11434/v1` or `http://localhost:1234/v1`.
+
+### 2. Website Speed Analysis
+* **Google PageSpeed Insights API:** Enables automatic detection of slow prospect websites for personalized sales hooks.
+
+### 3. Proxies (Recommended for High-Volume Scraping)
+Configure HTTP / SOCKS5 proxies under **Settings → Network** (Webshare, IPRoyal, Proxy-Cheap) to prevent Google rate limits.
+
+### 4. Email Accounts (Outreach & Warmup)
+Add your SMTP and IMAP credentials under **Settings → Email Accounts** to enable automated email sending, jitter schedules, and reply sentiment triaging.

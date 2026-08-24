@@ -1,6 +1,6 @@
-# LeadHunter Web Edition
+# ApexLead Web Edition
 
-LeadHunter now supports running as a web application on your local network, allowing you to access your CRM and outreach system from any device.
+ApexLead now supports running as a web application on your local network, allowing you to access your CRM and outreach system from any device.
 
 ## Architecture
 - **Desktop (Electron)**: Unchanged. Continues to run as a native Windows/Mac app with an embedded DB.
@@ -24,7 +24,3 @@ This will start both the Next.js frontend (port 3000) and the Bun backend (port 
 - `LEADHUNTER_DB_PATH`: Inside the container, this defaults to `/data/leadhunter.db`. The `docker-compose.yml` uses a Docker volume to persist this file.
 - `JWT_SECRET`: Change this in your `docker-compose.yml` to a secure random string!
 
-## Updating the Chrome Extension
-If you use the LeadHunter Chrome Extension to scrape leads from the web:
-1. Open the Chrome Extension options.
-2. Change the API URL from `http://localhost:4000` (Electron default local server) to the IP address of your deployed web server (e.g., `http://192.168.1.100:4000`).

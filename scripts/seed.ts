@@ -10,13 +10,7 @@ import { EmailAccountEntity } from '../src/db/entities/EmailAccountEntity'
 import { OutreachEntity } from '../src/db/entities/OutreachEntity'
 import { ActivityEntity } from '../src/db/entities/ActivityEntity'
 import { NoteEntity } from '../src/db/entities/NoteEntity'
-import crypto from 'crypto'
-
-function hashPassword(password: string): string {
-  const salt = crypto.randomBytes(16).toString('hex')
-  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex')
-  return `${salt}:${hash}`
-}
+import { hashPassword } from '../backend/core/utils/crypto'
 
 const sampleCategories = [
   'Restaurant', 'Dentist', 'Lawyer', 'Plumber', 'Electrician', 'Real Estate Agent',
@@ -149,28 +143,59 @@ async function seed() {
 
   // Create organization
   console.log('🏢 Creating organization...')
-  const org = orgRepo.create({ name: 'LeadGen Demo Org' })
+  const org = orgRepo.create({
+    name: 'LeadGen Demo Org',
+    tier: 'pro',
+    max_users: 10,
+    settings: JSON.stringify({ theme: 'dark', default_proxy: null }),
+  })
   await orgRepo.save(org)
 
-  // Create users
-  console.log('👥 Creating users...')
+  // Create users with role hierarchy
+  console.log('👥 Creating users with role hierarchy...')
   const adminUser = userRepo.create({
     email: 'admin@leadgen-demo.com',
     password_hash: hashPassword('admin123'),
-    role: 'admin',
+    role: 'org_admin',
     org_id: org.id,
+    name: 'Alex Admin',
+    hierarchy_level: 4,
     permissions: JSON.stringify(['view_leads', 'run_scraper', 'manage_settings', 'send_outreach', 'manage_team']),
   })
   await userRepo.save(adminUser)
+
+  const managerUser = userRepo.create({
+    email: 'manager@leadgen-demo.com',
+    password_hash: hashPassword('manager123'),
+    role: 'manager',
+    org_id: org.id,
+    name: 'Maria Manager',
+    hierarchy_level: 3,
+    permissions: JSON.stringify(['view_leads', 'run_scraper', 'send_outreach']),
+  })
+  await userRepo.save(managerUser)
 
   const teamUser = userRepo.create({
     email: 'team@leadgen-demo.com',
     password_hash: hashPassword('team123'),
     role: 'user',
     org_id: org.id,
+    name: 'Tom User',
+    hierarchy_level: 2,
     permissions: JSON.stringify(['view_leads', 'run_scraper', 'send_outreach']),
   })
   await userRepo.save(teamUser)
+
+  const viewerUser = userRepo.create({
+    email: 'viewer@leadgen-demo.com',
+    password_hash: hashPassword('viewer123'),
+    role: 'viewer',
+    org_id: org.id,
+    name: 'Vera Viewer',
+    hierarchy_level: 1,
+    permissions: JSON.stringify(['view_leads']),
+  })
+  await userRepo.save(viewerUser)
 
   // Create default settings
   console.log('⚙️ Creating default settings...')
@@ -381,8 +406,16 @@ Thanks,
 
     const scrapedAt = randomDate(new Date('2024-01-01'), new Date())
 
+    // Distribute leads among users for per-user data isolation demo
+    const assigneeIds = [adminUser.id, managerUser.id, teamUser.id]
+    const assignedUserId = status === 'approved' || status === 'outreach' ? managerUser.id 
+      : i % 3 === 0 ? teamUser.id 
+      : i % 3 === 1 ? managerUser.id 
+      : adminUser.id
+
     const lead = leadRepo.create({
       org_id: org.id,
+      scraped_by_user_id: assignedUserId,
       business_name: businessName,
       category,
       city: location.city,
