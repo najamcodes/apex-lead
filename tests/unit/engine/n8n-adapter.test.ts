@@ -3,6 +3,16 @@ import {
   N8nNodeAdapter,
   N8nHttpRequestNode,
   N8nSlackNode,
+  N8nDiscordNode,
+  N8nHubSpotNode,
+  N8nAirtableNode,
+  N8nNotionNode,
+  N8nOpenAiNode,
+  N8nSendGridNode,
+  N8nCodeNode,
+  builtinN8nNodes,
+  getBuiltinN8nNode,
+  registerBuiltinN8nNode,
   type INodeType,
   type IExecuteFunctions,
   type INodeExecutionData,
@@ -228,5 +238,336 @@ describe('N8nNodeAdapter — n8n Node Runtime Compatibility', () => {
 
     await expect(adapter.execute(mockCtx)).resolves.toBeUndefined()
     expect(emitted).toEqual([])
+  })
+
+  describe('N8nDiscordNode', () => {
+    it('should format embed and dispatch to Discord webhook', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        json: async () => ({ id: 'discord-msg-1' }),
+        text: async () => 'ok',
+      } as any)
+
+      const node = new N8nDiscordNode()
+      const adapter = new N8nNodeAdapter(node)
+      let emitted: any[] = []
+
+      await adapter.execute({
+        nodeId: 'discord-1',
+        runId: 'run-discord',
+        pipelineId: 'pipe-discord',
+        orgId: 1,
+        config: {
+          webhookUrl: 'https://discord.com/api/webhooks/123/token',
+          content: 'Hello channel!',
+          embedTitle: 'Hot Lead',
+          embedDescription: 'Score 95',
+          embedColor: 16711680,
+        },
+        input: {},
+        incoming: [{ id: '1', collection: 'leads', data: { lead: 'test' }, meta: {} as any }],
+        log: () => {},
+        isCancelled: () => false,
+        isPaused: async () => {},
+        emit: (recs) => { emitted = Array.isArray(recs) ? recs : [recs] },
+        userRole: 'admin',
+      })
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://discord.com/api/webhooks/123/token',
+        expect.objectContaining({
+          method: 'POST',
+        })
+      )
+      expect(emitted).toHaveLength(1)
+      expect(emitted[0].data.sent).toBe(true)
+      expect(emitted[0].data.title).toBe('Hot Lead')
+
+      fetchSpy.mockRestore()
+    })
+  })
+
+  describe('N8nHubSpotNode', () => {
+    it('should simulate contact creation when no API key is provided', async () => {
+      const node = new N8nHubSpotNode()
+      const adapter = new N8nNodeAdapter(node)
+      let emitted: any[] = []
+
+      await adapter.execute({
+        nodeId: 'hs-1',
+        runId: 'run-hs',
+        pipelineId: 'pipe-hs',
+        orgId: 1,
+        config: {
+          email: 'founder@startup.io',
+          firstname: 'Alex',
+          lastname: 'Vance',
+          company: 'Black Mesa',
+        },
+        input: {},
+        incoming: [{ id: '1', collection: 'leads', data: {}, meta: {} as any }],
+        log: () => {},
+        isCancelled: () => false,
+        isPaused: async () => {},
+        emit: (recs) => { emitted = Array.isArray(recs) ? recs : [recs] },
+        userRole: 'admin',
+      })
+
+      expect(emitted).toHaveLength(1)
+      expect(emitted[0].data.simulated).toBe(true)
+      expect(emitted[0].data.properties.email).toBe('founder@startup.io')
+      expect(emitted[0].data.hubspotId).toMatch(/^hs_/)
+    })
+
+    it('should call HubSpot API when API key is provided', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        json: async () => ({ id: 'hs_real_999', properties: { email: 'alex@mesa.com' } }),
+        text: async () => 'ok',
+      } as any)
+
+      const node = new N8nHubSpotNode()
+      const adapter = new N8nNodeAdapter(node)
+      let emitted: any[] = []
+
+      await adapter.execute({
+        nodeId: 'hs-2',
+        runId: 'run-hs-2',
+        pipelineId: 'pipe-hs',
+        orgId: 1,
+        config: {
+          apiKey: 'pat-na1-secret-token',
+          email: 'alex@mesa.com',
+          firstname: 'Alex',
+        },
+        input: {},
+        incoming: [{ id: '1', collection: 'leads', data: {}, meta: {} as any }],
+        log: () => {},
+        isCancelled: () => false,
+        isPaused: async () => {},
+        emit: (recs) => { emitted = Array.isArray(recs) ? recs : [recs] },
+        userRole: 'admin',
+      })
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.hubapi.com/crm/v3/objects/contacts',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer pat-na1-secret-token',
+          }),
+        })
+      )
+      expect(emitted).toHaveLength(1)
+      expect(emitted[0].data.id).toBe('hs_real_999')
+
+      fetchSpy.mockRestore()
+    })
+  })
+
+  describe('N8nAirtableNode', () => {
+    it('should simulate Airtable record creation when apiKey is omitted', async () => {
+      const node = new N8nAirtableNode()
+      const adapter = new N8nNodeAdapter(node)
+      let emitted: any[] = []
+
+      await adapter.execute({
+        nodeId: 'at-1',
+        runId: 'run-at',
+        pipelineId: 'pipe-at',
+        orgId: 1,
+        config: {
+          baseId: 'app12345',
+          table: 'Leads',
+          fields: { Name: 'Jane Doe', Company: 'Acme' },
+        },
+        input: {},
+        incoming: [{ id: '1', collection: 'leads', data: {}, meta: {} as any }],
+        log: () => {},
+        isCancelled: () => false,
+        isPaused: async () => {},
+        emit: (recs) => { emitted = Array.isArray(recs) ? recs : [recs] },
+        userRole: 'admin',
+      })
+
+      expect(emitted).toHaveLength(1)
+      expect(emitted[0].data.simulated).toBe(true)
+      expect(emitted[0].data.table).toBe('Leads')
+      expect(emitted[0].data.fields.Name).toBe('Jane Doe')
+    })
+  })
+
+  describe('N8nNotionNode', () => {
+    it('should simulate Notion page creation when apiKey is omitted', async () => {
+      const node = new N8nNotionNode()
+      const adapter = new N8nNodeAdapter(node)
+      let emitted: any[] = []
+
+      await adapter.execute({
+        nodeId: 'notion-1',
+        runId: 'run-notion',
+        pipelineId: 'pipe-notion',
+        orgId: 1,
+        config: {
+          databaseId: 'db-notion-xyz',
+          title: 'Qualified Enterprise Lead',
+        },
+        input: {},
+        incoming: [{ id: '1', collection: 'leads', data: {}, meta: {} as any }],
+        log: () => {},
+        isCancelled: () => false,
+        isPaused: async () => {},
+        emit: (recs) => { emitted = Array.isArray(recs) ? recs : [recs] },
+        userRole: 'admin',
+      })
+
+      expect(emitted).toHaveLength(1)
+      expect(emitted[0].data.simulated).toBe(true)
+      expect(emitted[0].data.title).toBe('Qualified Enterprise Lead')
+    })
+  })
+
+  describe('N8nOpenAiNode', () => {
+    it('should provide simulated completion when apiKey is omitted', async () => {
+      const node = new N8nOpenAiNode()
+      const adapter = new N8nNodeAdapter(node)
+      let emitted: any[] = []
+
+      await adapter.execute({
+        nodeId: 'ai-1',
+        runId: 'run-ai',
+        pipelineId: 'pipe-ai',
+        orgId: 1,
+        config: {
+          model: 'gpt-4o-mini',
+          prompt: 'Write a cold pitch for SaaS CTOs',
+        },
+        input: {},
+        incoming: [{ id: '1', collection: 'leads', data: { name: 'Acme' }, meta: {} as any }],
+        log: () => {},
+        isCancelled: () => false,
+        isPaused: async () => {},
+        emit: (recs) => { emitted = Array.isArray(recs) ? recs : [recs] },
+        userRole: 'admin',
+      })
+
+      expect(emitted).toHaveLength(1)
+      expect(emitted[0].data.aiResponse).toContain('[AI Simulation: Response for prompt "Write a cold pitch for SaaS CT...')
+      expect(emitted[0].data.name).toBe('Acme')
+    })
+  })
+
+  describe('N8nSendGridNode', () => {
+    it('should execute sendgrid node and record delivery metadata', async () => {
+      const node = new N8nSendGridNode()
+      const adapter = new N8nNodeAdapter(node)
+      let emitted: any[] = []
+
+      await adapter.execute({
+        nodeId: 'sg-1',
+        runId: 'run-sg',
+        pipelineId: 'pipe-sg',
+        orgId: 1,
+        config: {
+          to: 'client@prospect.com',
+          from: 'sales@apex.io',
+          subject: 'Special Offer',
+          text: 'Check out our latest solutions.',
+        },
+        input: {},
+        incoming: [{ id: '1', collection: 'leads', data: {}, meta: {} as any }],
+        log: () => {},
+        isCancelled: () => false,
+        isPaused: async () => {},
+        emit: (recs) => { emitted = Array.isArray(recs) ? recs : [recs] },
+        userRole: 'admin',
+      })
+
+      expect(emitted).toHaveLength(1)
+      expect(emitted[0].data.sent).toBe(true)
+      expect(emitted[0].data.to).toBe('client@prospect.com')
+      expect(emitted[0].data.subject).toBe('Special Offer')
+    })
+  })
+
+  describe('N8nCodeNode', () => {
+    it('should execute custom JS code sandbox using $input.all()', async () => {
+      const node = new N8nCodeNode()
+      const adapter = new N8nNodeAdapter(node)
+      let emitted: any[] = []
+
+      await adapter.execute({
+        nodeId: 'code-1',
+        runId: 'run-code',
+        pipelineId: 'pipe-code',
+        orgId: 1,
+        config: {
+          jsCode: `
+            const items = $input.all();
+            return items.map(item => ({
+              json: {
+                ...item.json,
+                transformed: true,
+                scoreDouble: item.json.score * 2
+              }
+            }));
+          `,
+        },
+        input: {},
+        incoming: [
+          { id: '1', collection: 'leads', data: { name: 'Item 1', score: 10 }, meta: {} as any },
+          { id: '2', collection: 'leads', data: { name: 'Item 2', score: 25 }, meta: {} as any },
+        ],
+        log: () => {},
+        isCancelled: () => false,
+        isPaused: async () => {},
+        emit: (recs) => { emitted = Array.isArray(recs) ? recs : [recs] },
+        userRole: 'admin',
+      })
+
+      expect(emitted).toHaveLength(2)
+      expect(emitted[0].data.transformed).toBe(true)
+      expect(emitted[0].data.scoreDouble).toBe(20)
+      expect(emitted[1].data.scoreDouble).toBe(50)
+    })
+  })
+
+  describe('Built-in Catalog & Registry Helpers', () => {
+    it('should find built-in nodes via getBuiltinN8nNode', () => {
+      expect(getBuiltinN8nNode('n8n-nodes-base.httpRequest')).toBeInstanceOf(N8nHttpRequestNode)
+      expect(getBuiltinN8nNode('n8n-nodes-base.slack')).toBeInstanceOf(N8nSlackNode)
+      expect(getBuiltinN8nNode('n8n-nodes-base.discord')).toBeInstanceOf(N8nDiscordNode)
+      expect(getBuiltinN8nNode('n8n-nodes-base.hubspot')).toBeInstanceOf(N8nHubSpotNode)
+      expect(getBuiltinN8nNode('n8n-nodes-base.airtable')).toBeInstanceOf(N8nAirtableNode)
+      expect(getBuiltinN8nNode('n8n-nodes-base.notion')).toBeInstanceOf(N8nNotionNode)
+      expect(getBuiltinN8nNode('n8n-nodes-base.openAi')).toBeInstanceOf(N8nOpenAiNode)
+      expect(getBuiltinN8nNode('n8n-nodes-base.sendGrid')).toBeInstanceOf(N8nSendGridNode)
+      expect(getBuiltinN8nNode('n8n-nodes-base.code')).toBeInstanceOf(N8nCodeNode)
+      expect(getBuiltinN8nNode('non-existent')).toBeUndefined()
+    })
+
+    it('should allow dynamic registration via registerBuiltinN8nNode', () => {
+      class MockCustomN8nNode implements INodeType {
+        description = {
+          displayName: 'Custom Dyn Node',
+          name: 'custom-dyn',
+          version: 1,
+          description: 'Dynamic test node',
+          inputs: ['main'],
+          outputs: ['main'],
+          properties: [],
+        }
+        async execute() {
+          return [[{ json: { custom: true } }]]
+        }
+      }
+
+      registerBuiltinN8nNode('n8n-nodes-base.customDyn', () => new MockCustomN8nNode())
+      const instance = getBuiltinN8nNode('n8n-nodes-base.customDyn')
+      expect(instance).toBeDefined()
+      expect(instance?.description.name).toBe('custom-dyn')
+    })
   })
 })
