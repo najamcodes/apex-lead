@@ -1,3 +1,4 @@
+'use client';
 // src/components/ui/ErrorBoundary.tsx
 import { Component, ReactNode } from 'react'
 

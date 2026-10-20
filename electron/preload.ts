@@ -139,5 +139,11 @@ contextBridge.exposeInMainWorld('api', {
     toggle:    (id: string, enabled: boolean)             => ipcRenderer.invoke(IPC.PLUGINS_TOGGLE, id, enabled),
     setConfig: (id: string, config: Record<string, any>) => ipcRenderer.invoke(IPC.PLUGINS_SET_CONFIG, id, config),
     test:      (id: string)                               => ipcRenderer.invoke(IPC.PLUGINS_TEST, id),
+  },
+  workers: {
+    getStatus: () => ipcRenderer.invoke('worker:getStatus'),
+    saveConfig: (config: any) => ipcRenderer.invoke('worker:saveConfig', config),
+    connect: () => ipcRenderer.invoke('worker:connect'),
+    disconnect: () => ipcRenderer.invoke('worker:disconnect'),
   }
 })

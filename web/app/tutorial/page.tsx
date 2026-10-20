@@ -1,2 +1,2 @@
 'use client';
-export { Tutorial as default } from '../../../src/screens/Tutorial';
+export { Tutorial as default } from '../../../frontend/screens/Tutorial';

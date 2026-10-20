@@ -2,9 +2,9 @@
 // Scrolls the Google Maps search results panel and harvests all business URLs.
 
 import type { Page } from 'playwright'
-import { humanMouseMove, humanScroll } from '../../../../backend/core/scraper/stealth'
-import { AdaptiveThrottler } from '../../../../backend/core/scraper/engine/adaptive-throttler'
-import { detectCaptcha } from '../../../../backend/core/scraper/engine/captcha-handler'
+import { humanMouseMove, humanScroll } from '@sdk/core/scraper/stealth'
+import { AdaptiveThrottler } from '@sdk/core/scraper/engine/adaptive-throttler'
+import { detectCaptcha } from '@sdk/core/scraper/engine/captcha-handler'
 import { ScrapeControlToken, checkPause } from '../index'
 
 const RESULTS_PANEL_SELECTORS = [

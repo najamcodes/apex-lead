@@ -1,7 +1,7 @@
 ﻿// electron/ipc/scraper.ipc.ts
 import { ipcMain, BrowserWindow } from 'electron'
 import { IPC } from '../../shared/types'
-import { startPipelineJob, cancelPipelineJob, pausePipelineJob, resumePipelineJob } from '../../backend/core/pipelines'
+import { startPipelineJob, cancelPipelineJob, pausePipelineJob, resumePipelineJob } from '@sdk/core/pipelines'
 import { getAllScrapeJobs, deleteScrapeJob, deleteScrapeJobs } from '../../backend/db/queries/scrape-jobs.queries'
 import type { ScrapeJobConfig } from '../../shared/types/scraper.types'
 import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'

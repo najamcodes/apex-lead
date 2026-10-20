@@ -1,9 +1,9 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { z } from 'zod'
 import { wsHub } from '../ws'
-import { scoreSite } from '../../../backend/core/ai/tasks/score-site'
-import { draftOutreach } from '../../../backend/core/ai/tasks/draft-outreach'
-import { getSettings } from '../../../backend/db/queries/settings.queries'
+import { scoreSite } from '@sdk/core/ai/tasks/score-site'
+import { draftOutreach } from '@sdk/core/ai/tasks/draft-outreach'
+import { getSettings } from '@sdk/backend/db/queries/settings.queries'
 import { AIScoreSchema, AIDraftSchema } from '../validation/schemas'
 
 export const aiRouter = new OpenAPIHono()
@@ -52,7 +52,7 @@ aiRouter.post('/test-connection', async (c) => {
   const body = await c.req.json().catch(() => ({}))
   const currentSettings = await getSettings()
   const mergedSettings = { ...currentSettings, ...body }
-  const { AIClient } = await import('../../../backend/core/ai/ai-client')
+  const { AIClient } = await import('@sdk/core/ai/ai-client')
   const client = new AIClient(mergedSettings)
 
   const testModel = body.model ||

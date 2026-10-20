@@ -1,8 +1,8 @@
-﻿import { OpenAPIHono } from '@hono/zod-openapi'
+import { OpenAPIHono } from '@hono/zod-openapi'
 import { z } from 'zod'
 import { wsHub } from '../ws'
-import { startPipelineJob, cancelPipelineJob, pausePipelineJob, resumePipelineJob } from '../../../backend/core/pipelines'
-import { getAllScrapeJobs, deleteScrapeJob, deleteScrapeJobs } from '../../../backend/db/queries/scrape-jobs.queries'
+import { startPipelineJob, cancelPipelineJob, pausePipelineJob, resumePipelineJob } from '@sdk/core/pipelines'
+import { getAllScrapeJobs, deleteScrapeJob, deleteScrapeJobs } from '@sdk/backend/db/queries/scrape-jobs.queries'
 import { ScraperStartSchema, ScraperJobQuerySchema } from '../validation/schemas'
 
 export const scraperRouter = new OpenAPIHono()
@@ -77,7 +77,7 @@ scraperRouter.openapi({
     200: { description: 'Job resumed' },
   },
 }, async (c) => {
-  const id = c.req.param('id')
+  const id = c.req.param('id')!
   await resumePipelineJob(id)
   return c.json({ success: true })
 })
@@ -95,7 +95,7 @@ scraperRouter.openapi({
     200: { description: 'Job deleted' },
   },
 }, async (c) => {
-  const id = c.req.param('id')
+  const id = c.req.param('id')!
   await deleteScrapeJob(id)
   return c.json({ success: true })
 })

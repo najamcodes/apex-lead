@@ -1,4 +1,4 @@
-﻿import fetch from 'node-fetch'
+import fetch from 'node-fetch'
 import type { PluginEvent } from '../../types'
 
 export async function sendDiscordAlert(webhookUrl: string, event: PluginEvent) {
@@ -14,8 +14,8 @@ export async function sendDiscordAlert(webhookUrl: string, event: PluginEvent) {
     if (intent === 'not_interested') color = 15158332 // Red
 
     const embed = {
-      title: 📩 Reply Received: ,
-      description: **Intent:** \${intent.toUpperCase()}\\n\n**AI Summary:**\n,
+      title: `📩 Reply Received: ${lead.contact_name || lead.email || 'Lead'}`,
+      description: `**Intent:** ${intent.toUpperCase()}\n\n**AI Summary:**\n${summary || 'No summary available'}`,
       color,
       fields: [
         {
@@ -46,8 +46,8 @@ export async function sendDiscordAlert(webhookUrl: string, event: PluginEvent) {
       body: JSON.stringify({ embeds: [embed] })
     })
 
-    console.log([Discord] Alert sent for lead  ())
+    console.log(`[Discord] Alert sent for lead ${lead.email || lead.id || 'unknown'}`)
   } catch (error) {
-    console.error([Discord] Failed to send alert:, error)
+    console.error('[Discord] Failed to send alert:', error)
   }
 }

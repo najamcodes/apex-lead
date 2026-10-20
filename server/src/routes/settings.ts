@@ -1,13 +1,13 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { z } from 'zod'
 import { setCookie } from 'hono/cookie'
-import { getSettings, saveSettings } from '../../../backend/db/queries/settings.queries'
+import { getSettings, saveSettings } from '@sdk/backend/db/queries/settings.queries'
 import { createToken } from '../auth'
-import { getDataSource } from '../../../backend/db'
-import { UserEntity } from '../../../backend/db/entities/UserEntity'
-import { OrganizationEntity } from '../../../backend/db/entities/OrganizationEntity'
-import { UserOrganizationEntity } from '../../../backend/db/entities/UserOrganizationEntity'
-import { hashPassword, verifyPassword } from '../../../backend/core/utils/crypto'
+import { getDataSource } from '@sdk/backend/db'
+import { UserEntity } from '@sdk/backend/db/entities/UserEntity'
+import { OrganizationEntity } from '@sdk/backend/db/entities/OrganizationEntity'
+import { UserOrganizationEntity } from '@sdk/backend/db/entities/UserOrganizationEntity'
+import { hashPassword, verifyPassword } from '@sdk/core/utils/crypto'
 
 import { SettingsSchema, AuthLoginSchema, AuthRegisterSchema, AuthRestoreSchema } from '../validation/schemas'
 
@@ -79,7 +79,7 @@ authRouter.openapi({
   // Fetch all org memberships for this user
   const orgLinks = await userOrgRepo.find({
     where: { user_id: user.id },
-    relations: ['org'],
+    relations: { org: true },
     order: { created_at: 'ASC' },
   })
 
@@ -107,7 +107,7 @@ authRouter.openapi({
   )
 
   const token = await createToken({ id: user.id, email: user.email, org_id: activeOrgId, role: activeRole, permissions: activePermissions })
-  setCookie(c, 'leadhunter_token', token, { path: '/', httpOnly: true, sameSite: 'Lax' })
+  setCookie(c as any, 'leadhunter_token', token, { path: '/', httpOnly: true, sameSite: 'Lax' })
   return c.json({
     success: true,
     user: {
@@ -176,7 +176,7 @@ authRouter.openapi({
   await userOrgRepo.save(link)
 
   const token = await createToken({ id: user.id, email: user.email, org_id: org.id, role: 'org_admin', permissions: JSON.parse(user.permissions) })
-  setCookie(c, 'leadhunter_token', token, { path: '/', httpOnly: true, sameSite: 'Lax' })
+  setCookie(c as any, 'leadhunter_token', token, { path: '/', httpOnly: true, sameSite: 'Lax' })
   return c.json({
     success: true,
     user: {

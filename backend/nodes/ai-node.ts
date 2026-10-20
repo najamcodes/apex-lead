@@ -27,7 +27,7 @@ export function registerAiNode() {
 
       try {
         // Lazy import to avoid loading the AI client when this node isn't used
-        const { resolveAiClient } = await import('../core/ai/ai-client')
+        const { resolveAiClient } = await import('@sdk/core/ai/ai-client')
         const { getSettings } = await import('../db/queries/settings.queries')
         const settings = await getSettings()
         const client = await resolveAiClient(settings, ctx.config.ai_connection_id as string, ctx.orgId)

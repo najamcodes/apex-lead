@@ -1,8 +1,8 @@
 ﻿// electron/ipc/bulk.ipc.ts
 import { ipcMain } from 'electron'
 import { IPC } from '../../shared/types'
-import { analyzeBatch } from '../../backend/core/analysis'
-import { scoreSite } from '../../backend/core/ai/tasks/score-site'
+import { analyzeBatch } from '@sdk/core/analysis'
+import { scoreSite } from '@sdk/core/ai/tasks/score-site'
 import { getSettings } from '../../backend/db/queries/settings.queries'
 import { getDataSource } from '../../backend/db'
 import { getTenantId } from '../../backend/db/queries/tenant'
@@ -13,11 +13,11 @@ import {
 } from '../../backend/db/queries/activity.queries'
 import { getNoteByLead, saveNote } from '../../backend/db/queries/notes.queries'
 import { EmailTemplateEntity } from '../../backend/db/entities/EmailTemplateEntity'
-import { runEmailFinderBatch, findEmailForLead, runEmailVerifierBatch } from '../../backend/core/email-finder'
-import { createSequenceForLead } from '../../backend/core/outreach'
+import { runEmailFinderBatch, findEmailForLead, runEmailVerifierBatch } from '@sdk/core/email-finder'
+import { createSequenceForLead } from '@sdk/core/outreach'
 import { getSchedulerStatus } from '../scheduler'
-import { parseSpintax } from '../../backend/core/outreach/spintax'
-import { draftOutreach } from '../../backend/core/ai/tasks/draft-outreach'
+import { parseSpintax } from '@sdk/core/outreach/spintax'
+import { draftOutreach } from '@sdk/core/ai/tasks/draft-outreach'
 import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
 
 function requirePermission(perm: string) {

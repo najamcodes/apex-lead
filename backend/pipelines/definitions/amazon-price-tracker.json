@@ -1,6 +1,3 @@
-// backend/pipelines/definitions/amazon-price-tracker.json
-// Example multi-domain pipeline. Shows the system is NOT lead-only.
-// Requires a user-provided 'amazon-products' scraper plugin.
 {
   "id": "amazon-price-tracker",
   "name": "Amazon Price Tracker",

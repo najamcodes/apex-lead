@@ -15,9 +15,10 @@ import path from 'path'
 import { initDb } from '../backend/db'
 import { registerAllIpcHandlers } from './ipc'
 import { initScheduler } from './scheduler'
-import { initSmtp } from '../backend/core/outreach'
+import { initSmtp } from '@sdk/core/outreach'
 import { initPluginRegistry } from '../plugins/registry'
 import { workerAgent } from './worker/worker-agent'
+import { serverManager } from './server-manager'
 
 async function createWindow(): Promise<void> {
   const win = new BrowserWindow({
@@ -59,9 +60,14 @@ app.whenReady().then(async () => {
   await initPluginRegistry()     // 2. Plugins (need DB for config)
   await initSmtp()               // 3. SMTP transporter
   await workerAgent.init()       // 4. Child worker agent (farm node)
-  await createWindow()           // 5. UI
+  await serverManager.start()    // 5. Background local API server
+  await createWindow()           // 6. UI
 })
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
+})
+
+app.on('before-quit', () => {
+  serverManager.stop()
 })

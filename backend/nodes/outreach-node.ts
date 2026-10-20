@@ -14,7 +14,7 @@ export function registerOutreachNode() {
       const subject = ctx.config.subject as string | undefined
       const body = ctx.config.body as string | undefined
 
-      const { createSequenceForLead } = await import('../core/outreach')
+      const { createSequenceForLead } = await import('@sdk/core/outreach')
       const { logActivity } = await import('../db/queries/activity.queries')
       const { getDataSource } = await import('../db')
       const { LeadEntity } = await import('../db/entities/LeadEntity')

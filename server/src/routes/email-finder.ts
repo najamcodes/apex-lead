@@ -1,7 +1,7 @@
 ﻿import { OpenAPIHono } from '@hono/zod-openapi'
 import { z } from 'zod'
 import { wsHub } from '../ws'
-import { findEmailForLead, runEmailFinderBatch } from '../../../backend/core/email-finder'
+import { findEmailForLead, runEmailFinderBatch } from '@sdk/core/email-finder'
 import { IdParamSchema, EmailFinderBatchSchema } from '../validation/schemas'
 
 export const emailFinderRouter = new OpenAPIHono()

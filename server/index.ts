@@ -5,13 +5,13 @@ import { getCookie } from 'hono/cookie'
 import { serve } from '@hono/node-server'
 import { verifyToken } from './src/auth'
 import { wsHub } from './src/ws'
-import { initDb, getDataSource } from '../backend/db'
-import { UserEntity } from '../backend/db/entities/UserEntity'
+import { initDb, getDataSource } from '@sdk/backend/db'
+import { UserEntity } from '@sdk/backend/db/entities/UserEntity'
 import { initSentry, captureException, setUserContext } from './src/utils/sentry'
 import { logger } from './src/utils/logger'
 import { logRequest } from './src/middleware/logger'
 import { rateLimiter } from './src/middleware/rateLimiter'
-import { initPluginRegistry } from '../plugins/registry'
+import { initPluginRegistry } from '@sdk/core/plugins'
 
 import { leadsRouter, statsRouter } from './src/routes/leads'
 import { authRouter, settingsRouter } from './src/routes/settings'
@@ -25,18 +25,18 @@ import { emailFinderRouter } from './src/routes/email-finder'
 import { emailVerifierRouter } from './src/routes/email-verifier'
 import { schedulerRouter } from './src/routes/scheduler'
 import { usersRouter } from './src/routes/users'
-import { pipelinesRouter } from '../backend/routes/pipelines'
-import { collectionsRouter } from '../backend/routes/collections'
-import { analyticsRouter } from '../backend/routes/analytics'
-import { approvalsRouter } from '../backend/routes/approvals'
-import { aiConnectionsRouter } from '../backend/routes/ai-connections'
-import { customNodesRouter } from '../backend/routes/custom-nodes'
+import { pipelinesRouter } from '@sdk/backend/routes/pipelines'
+import { collectionsRouter } from '@sdk/backend/routes/collections'
+import { analyticsRouter } from '@sdk/backend/routes/analytics'
+import { approvalsRouter } from '@sdk/backend/routes/approvals'
+import { aiConnectionsRouter } from '@sdk/backend/routes/ai-connections'
+import { customNodesRouter } from '@sdk/backend/routes/custom-nodes'
 import { orgRouter, proxyConfigRouter } from './src/routes/orgs'
 import { workersRouter } from './src/routes/workers'
 import { workerHub } from './src/ws/worker-hub'
 
 import { runWithUser, type RequestUser } from './src/context'
-import { UserOrganizationEntity } from '../backend/db/entities/UserOrganizationEntity'
+import { UserOrganizationEntity } from '@sdk/backend/db/entities/UserOrganizationEntity'
 
 declare global {
   var currentUserId: number | undefined;
@@ -47,7 +47,7 @@ declare global {
 
 // ── App setup ──────────────────────────────────────────────────────
 
-const app = new Hono()
+export const app = new Hono()
 
 const corsOrigin = process.env.CORS_ORIGIN?.split(',').map(s => s.trim()) || ['http://localhost:3000']
 
@@ -334,8 +334,12 @@ async function start() {
   })
 }
 
-start().catch((err) => {
-  captureException(err)
-  logger.fatal({ err }, 'Failed to start server')
-  process.exit(1)
-})
+export { start }
+
+if (process.env.NODE_ENV !== 'test') {
+  start().catch((err) => {
+    captureException(err)
+    logger.fatal({ err }, 'Failed to start server')
+    process.exit(1)
+  })
+}

@@ -1,3 +1,4 @@
+'use client';
 // src/components/layout/TopBar.tsx
 import { useLocation } from 'react-router-dom'
 import { Zap } from 'lucide-react'

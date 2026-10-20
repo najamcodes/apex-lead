@@ -1,3 +1,4 @@
+'use client';
 // src/components/layout/AppShell.tsx
 import { ReactNode } from 'react'
 import { Outlet } from 'react-router-dom'

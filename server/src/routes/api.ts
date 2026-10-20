@@ -1,12 +1,12 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { z } from 'zod'
-import { getDataSource } from '../../../backend/db'
-import { EmailTemplateEntity } from '../../../backend/db/entities/EmailTemplateEntity'
-import { getTenantId } from '../../../backend/db/queries/tenant'
+import { getDataSource } from '@sdk/backend/db'
+import { EmailTemplateEntity } from '@sdk/backend/db/entities/EmailTemplateEntity'
+import { getTenantId } from '@sdk/backend/db/queries/tenant'
 import {
   getEmailAccounts, addEmailAccount, updateEmailAccount, deleteEmailAccount, getRawEmailAccountById
-} from '../../../backend/db/queries/email-accounts.queries'
-import { verifySmtp } from '../../../backend/core/outreach/smtp-sender'
+} from '@sdk/backend/db/queries/email-accounts.queries'
+import { verifySmtp } from '@sdk/core/outreach/smtp-sender'
 import {
   IdParamSchema,
   TemplateInsertSchema,

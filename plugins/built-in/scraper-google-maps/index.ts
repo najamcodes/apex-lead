@@ -1,4 +1,4 @@
-﻿// plugins/built-in/scraper-google-maps/index.ts
+// plugins/built-in/scraper-google-maps/index.ts
 import { z } from 'zod'
 import type { ScraperPlugin, ScraperRunConfig, ScrapedItem } from '../../types'
 
@@ -19,7 +19,7 @@ const googleMapsPlugin: ScraperPlugin = {
   configSchema: ConfigSchema,
 
   async *scrape(config: ScraperRunConfig): AsyncGenerator<ScrapedItem> {
-    const { createStealthContext } = await import('../../../backend/core/scraper/stealth')
+    const { createStealthContext } = await import('@sdk/core/scraper/stealth')
     const { scrapeGoogleMaps } = await import('./google-maps')
 
     const pluginCfg = ConfigSchema.parse(config.pluginConfig)
@@ -63,7 +63,7 @@ const googleMapsPlugin: ScraperPlugin = {
           review_rating:  listing.rating ?? null,
           review_count:   listing.review_count ?? null,
           source:         'google_maps',
-        }
+        }}
       }
     } finally {
       await context.close().catch(() => {})

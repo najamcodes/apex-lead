@@ -2,8 +2,8 @@ import { Hono } from 'hono'
 import { getDataSource } from '../db'
 import { AIConnectionEntity } from '../db/entities/AIConnectionEntity'
 import { getTenantId } from '../db/queries/tenant'
-import { AIClient } from '../core/ai/ai-client'
-import { encrypt, decrypt } from '../core/utils/crypto'
+import { AIClient } from '@sdk/core/ai/ai-client'
+import { encrypt, decrypt } from '@sdk/core/utils/crypto'
 
 export const aiConnectionsRouter = new Hono()
 

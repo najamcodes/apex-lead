@@ -2,7 +2,7 @@ import { getTenantId } from './tenant'
 import { getDataSource } from '../index'
 import { SettingsEntity } from '../entities/SettingsEntity'
 import type { AppSettings } from '../../../shared/types'
-import { encrypt, decrypt } from '../../core/utils/crypto'
+import { encrypt, decrypt } from '@sdk/core/utils/crypto'
 
 export const SENSITIVE_KEYS = [
   'proxy_password',

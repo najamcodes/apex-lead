@@ -8,26 +8,9 @@ import { randomUUID } from 'crypto'
 import { getSettings, saveSettings } from '../../backend/db/queries/settings.queries'
 import { executePipeline, getRunState } from '../../backend/engine/graph'
 import { registerBuiltInNodes } from '../../backend/nodes'
+import type { WorkerAgentConfig, WorkerAgentStatus } from '@sdk/core/worker'
 
-export interface WorkerAgentConfig {
-  enabled: boolean
-  serverUrl: string
-  workerId: string
-  workerName: string
-  pairingToken?: string
-  orgId: number
-  userId?: number
-  maxConcurrency: number
-}
-
-export interface WorkerAgentStatus {
-  connected: boolean
-  connecting: boolean
-  config: WorkerAgentConfig
-  activeJobs: number
-  lastHeartbeat?: string
-  lastError?: string
-}
+export type { WorkerAgentConfig, WorkerAgentStatus }
 
 class WorkerAgentService {
   private ws: any = null

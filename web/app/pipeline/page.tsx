@@ -1,2 +1,2 @@
 'use client';
-export { Pipeline as default } from '../../../src/screens/Pipeline';
+export { Pipelines as default } from '../../../frontend/screens/Pipelines';

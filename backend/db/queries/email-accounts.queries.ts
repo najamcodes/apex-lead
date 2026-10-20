@@ -2,7 +2,7 @@
 import { getDataSource } from '../index'
 import { EmailAccountEntity } from '../entities/EmailAccountEntity'
 import type { EmailAccount, EmailAccountInsert } from '../../../shared/types'
-import { encrypt, decrypt } from '../../core/utils/crypto'
+import { encrypt, decrypt } from '@sdk/core/utils/crypto'
 
 export async function getEmailAccounts(): Promise<EmailAccount[]> {
   const repo = getDataSource().getRepository(EmailAccountEntity)

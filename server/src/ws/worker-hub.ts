@@ -2,25 +2,14 @@
 // WebSocket hub and dispatch manager for child desktop worker farm nodes.
 
 import type { WebSocket } from 'ws'
-import { getDataSource } from '../../../backend/db'
-import { WorkerNodeEntity } from '../../../backend/db/entities/WorkerNodeEntity'
-import { PipelineRunEntity } from '../../../backend/db/entities/PipelineRunEntity'
-import { storeRecord } from '../../../backend/collections/store'
+import { getDataSource } from '@sdk/backend/db'
+import { WorkerNodeEntity } from '@sdk/backend/db/entities/WorkerNodeEntity'
+import { PipelineRunEntity } from '@sdk/backend/db/entities/PipelineRunEntity'
+import { storeRecord } from '@sdk/backend/collections/store'
 import { wsHub } from './index'
+import type { ConnectedWorker } from '@sdk/core/worker'
 
-export interface ConnectedWorker {
-  ws: any // WebSocket client
-  workerId: string
-  orgId: number
-  userId?: number
-  name: string
-  capabilities: string[]
-  platform: string
-  maxConcurrency: number
-  activeJobs: number
-  ipAddress?: string
-  lastSeen: number
-}
+export type { ConnectedWorker }
 
 // In-memory registry of live connected worker sockets
 const activeWorkers = new Map<string, ConnectedWorker>()

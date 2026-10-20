@@ -16,8 +16,13 @@ export async function seedDefaultPipelines(orgId: number): Promise<void> {
   const files = readdirSync(dir).filter(f => f.endsWith('.json'))
   for (const file of files) {
     try {
-      const raw = readFileSync(join(dir, file), 'utf8')
-      const def = JSON.parse(raw) as PipelineDefinition
+      const rawText = readFileSync(join(dir, file), 'utf8')
+        .replace(/^\uFEFF/, '')
+        .split('\n')
+        .filter(line => !line.trim().startsWith('//'))
+        .join('\n')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+      const def = JSON.parse(rawText) as PipelineDefinition
 
       const existing = await repo.findOneBy({ id: def.id })
       if (existing) {

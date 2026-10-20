@@ -4,7 +4,7 @@
 import type { NodeExecutionContext, NodeHandler } from '../engine/types'
 import { registerNode } from '../engine/registry'
 import { getSettings } from '../db/queries/settings.queries'
-import { resolveAiClient, type ChatMessage } from '../core/ai/ai-client'
+import { resolveAiClient, type ChatMessage } from '@sdk/core/ai/ai-client'
 
 export function registerVisionNode(): void {
   const handler: NodeHandler = {

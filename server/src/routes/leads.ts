@@ -1,8 +1,8 @@
-﻿import { OpenAPIHono } from '@hono/zod-openapi'
+import { OpenAPIHono } from '@hono/zod-openapi'
 import { z } from 'zod'
-import { getAllLeads, getLeadById, insertLead, updateLeadStatus, deleteLead } from '../../../backend/db/queries/leads.queries'
-import { logActivity } from '../../../backend/db/queries/activity.queries'
-import { getDashboardStats, getCityRoiStats, getChartData, getFunnelData } from '../../../backend/db/queries/stats.queries'
+import { getAllLeads, getLeadById, insertLead, updateLeadStatus, deleteLead } from '@sdk/backend/db/queries/leads.queries'
+import { logActivity } from '@sdk/backend/db/queries/activity.queries'
+import { getDashboardStats, getCityRoiStats, getChartData, getFunnelData } from '@sdk/backend/db/queries/stats.queries'
 import {
   PaginationSchema,
   LeadFiltersSchema,
@@ -39,7 +39,7 @@ leadsRouter.openapi({
   },
 }, async (c) => {
   const query = c.req.valid('query')
-  const result = await getAllLeads(query)
+  const result = await getAllLeads(query as any)
   return c.json(result)
 })
 
@@ -181,8 +181,8 @@ statsRouter.openapi({
       },
     },
   },
-}, async (c) => {
+}, async (c: any) => {
   const weekly = await getChartData(14)
   const funnel = await getFunnelData()
-  return c.json({ weekly, funnel })
+  return c.json({ weekly, funnel } as any, 200)
 })

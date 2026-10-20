@@ -1,22 +1,37 @@
-FROM oven/bun:1 as builder
+FROM oven/bun:1.1.20-debian AS base
 WORKDIR /app
 
-# Install native dependencies required for better-sqlite3 and Playwright
-RUN apt-get update && apt-get install -y python3 build-essential && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# Install system dependencies for Playwright headless chromium
+RUN apt-get update && apt-get install -y \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libasound2 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY package.json bun.lockb* ./
-COPY src/ ./src/
-COPY electron/ ./electron/
-COPY server/package.json ./server/
+COPY package.json package-lock.json* ./
+RUN bun install
 
-WORKDIR /app/server
-RUN bun install --production
+COPY server/ ./server/
+COPY backend/ ./backend/
+COPY shared/ ./shared/
+COPY plugins/ ./plugins/
+COPY tsconfig.json ./
 
-# Install Playwright Chromium
-RUN bunx playwright install chromium --with-deps
+EXPOSE 4000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:4000/health || exit 1
 
-COPY server/ ./
-
-# In production we run the compiled server or just bun
-CMD ["bun", "run", "index.ts"]
+CMD ["bun", "run", "server/index.ts"]

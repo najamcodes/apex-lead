@@ -1,2 +1,2 @@
 'use client';
-export { Dashboard as default } from '../../../src/screens/Dashboard';
+export { Dashboard as default } from '../../../frontend/screens/Dashboard';

@@ -1,2 +1,2 @@
 'use client';
-export { Scraper as default } from '../../../src/screens/Scraper';
+export { Scraper as default } from '../../../frontend/screens/Scraper';

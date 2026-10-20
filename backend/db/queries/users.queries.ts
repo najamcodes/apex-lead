@@ -2,7 +2,7 @@ import { getDataSource } from '../index'
 import { UserEntity } from '../entities/UserEntity'
 import { UserOrganizationEntity } from '../entities/UserOrganizationEntity'
 import { getTenantId, getCurrentUserRole, canManageOrg, roleLevel } from './tenant'
-import { hashPassword } from '../../core/utils/crypto'
+import { hashPassword } from '@sdk/core/utils/crypto'
 
 /**
  * Get all users who are members of the current org, by joining user_organizations.

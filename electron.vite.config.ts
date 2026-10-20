@@ -11,6 +11,11 @@ export default defineConfig({
         }
       }
     },
+    resolve: {
+      alias: {
+        '@sdk/core': resolve(__dirname, 'sdk/core')
+      }
+    },
     plugins: [externalizeDepsPlugin()]
   },
   preload: {

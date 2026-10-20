@@ -11,7 +11,7 @@ function requirePermission(perm: string) {
     throw new Error(`Unauthorized: Missing permission ${perm}`);
   }
 }
-import { initSmtp } from '../../backend/core/outreach'
+import { initSmtp } from '@sdk/core/outreach'
 import { initScheduler } from '../scheduler'
 import { BrowserWindow } from 'electron'
 

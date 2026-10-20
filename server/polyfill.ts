@@ -1,10 +1,11 @@
+// @ts-ignore
 import { Database } from "bun:sqlite";
 import Module from "node:module";
 
 const originalRequire = Module.prototype.require;
 (Module.prototype as any).require = function (id: string) {
   if (id === "better-sqlite3") {
-    return function (filename: string, options: any) {
+    return function (filename: string, _options?: any) {
       const db = new Database(filename, { create: true });
       (db as any).pragma = function (source: string, options?: any) {
         const result = this.prepare(`PRAGMA ${source}`).all();
@@ -15,7 +16,7 @@ const originalRequire = Module.prototype.require;
         return result;
       };
       const origPrepare = db.prepare.bind(db);
-      db.prepare = function (sql: string) {
+      (db as any).prepare = function (sql: string) {
         const stmt = origPrepare(sql);
         const isReader = /^\s*(SELECT|PRAGMA|WITH)/i.test(sql) || /\bRETURNING\b/i.test(sql);
         (stmt as any).reader = isReader;

@@ -1,2 +1,2 @@
 'use client';
-export { Login as default } from '../../../src/screens/Auth/Login';
+export { Login as default } from '../../../frontend/screens/Auth/Login';

@@ -1,7 +1,7 @@
 ﻿import { OpenAPIHono } from '@hono/zod-openapi'
 import { z } from 'zod'
 import { wsHub } from '../ws'
-import { analyzeLead, analyzeBatch } from '../../../backend/core/analysis'
+import { analyzeLead, analyzeBatch } from '@sdk/core/analysis'
 import { AnalysisRunSchema } from '../validation/schemas'
 
 export const analysisRouter = new OpenAPIHono()

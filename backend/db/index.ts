@@ -22,6 +22,15 @@ import { WorkerNodeEntity } from './entities/WorkerNodeEntity'
 import { ApprovalEntity } from './entities/ApprovalEntity'
 import { AIConnectionEntity } from './entities/AIConnectionEntity'
 import { CustomNodeEntity } from './entities/CustomNodeEntity'
+import { AuditLogEntity } from './entities/AuditLogEntity'
+import { seedDefaultPipelines } from '../pipelines/seed'
+import { registerStorageProvider } from '@sdk/core/storage'
+import * as leadsQueries from './queries/leads.queries'
+import * as outreachQueries from './queries/outreach.queries'
+import * as emailAccountsQueries from './queries/email-accounts.queries'
+import * as scrapeJobsQueries from './queries/scrape-jobs.queries'
+import * as settingsQueries from './queries/settings.queries'
+import * as activityQueries from './queries/activity.queries'
 
 let _dataSource: DataSource | null = null
 
@@ -49,6 +58,7 @@ export async function initDb(): Promise<DataSource> {
     ApprovalEntity,
     AIConnectionEntity,
     CustomNodeEntity,
+    AuditLogEntity,
   ]
 
   const isPostgres = process.env.DB_TYPE === 'postgres'
@@ -144,12 +154,42 @@ export async function initDb(): Promise<DataSource> {
     await _dataSource.query('PRAGMA foreign_keys = ON;')
   }
 
+  // Seed default pipeline definitions if missing
+  try {
+    await seedDefaultPipelines(defaultOrg.id)
+  } catch (err) {
+    console.warn('[db] Failed to seed default pipelines:', err)
+  }
+
+  // Register concrete storage provider with @sdk/core/storage
+  registerStorageProvider({
+    getDataSource: () => getDataSource(),
+    leads: leadsQueries as any,
+    outreach: outreachQueries as any,
+    emailAccounts: emailAccountsQueries as any,
+    scrapeJobs: scrapeJobsQueries as any,
+    settings: settingsQueries as any,
+    activity: activityQueries as any,
+    aiConnections: {
+      getConnectionById: async (id: string) => {
+        return getDataSource().getRepository(AIConnectionEntity).findOneBy({ id })
+      },
+      getDefaultConnection: async (orgId: number) => {
+        return getDataSource().getRepository(AIConnectionEntity).findOneBy({ org_id: orgId, is_default: true })
+      },
+    },
+  })
+
   return _dataSource
 }
 
 export function getDataSource(): DataSource {
-  if (!_dataSource || !_dataSource.isInitialized) {
-    throw new Error('Database not initialized! Call initDb() first.')
+  if (_dataSource && _dataSource.isInitialized) {
+    return _dataSource
   }
-  return _dataSource
+  const { AppDataSource } = require('./data-source')
+  if (AppDataSource && AppDataSource.isInitialized) {
+    return AppDataSource
+  }
+  throw new Error('Database not initialized! Call initDb() first.')
 }

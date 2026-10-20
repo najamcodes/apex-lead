@@ -2,44 +2,83 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:15
+    image: postgres:16-alpine
+    container_name: apexlead-db
     ports:
       - "5432:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=leadhunter
+      - POSTGRES_DB=apexlead
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d apexlead"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: apexlead-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
   server:
     build:
       context: .
       dockerfile: Dockerfile.server
+    container_name: apexlead-server
     ports:
       - "4000:4000"
     environment:
+      - NODE_ENV=production
+      - PORT=4000
       - DB_TYPE=postgres
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/leadhunter
-      - JWT_SECRET=production_secret_change_me
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/apexlead
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=apexlead_super_secret_jwt_key_production_replace
+    volumes:
+      - apexlead_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
 
   web:
     build:
       context: .
       dockerfile: Dockerfile.web
+    container_name: apexlead-web
     ports:
       - "3000:3000"
     environment:
+      - NODE_ENV=production
+      - PORT=3000
       - NEXT_PUBLIC_ADAPTER=web
-      - NEXT_PUBLIC_API_URL=http://localhost:4000 # For local access
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
     depends_on:
-      - server
+      server:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
-  leadhunter_data:
+  apexlead_data:
   pgdata:
+  redisdata:

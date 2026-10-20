@@ -1,4 +1,4 @@
-﻿import { OpenAPIHono } from '@hono/zod-openapi'
+import { OpenAPIHono } from '@hono/zod-openapi'
 import { z } from 'zod'
 import { wsHub } from '../ws'
 import {
@@ -6,20 +6,20 @@ import {
   processDueOutreach,
   createSequenceForLead,
   initSmtp
-} from '../../../backend/core/outreach'
+} from '@sdk/core/outreach'
 import {
   getAllOutreach,
   updateOutreachStatus,
   getSequenceSummaries,
   getPendingOutreachQueue
-} from '../../../backend/db/queries/outreach.queries'
-import { exportLeadsToCsv } from '../../../backend/core/outreach/csv-export'
-import { getChartData, getFunnelData } from '../../../backend/db/queries/stats.queries'
-import { logActivity } from '../../../backend/db/queries/activity.queries'
-import { getDataSource } from '../../../backend/db'
-import { getRawEmailAccountById } from '../../../backend/db/queries/email-accounts.queries'
-import { verifySmtp } from '../../../backend/core/outreach/smtp-sender'
-import { EmailAccountEntity } from '../../../backend/db/entities/EmailAccountEntity'
+} from '@sdk/backend/db/queries/outreach.queries'
+import { exportLeadsToCsv } from '@sdk/core/outreach/csv-export'
+import { getChartData, getFunnelData } from '@sdk/backend/db/queries/stats.queries'
+import { logActivity } from '@sdk/backend/db/queries/activity.queries'
+import { getDataSource } from '@sdk/backend/db'
+import { getRawEmailAccountById } from '@sdk/backend/db/queries/email-accounts.queries'
+import { verifySmtp } from '@sdk/core/outreach/smtp-sender'
+import { EmailAccountEntity } from '@sdk/backend/db/entities/EmailAccountEntity'
 import {
   OutreachSendSchema,
   OutreachBatchSchema,
@@ -180,10 +180,10 @@ outreachRouter.openapi({
   responses: {
     200: { description: 'Chart data', content: { 'application/json': { schema: z.object({ weekly: z.array(z.any()), funnel: z.array(z.any()) }) } } },
   },
-}, async (c) => {
+}, async (c: any) => {
   const weekly = await getChartData(14)
   const funnel = await getFunnelData()
-  return c.json({ weekly, funnel })
+  return c.json({ weekly, funnel } as any, 200)
 })
 
 outreachRouter.openapi({

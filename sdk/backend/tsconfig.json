@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM"],
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "paths": {
+      "@sdk/backend": ["./index.ts"],
+      "@sdk/backend/*": ["./*"],
+      "@sdk/core": ["../core/index.ts"],
+      "@sdk/core/*": ["../core/*"],
+      "@shared/*": ["../../shared/*"]
+    }
+  },
+  "include": ["**/*"]
+}

@@ -1,2 +1,2 @@
 'use client';
-export { Outreach as default } from '../../../src/screens/Outreach';
+export { Outreach as default } from '../../../frontend/screens/Outreach';

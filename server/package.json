@@ -2,6 +2,10 @@
   "name": "server",
   "module": "index.ts",
   "private": true,
+  "scripts": {
+    "build": "bun build index.ts --outdir dist --target node --packages=external",
+    "start": "bun run index.ts"
+  },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/bun": "latest",
@@ -12,6 +16,8 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@sdk/core": "link:../sdk/core",
+    "@sdk/backend": "link:../sdk/backend",
     "@hono/node-server": "^2.0.8",
     "better-sqlite3": "^12.11.1",
     "hono": "^4.12.27",

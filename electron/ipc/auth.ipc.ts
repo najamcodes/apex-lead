@@ -2,7 +2,7 @@ import { ipcMain } from 'electron'
 import { getDataSource } from '../../backend/db'
 import { UserEntity } from '../../backend/db/entities/UserEntity'
 import { OrganizationEntity } from '../../backend/db/entities/OrganizationEntity'
-import { hashPassword, verifyPassword } from '../../backend/core/utils/crypto'
+import { hashPassword, verifyPassword } from '@sdk/core/utils/crypto'
 
 export function registerAuthHandlers() {
   ipcMain.handle('auth:login', async (_, args: { email: string, password: string }) => {

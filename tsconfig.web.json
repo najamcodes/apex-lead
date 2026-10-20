@@ -2,10 +2,12 @@
   "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
   "include": [
     "frontend/**/*",
-    "shared/types/**/*"
+    "shared/types/**/*",
+    "sdk/core/types/**/*"
   ],
   "compilerOptions": {
     "composite": true,
+    "skipLibCheck": true,
     "jsx": "react-jsx",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
@@ -13,6 +15,12 @@
     "paths": {
       "@renderer/*": [
         "frontend/*"
+      ],
+      "@sdk/core": [
+        "sdk/core/index.ts"
+      ],
+      "@sdk/core/*": [
+        "sdk/core/*"
       ]
     }
   }

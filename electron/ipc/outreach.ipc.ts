@@ -6,8 +6,8 @@ import {
   processDueOutreach,
   createSequenceForLead,
   initSmtp
-} from '../../backend/core/outreach'
-import { exportLeadsToCsv as generateCsv } from '../../backend/core/outreach/csv-export'
+} from '@sdk/core/outreach'
+import { exportLeadsToCsv as generateCsv } from '@sdk/core/outreach/csv-export'
 import {
   getAllOutreach,
   updateOutreachStatus,
@@ -17,7 +17,7 @@ import {
 import { getChartData, getFunnelData } from '../../backend/db/queries/stats.queries'
 import { logActivity } from '../../backend/db/queries/activity.queries'
 
-import type { SequenceInput } from '../../backend/core/outreach/sequence-engine'
+import type { SequenceInput } from '@sdk/core/outreach/sequence-engine'
 import { getDataSource } from '../../backend/db'
 import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
 
@@ -124,5 +124,23 @@ export function registerOutreachIpcHandlers(): void {
 
   // Re-init SMTP (called after settings save)
   ipcMain.handle('smtp:reinit', () => initSmtp())
+
+  // Verify SMTP connection
+  ipcMain.handle('smtp:verify', async (_event, config) => {
+    try {
+      const { verifySmtp } = await import('@sdk/core/outreach')
+      if (config) {
+        return await verifySmtp(config)
+      }
+      const { getEmailAccounts } = await import('../../backend/db/queries/email-accounts.queries')
+      const accounts = await getEmailAccounts()
+      if (accounts.length === 0) {
+        return { ok: false, error: 'No email accounts configured' }
+      }
+      return await verifySmtp(accounts[0] as any)
+    } catch (err: any) {
+      return { ok: false, error: err.message || 'SMTP verification failed' }
+    }
+  })
 }
 

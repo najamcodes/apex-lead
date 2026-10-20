@@ -1,7 +1,7 @@
 ﻿import { OpenAPIHono } from '@hono/zod-openapi'
 import { z } from 'zod'
 import { wsHub } from '../ws'
-import { runEmailVerifierBatch } from '../../../backend/core/email-finder'
+import { runEmailVerifierBatch } from '@sdk/core/email-finder'
 import { EmailVerifierBatchSchema } from '../validation/schemas'
 
 export const emailVerifierRouter = new OpenAPIHono()

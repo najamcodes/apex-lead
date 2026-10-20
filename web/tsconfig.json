@@ -19,7 +19,10 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["../frontend/*"],
+      "@shared/*": ["../shared/*"],
+      "@sdk/core": ["../sdk/core/index.ts"],
+      "@sdk/core/*": ["../sdk/core/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

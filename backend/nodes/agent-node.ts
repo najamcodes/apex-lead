@@ -5,7 +5,7 @@ import type { NodeExecutionContext, NodeHandler } from '../engine/types'
 import { registerNode } from '../engine/registry'
 import { getDataSource } from '../db'
 import { getSettings } from '../db/queries/settings.queries'
-import { resolveAiClient, type ToolDefinition, type ChatMessage } from '../core/ai/ai-client'
+import { resolveAiClient, type ToolDefinition, type ChatMessage } from '@sdk/core/ai/ai-client'
 import { CollectionRecordEntity } from '../db/entities/CollectionRecordEntity'
 import { LeadEntity } from '../db/entities/LeadEntity'
 

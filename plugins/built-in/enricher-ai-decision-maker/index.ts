@@ -1,8 +1,8 @@
-﻿import { z } from 'zod'
+import { z } from 'zod'
 import type { EnricherPlugin, LeadSnapshot } from '../../types'
 import { crawlWebsiteForDecisionMakers } from './website-crawler'
 import { extractDecisionMaker } from './extract-decision-maker'
-import { getSettings } from '../../../../backend/db/queries/settings.queries'
+import { getSettings } from '../../../backend/db/queries/settings.queries'
 
 const ConfigSchema = z.object({})
 

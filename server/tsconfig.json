@@ -3,8 +3,8 @@
     // Environment setup & latest features
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "target": "ESNext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "moduleDetection": "auto",
     "jsx": "react-jsx",
     "allowJs": true,
@@ -26,6 +26,16 @@
     "noPropertyAccessFromIndexSignature": false,
     
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+
+    "baseUrl": "..",
+    "paths": {
+      "@sdk/core": ["./sdk/core/index.ts"],
+      "@sdk/core/*": ["./sdk/core/*"],
+      "@sdk/backend": ["./sdk/backend/index.ts"],
+      "@sdk/backend/*": ["./sdk/backend/*"],
+      "@backend/*": ["./backend/*"],
+      "@shared/*": ["./shared/*"]
+    }
   }
 }

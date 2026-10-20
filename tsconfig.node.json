@@ -4,6 +4,7 @@
     "electron.vite.config.*",
     "electron/**/*",
     "backend/**/*",
+    "sdk/**/*",
     "shared/types/**/*"
   ],
   "compilerOptions": {
@@ -11,6 +12,13 @@
     "skipLibCheck": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "paths": {
+      "@sdk/core": ["./sdk/core/index.ts"],
+      "@sdk/core/*": ["./sdk/core/*"],
+      "@sdk/backend": ["./sdk/backend/index.ts"],
+      "@sdk/backend/*": ["./sdk/backend/*"]
+    },
     "types": ["electron-vite/node"]
   }
 }

@@ -1,8 +1,8 @@
-﻿import { OpenAPIHono } from '@hono/zod-openapi'
+import { OpenAPIHono } from '@hono/zod-openapi'
 import { z } from 'zod'
-import { getUsersInOrg, createTeamMember, updateUserPermissions, updateUserRole, deleteUser } from '../../../backend/db/queries/users.queries'
+import { getUsersInOrg, createTeamMember, updateUserPermissions, updateUserRole, deleteUser } from '@sdk/backend/db/queries/users.queries'
 import { IdParamSchema, UserInsertSchema, UserUpdateSchema } from '../validation/schemas'
-import { getCurrentUserRole, canManageOrg, roleLevel } from '../../../backend/db/queries/tenant'
+import { getCurrentUserRole, canManageOrg, roleLevel } from '@sdk/backend/db/queries/tenant'
 
 export const usersRouter = new OpenAPIHono()
 

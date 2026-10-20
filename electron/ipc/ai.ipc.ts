@@ -1,8 +1,8 @@
 ﻿// electron/ipc/ai.ipc.ts
 import { ipcMain } from 'electron'
 import { IPC } from '../../shared/types'
-import { scoreSite } from '../../backend/core/ai/tasks/score-site'
-import { draftOutreach } from '../../backend/core/ai/tasks/draft-outreach'
+import { scoreSite } from '@sdk/core/ai/tasks/score-site'
+import { draftOutreach } from '@sdk/core/ai/tasks/draft-outreach'
 import { getSettings } from '../../backend/db/queries/settings.queries'
 
 export function registerAiIpcHandlers(): void {

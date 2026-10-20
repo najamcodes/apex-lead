@@ -9,3 +9,4 @@ build
 artifacts
 .kilo
 *.db
+scratch/

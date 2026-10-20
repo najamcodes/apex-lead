@@ -13,9 +13,9 @@ export const electronAdapter: IApiService = {
   ...sharedServerAdapters,
   workers: {
     ...sharedServerAdapters.workers,
-    getLocalStatus: () => (window as any).electron?.ipcRenderer?.invoke?.('worker:getStatus') ?? Promise.resolve({ connected: false }),
-    saveLocalConfig: (config: any) => (window as any).electron?.ipcRenderer?.invoke?.('worker:saveConfig', config) ?? Promise.resolve({}),
-    connectLocal: () => (window as any).electron?.ipcRenderer?.invoke?.('worker:connect') ?? Promise.resolve({}),
-    disconnectLocal: () => (window as any).electron?.ipcRenderer?.invoke?.('worker:disconnect') ?? Promise.resolve({}),
+    getLocalStatus: () => (window as any).api?.workers?.getStatus?.() ?? Promise.resolve({ connected: false }),
+    saveLocalConfig: (config: any) => (window as any).api?.workers?.saveConfig?.(config) ?? Promise.resolve({}),
+    connectLocal: () => (window as any).api?.workers?.connect?.() ?? Promise.resolve({}),
+    disconnectLocal: () => (window as any).api?.workers?.disconnect?.() ?? Promise.resolve({}),
   },
 } as unknown as IApiService

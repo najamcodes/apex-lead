@@ -168,7 +168,7 @@ collectionsRouter.get('/:name', async (c) => {
   const columns = Array.from(keySet).map(k => ({
     key: k,
     label: k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-    type: typeof records[0]?.[k] === 'number' ? 'number' : k.includes('url') ? 'url' : 'string',
+    type: typeof (records[0] as Record<string, unknown>)?.[k] === 'number' ? 'number' : k.includes('url') ? 'url' : 'string',
   }))
 
   return c.json({

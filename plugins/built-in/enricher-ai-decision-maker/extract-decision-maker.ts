@@ -1,5 +1,5 @@
-﻿import type { AppSettings } from '../../../../shared/types'
-import { getAiClient } from '../../../../backend/core/ai/ai-client'
+import type { AppSettings } from '../../../shared/types'
+import { getAiClient } from '@sdk/core/ai/ai-client'
 import type { CrawledWebsiteData } from './website-crawler'
 
 export interface DecisionMakerInfo {

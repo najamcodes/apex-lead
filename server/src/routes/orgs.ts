@@ -1,17 +1,17 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { z } from 'zod'
-import { getDataSource } from '../../../backend/db'
-import { OrganizationEntity } from '../../../backend/db/entities/OrganizationEntity'
-import { ProxyConfigEntity } from '../../../backend/db/entities/ProxyConfigEntity'
-import { UserEntity } from '../../../backend/db/entities/UserEntity'
-import { getTenantId, canManageOrg, roleLevel, getCurrentUserId, getCurrentUserRole } from '../../../backend/db/queries/tenant'
+import { getDataSource } from '@sdk/backend/db'
+import { OrganizationEntity } from '@sdk/backend/db/entities/OrganizationEntity'
+import { ProxyConfigEntity } from '@sdk/backend/db/entities/ProxyConfigEntity'
+import { UserEntity } from '@sdk/backend/db/entities/UserEntity'
+import { getTenantId, canManageOrg, roleLevel, getCurrentUserId, getCurrentUserRole } from '@sdk/backend/db/queries/tenant'
 import {
   getAllProxyConfigs, createProxyConfig, getProxyConfigById, updateProxyConfig, deleteProxyConfig, getProxyConfigForPipeline
-} from '../../../backend/db/queries/proxy-configs.queries'
+} from '@sdk/backend/db/queries/proxy-configs.queries'
 import {
   getUserOrganizations, getOrganizationMembers, addUserToOrganization, updateUserOrganization, removeUserFromOrganization,
   setCurrentOrganization, getCurrentUserOrgRole, isUserInOrg
-} from '../../../backend/db/queries/user-organizations.queries'
+} from '@sdk/backend/db/queries/user-organizations.queries'
 import { createToken } from '../auth'
 import {
   IdParamSchema,
@@ -39,7 +39,7 @@ orgRouter.openapi({
   },
 }, async (c) => {
   const orgs = await getUserOrganizations()
-  return c.json({ success: true, organizations: orgs })
+  return c.json({ success: true, organizations: orgs } as any, 200)
 })
 
 // Get current active organization
@@ -112,7 +112,7 @@ orgRouter.openapi({
   await repo.save(org)
   
   // Add creator as org_admin
-  const userOrgRepo = getDataSource().getRepository(await import('../../../backend/db/entities/UserOrganizationEntity').then(m => m.UserOrganizationEntity))
+  const userOrgRepo = getDataSource().getRepository(await import('@sdk/backend/db/entities/UserOrganizationEntity').then(m => m.UserOrganizationEntity))
   await userOrgRepo.save(userOrgRepo.create({
     user_id: getCurrentUserId(),
     org_id: org.id,
@@ -142,7 +142,7 @@ orgRouter.openapi({
   const body = c.req.valid('json')
   
   const role = await getCurrentUserOrgRole(id)
-  if (!canManageOrg(role) && getCurrentUserRole() !== 'super_admin') {
+  if (!canManageOrg(role ?? undefined) && getCurrentUserRole() !== 'super_admin') {
     return c.json({ error: 'Only org admins can update organization' }, 403)
   }
   
@@ -216,11 +216,11 @@ orgRouter.openapi({
   const body = c.req.valid('json')
   
   const role = await getCurrentUserOrgRole(id)
-  if (!canManageOrg(role) && getCurrentUserRole() !== 'super_admin') {
+  if (!canManageOrg(role ?? undefined) && getCurrentUserRole() !== 'super_admin') {
     return c.json({ error: 'Only org admins can add members' }, 403)
   }
   
-  if (roleLevel(body.role) >= roleLevel(role) && getCurrentUserRole() !== 'super_admin') {
+  if (roleLevel(body.role) >= roleLevel(role ?? '') && getCurrentUserRole() !== 'super_admin') {
     return c.json({ error: 'Cannot assign role equal to or higher than your own' }, 403)
   }
   
@@ -247,11 +247,11 @@ orgRouter.openapi({
   const body = c.req.valid('json')
   
   const role = await getCurrentUserOrgRole(id)
-  if (!canManageOrg(role) && getCurrentUserRole() !== 'super_admin') {
+  if (!canManageOrg(role ?? undefined) && getCurrentUserRole() !== 'super_admin') {
     return c.json({ error: 'Only org admins can update members' }, 403)
   }
   
-  if (body.role && roleLevel(body.role) >= roleLevel(role) && getCurrentUserRole() !== 'super_admin') {
+  if (body.role && roleLevel(body.role) >= roleLevel(role ?? '') && getCurrentUserRole() !== 'super_admin') {
     return c.json({ error: 'Cannot assign role equal to or higher than your own' }, 403)
   }
   
@@ -276,7 +276,7 @@ orgRouter.openapi({
   const { id, userId } = c.req.valid('param')
   
   const role = await getCurrentUserOrgRole(id)
-  if (!canManageOrg(role) && getCurrentUserRole() !== 'super_admin') {
+  if (!canManageOrg(role ?? undefined) && getCurrentUserRole() !== 'super_admin') {
     return c.json({ error: 'Only org admins can remove members' }, 403)
   }
   
@@ -340,7 +340,7 @@ proxyConfigRouter.openapi({
   },
 }, async (c) => {
   const configs = await getAllProxyConfigs()
-  return c.json({ success: true, proxy_configs: configs })
+  return c.json({ success: true, proxy_configs: configs } as any, 200)
 })
 
 proxyConfigRouter.openapi({

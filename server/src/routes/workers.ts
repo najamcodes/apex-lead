@@ -2,8 +2,8 @@
 // REST routes for managing the distributed desktop worker farm.
 
 import { Hono } from 'hono'
-import { getDataSource } from '../../../backend/db'
-import { WorkerNodeEntity } from '../../../backend/db/entities/WorkerNodeEntity'
+import { getDataSource } from '@sdk/backend/db'
+import { WorkerNodeEntity } from '@sdk/backend/db/entities/WorkerNodeEntity'
 import { workerHub } from '../ws/worker-hub'
 import { getCurrentOrgId, getCurrentUserId, canManageOrg } from '../context'
 
