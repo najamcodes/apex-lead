@@ -32,7 +32,23 @@ export function registerCodeNode() {
         return
       }
 
-      for (const rec of ctx.incoming) {
+      const recordsToProcess = ctx.incoming.length > 0
+        ? ctx.incoming
+        : [{
+            id: randomUUID(),
+            collection: 'custom_code',
+            data: { ...ctx.input },
+            meta: {
+              pipelineId: ctx.pipelineId,
+              runId: ctx.runId,
+              sourceNodeId: ctx.nodeId,
+              orgId: ctx.orgId,
+              createdAt: new Date().toISOString(),
+              trace: [ctx.nodeId],
+            },
+          }]
+
+      for (const rec of recordsToProcess) {
         if (ctx.isCancelled()) break
         await ctx.isPaused()
 
@@ -125,6 +141,8 @@ return {
     category: 'Transform',
     icon: 'Code',
     color: '#6366f1',
+    isStart: true,
+    produces: true,
     inputs: [mainInput],
     outputs: [mainOutput],
     configSchema: {

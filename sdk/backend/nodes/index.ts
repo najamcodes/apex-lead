@@ -35,6 +35,12 @@ import { registerLinkedInNode } from './linkedin-node'
 import { registerVoiceCallNode } from './voice-call-node'
 import { registerCrmUpsertNode } from './crm-upsert-node'
 import { registerBatchNode } from './batch-node'
+import { registerTechnographicNode } from './technographic-node'
+import { registerDnsHealthNode } from './dns-health-node'
+import { registerPersonalizerNode } from './personalizer-node'
+import { registerChannelRouterNode } from './channel-router-node'
+import { registerWebhookDispatcherNode } from './webhook-dispatcher-node'
+import { registerExportNode } from './export-node'
 
 let _initialized = false
 
@@ -58,6 +64,9 @@ export function registerBuiltInNodes(): void {
   registerEnricherNode()
   registerWaterfallEnricherNode() // multi-vendor cascading discovery & verification
   registerNewsRadarNode()          // funding, PR, executive intent triggers
+  registerTechnographicNode()      // installed tech stack, e-commerce, CRM, analytics
+  registerDnsHealthNode()          // SPF, DKIM, DMARC, MX deliverability health score
+  registerPersonalizerNode()       // 1-to-1 dynamic cold outreach icebreakers & hooks
   registerAiNode()
   registerAgentNode()
   registerVisionNode()
@@ -77,6 +86,7 @@ export function registerBuiltInNodes(): void {
   registerApprovalNode()
   registerDedupeNode()
   registerBatchNode()
+  registerChannelRouterNode()      // omnichannel routing: Voice AI vs. Email vs. LinkedIn
 
   // ── Storage ───────────────────────────────────────
   registerCrmUpsertNode() // 2-way sync with HubSpot, Salesforce, Pipedrive
@@ -86,6 +96,8 @@ export function registerBuiltInNodes(): void {
   registerOutreachNode()
   registerLinkedInNode()   // LinkedIn profile views, connection notes, InMails
   registerVoiceCallNode()  // Conversational Voice AI SDR outbound calling
+  registerWebhookDispatcherNode() // HMAC-signed real-time outbound webhooks
+  registerExportNode()     // batch CSV, JSON, NDJSON export sink
   registerConnectorNode()
   registerNotifyNode()
   registerN8nBridgeNode()
@@ -106,3 +118,9 @@ export { registerLinkedInNode } from './linkedin-node'
 export { registerVoiceCallNode } from './voice-call-node'
 export { registerCrmUpsertNode } from './crm-upsert-node'
 export { registerBatchNode } from './batch-node'
+export { registerTechnographicNode } from './technographic-node'
+export { registerDnsHealthNode } from './dns-health-node'
+export { registerPersonalizerNode } from './personalizer-node'
+export { registerChannelRouterNode } from './channel-router-node'
+export { registerWebhookDispatcherNode } from './webhook-dispatcher-node'
+export { registerExportNode } from './export-node'

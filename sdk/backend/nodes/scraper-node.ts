@@ -1,7 +1,7 @@
 // backend/nodes/scraper-node.ts
 import { registerNode } from '../engine/registry'
 import { makeDescriptor, strField, numField, boolField, selectField, mainOutput, mainInput } from './descriptors'
-import { getEnabledScrapers, getAllPlugins, type ScraperPlugin, type ScrapedItem } from '@sdk/core/plugins'
+import { getAllPlugins, type ScraperPlugin, type ScrapedItem } from '@sdk/core/plugins'
 import { randomUUID } from 'crypto'
 import type { NodeHandler } from '../engine/types'
 import type { PipelineRecord } from '@sdk/core/types/pipeline.types'
@@ -16,19 +16,14 @@ export function registerScraperNode() {
         return
       }
 
-      const records = getEnabledScrapers()
-      const record = records.find(r => r.manifest.id === pluginId)
-      if (!record || !record.enabled) {
-        ctx.log('error', `Scraper plugin '${pluginId}' not enabled or not found`)
-        return
-      }
-
-      // Scraper plugins may be disabled in registry but explicitly selected here.
       const allRecords = getAllPlugins()
       const fullRecord = allRecords.find(r => r.manifest.id === pluginId)
       if (!fullRecord) {
         ctx.log('error', `Scraper plugin '${pluginId}' not registered`)
         return
+      }
+      if (!fullRecord.enabled) {
+        ctx.log('info', `Scraper plugin '${pluginId}' is globally disabled but explicitly configured for this pipeline`)
       }
 
       const plugin = fullRecord.plugin as ScraperPlugin

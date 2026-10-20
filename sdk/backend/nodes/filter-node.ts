@@ -69,8 +69,13 @@ export function registerFilterNode() {
           pass = evalCondition(condition, rec.data)
         }
 
-        if (pass) { ctx.emit(rec); kept++ }
-        else dropped++
+        if (pass) {
+          ctx.emit(rec, 'main')
+          kept++
+        } else {
+          ctx.emit(rec, 'discarded')
+          dropped++
+        }
       }
       ctx.log('info', `Filter: ${kept} kept, ${dropped} dropped`)
     },
@@ -84,7 +89,10 @@ export function registerFilterNode() {
     icon: 'Filter',
     color: '#64748b',
     inputs: [mainInput],
-    outputs: [mainOutput],
+    outputs: [
+      mainOutput,
+      { id: 'discarded', label: 'Discarded', schema: { fields: {}, multiple: true, description: 'Records that failed the filter condition' } },
+    ],
     configSchema: {
       filter_mode: selectField('Filter mode', ['expression', 'rules'],
         'expression: write JS; rules: use structured rule builder.', 'expression'),
