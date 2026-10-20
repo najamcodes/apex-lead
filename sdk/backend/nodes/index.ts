@@ -25,6 +25,9 @@ import { registerSubworkflowNode } from './subworkflow-node'
 import { registerAgentNode } from './agent-node'
 import { registerVisionNode } from './vision-node'
 import { registerApprovalNode } from './approval-node'
+import { registerN8nBridgeNode } from './n8n-bridge-node'
+import { registerDedupeNode } from './dedupe-node'
+import { registerFormatNode } from './format-node'
 
 let _initialized = false
 
@@ -53,6 +56,7 @@ export function registerBuiltInNodes(): void {
   registerTransformNode()
   registerCodeNode()
   registerAggregateNode()
+  registerFormatNode()
 
   // ── Logic / Flow / Approval ───────────────────────
   registerBranchNode()
@@ -61,6 +65,7 @@ export function registerBuiltInNodes(): void {
   registerLoopNode()
   registerDelayNode()
   registerApprovalNode()
+  registerDedupeNode()
 
   // ── Storage ───────────────────────────────────────
   // (store-node registered in Sources as it's bidirectional)
@@ -69,9 +74,14 @@ export function registerBuiltInNodes(): void {
   registerOutreachNode()
   registerConnectorNode()
   registerNotifyNode()
+  registerN8nBridgeNode()
 
   // ── Advanced / Sub-Workflows ───────────────────────
   registerSubworkflowNode()
 
   console.log('[engine] Built-in node types registered')
 }
+
+export { registerN8nBridgeNode } from './n8n-bridge-node'
+export { registerDedupeNode } from './dedupe-node'
+export { registerFormatNode } from './format-node'
