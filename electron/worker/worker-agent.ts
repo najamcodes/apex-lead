@@ -268,8 +268,9 @@ class WorkerAgentService {
     pipeline: any
     input: Record<string, unknown>
     orgId: number
+    proxyConfig?: any
   }): Promise<void> {
-    const { runId, pipeline, input } = data
+    const { runId, pipeline, input, proxyConfig } = data
     this.activeJobsCount += 1
 
     console.log(`[WorkerAgent] Starting remote pipeline execution: runId=${runId}, pipeline=${pipeline.name}`)
@@ -280,7 +281,7 @@ class WorkerAgentService {
         runId,
         input: input || {},
         userRole: 'admin',
-        proxyConfig: null,
+        proxyConfig: proxyConfig || null,
         onRecord: (rec) => {
           this.send({
             type: 'worker:record',

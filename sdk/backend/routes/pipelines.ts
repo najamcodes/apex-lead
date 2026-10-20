@@ -6,7 +6,7 @@ import { getDataSource } from '../db'
 import { PipelineDefinitionEntity } from '../db/entities/PipelineDefinitionEntity'
 import { PipelineRunEntity } from '../db/entities/PipelineRunEntity'
 import { getAllNodeTypes } from '../engine/registry'
-import { executePipeline, getRunState, type RunHandle } from '../engine/graph'
+import { executePipeline, getRunState, isScraperNodeType, type RunHandle } from '../engine/graph'
 import { registerBuiltInNodes } from '../nodes'
 import { loadAndRegisterCustomNodes } from '../engine/custom-nodes'
 import { getAllPlugins } from '@sdk/core/plugins'
@@ -214,6 +214,9 @@ pipelinesRouter.post('/:id/run', async (c) => {
   const userRole = getCurrentUserRole()
   const tenantId = getTenantId()
 
+  // Resolve proxy config for this pipeline (null if no proxy set)
+  const proxyConfig = await getProxyConfigForPipeline(row.proxy_id)
+
   // If target is farm_auto or specific worker, dispatch to desktop farm
   if (target === 'farm_auto' || target.startsWith('worker:')) {
     try {
@@ -224,6 +227,13 @@ pipelinesRouter.post('/:id/run', async (c) => {
         pipeline: def,
         input,
         targetWorkerId,
+        proxyConfig: proxyConfig ? {
+          server: proxyConfig.server,
+          port: proxyConfig.port,
+          username: proxyConfig.username,
+          password: proxyConfig.password,
+          type: proxyConfig.type as 'http' | 'https' | 'socks5',
+        } : null,
       })
 
       if (dispatchResult.dispatched) {
@@ -256,8 +266,16 @@ pipelinesRouter.post('/:id/run', async (c) => {
     }
   }
 
-  // Resolve proxy config for this pipeline (null if no proxy set)
-  const proxyConfig = await getProxyConfigForPipeline(row.proxy_id)
+  // Enforce BYO-Proxy rule for server-side scraping:
+  // Server-side scraper runs must have a user-provided proxy configured to prevent datacenter IP blocking.
+  const hasScraperNode = def.nodes.some(n => isScraperNodeType(n.type))
+  if (hasScraperNode && !proxyConfig) {
+    return c.json({
+      error: 'Server-side scraping requires a proxy configuration to prevent datacenter IP blocking. Please assign a proxy to this pipeline in Settings or run via Desktop Worker.',
+      code: 'PROXY_REQUIRED_FOR_SCRAPER',
+      pipelineId: id,
+    }, 400)
+  }
 
   // Persist run record
   const runRepo = getDataSource().getRepository(PipelineRunEntity)
@@ -367,6 +385,15 @@ pipelinesRouter.post('/runs/:runId/replay', async (c) => {
   }))
 
   const proxyConfig = await getProxyConfigForPipeline(pipeRow.proxy_id)
+
+  const hasScraperNode = def.nodes.some(n => isScraperNodeType(n.type))
+  if (hasScraperNode && !proxyConfig) {
+    return c.json({
+      error: 'Server-side scraping requires a proxy configuration to prevent datacenter IP blocking. Please assign a proxy to this pipeline in Settings or run via Desktop Worker.',
+      code: 'PROXY_REQUIRED_FOR_SCRAPER',
+      pipelineId: def.id,
+    }, 400)
+  }
 
   await runRepo.save(runRepo.create({
     id: newRunId,
@@ -513,6 +540,13 @@ pipelinesRouter.post('/webhook/:slug', async (c) => {
     const runId = randomUUID()
     const now = new Date().toISOString()
 
+    const proxyConfig = await getProxyConfigForPipeline(row.proxy_id)
+    const hasScraperNode = def.nodes.some(n => isScraperNodeType(n.type))
+    if (hasScraperNode && !proxyConfig) {
+      console.warn(`[webhook ${slug}] Skipped pipeline '${row.name}' — server scraping requires configured proxy`)
+      continue
+    }
+
     await runRepo.save(runRepo.create({
       id: runId,
       pipeline_id: row.id,
@@ -529,6 +563,13 @@ pipelinesRouter.post('/webhook/:slug', async (c) => {
       runId,
       input: body,
       userRole: 'system',
+      proxyConfig: proxyConfig ? {
+        server: proxyConfig.server,
+        port: proxyConfig.port,
+        username: proxyConfig.username,
+        password: proxyConfig.password,
+        type: proxyConfig.type as 'http' | 'https' | 'socks5',
+      } : null,
       onProgress: msg => console.log(`[webhook ${slug}] ${msg.nodeId ?? ''}: ${msg.message}`),
     })
     activeRuns.set(runId, handle)

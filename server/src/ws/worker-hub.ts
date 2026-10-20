@@ -189,6 +189,7 @@ export const workerHub = {
       pipeline: any
       input: Record<string, unknown>
       targetWorkerId?: string
+      proxyConfig?: any
     }
   ): Promise<{ dispatched: boolean; workerId?: string; workerName?: string; error?: string }> {
     const orgWorkers = this.getLiveWorkers(orgId)
@@ -229,6 +230,7 @@ export const workerHub = {
         pipeline: payload.pipeline,
         input: payload.input,
         orgId,
+        proxyConfig: payload.proxyConfig || null,
       },
     }))
 

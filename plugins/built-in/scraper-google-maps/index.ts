@@ -23,13 +23,13 @@ const googleMapsPlugin: ScraperPlugin = {
     const { scrapeGoogleMaps } = await import('./google-maps')
 
     const pluginCfg = ConfigSchema.parse(config.pluginConfig)
-    const proxyConfig = pluginCfg.proxy_url
+    const proxyConfig = config.proxyConfig || (pluginCfg.proxy_url
       ? {
           server:   pluginCfg.proxy_url,
           username: pluginCfg.proxy_username,
           password: pluginCfg.proxy_password,
         }
-      : null
+      : null)
 
     const { context } = await createStealthContext(proxyConfig, !pluginCfg.headful)
 

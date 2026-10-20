@@ -34,13 +34,33 @@ export function registerScraperNode() {
 
       const plugin = fullRecord.plugin as ScraperPlugin
 
+      const formattedProxyUrl = ctx.proxyConfig
+        ? (ctx.proxyConfig.server.startsWith('http://') || ctx.proxyConfig.server.startsWith('https://') || ctx.proxyConfig.server.startsWith('socks5://')
+            ? (ctx.proxyConfig.port ? `${ctx.proxyConfig.server}:${ctx.proxyConfig.port}` : ctx.proxyConfig.server)
+            : `${ctx.proxyConfig.type || 'http'}://${ctx.proxyConfig.server}${ctx.proxyConfig.port ? `:${ctx.proxyConfig.port}` : ''}`)
+        : undefined
+
+      const effectivePluginConfig = {
+        ...fullRecord.config,
+        ...(formattedProxyUrl ? {
+          proxy_url: formattedProxyUrl,
+          proxy_username: ctx.proxyConfig?.username,
+          proxy_password: ctx.proxyConfig?.password,
+        } : {})
+      }
+
       const runConfig = {
         query: (ctx.config.query as string) || (ctx.input.query as string) || '',
         city: (ctx.config.city as string) || (ctx.input.city as string) || '',
         country: (ctx.config.country as string) || (ctx.input.country as string) || 'United States',
         max_results: (ctx.config.max_results as number) || 100,
-        use_proxy: (ctx.config.use_proxy as boolean) || false,
-        pluginConfig: fullRecord.config,
+        use_proxy: (ctx.config.use_proxy as boolean) || !!ctx.proxyConfig,
+        pluginConfig: effectivePluginConfig,
+        proxyConfig: ctx.proxyConfig ? {
+          server: formattedProxyUrl || ctx.proxyConfig.server,
+          username: ctx.proxyConfig.username,
+          password: ctx.proxyConfig.password,
+        } : null,
         onProgress: (found: number, current: string) => {
           ctx.log('info', `Scraping: ${found} found — ${current}`)
         },
