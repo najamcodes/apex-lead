@@ -145,5 +145,23 @@ contextBridge.exposeInMainWorld('api', {
     saveConfig: (config: any) => ipcRenderer.invoke('worker:saveConfig', config),
     connect: () => ipcRenderer.invoke('worker:connect'),
     disconnect: () => ipcRenderer.invoke('worker:disconnect'),
+  },
+  decision: {
+    getCatalog: () => ipcRenderer.invoke('decision:get-catalog'),
+    getInstalled: () => ipcRenderer.invoke('decision:get-installed'),
+    downloadModel: (modelId: string) => ipcRenderer.invoke('decision:download-model', modelId),
+    cancelDownload: (modelId: string) => ipcRenderer.invoke('decision:cancel-download', modelId),
+    deleteModel: (modelId: string) => ipcRenderer.invoke('decision:delete-model', modelId),
+    testInference: (params: any) => ipcRenderer.invoke('decision:test-inference', params),
+    testCascade: (params: any) => ipcRenderer.invoke('decision:test-cascade', params),
+    getTelemetry: () => ipcRenderer.invoke('decision:get-telemetry'),
+    resetTelemetry: () => ipcRenderer.invoke('decision:reset-telemetry'),
+    onDownloadProgress: (cb: (progress: any) => void) => {
+      const handler = (_event: any, data: any) => cb(data)
+      ipcRenderer.on('decision:download-progress', handler)
+      return () => {
+        ipcRenderer.removeListener('decision:download-progress', handler)
+      }
+    }
   }
 })

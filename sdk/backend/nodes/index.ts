@@ -41,6 +41,8 @@ import { registerPersonalizerNode } from './personalizer-node'
 import { registerChannelRouterNode } from './channel-router-node'
 import { registerWebhookDispatcherNode } from './webhook-dispatcher-node'
 import { registerExportNode } from './export-node'
+import { registerSystemOneNode } from './system-one-node'
+import { registerDecisionCascadeNode } from './decision-cascade-node'
 
 let _initialized = false
 
@@ -67,6 +69,8 @@ export function registerBuiltInNodes(): void {
   registerTechnographicNode()      // installed tech stack, e-commerce, CRM, analytics
   registerDnsHealthNode()          // SPF, DKIM, DMARC, MX deliverability health score
   registerPersonalizerNode()       // 1-to-1 dynamic cold outreach icebreakers & hooks
+  registerSystemOneNode()          // OpenJev System-One probabilistic decision engine (Choice, Score, Noul)
+  registerDecisionCascadeNode()    // 4-Tier decision cascade (Rules -> NLI -> SLM -> Cloud Fallback)
   registerAiNode()
   registerAgentNode()
   registerVisionNode()
@@ -124,3 +128,5 @@ export { registerPersonalizerNode } from './personalizer-node'
 export { registerChannelRouterNode } from './channel-router-node'
 export { registerWebhookDispatcherNode } from './webhook-dispatcher-node'
 export { registerExportNode } from './export-node'
+export { registerSystemOneNode } from './system-one-node'
+export { registerDecisionCascadeNode } from './decision-cascade-node'

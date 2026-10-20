@@ -13,6 +13,7 @@ import { registerAuthHandlers } from './auth.ipc'
 import { registerUsersHandlers } from './users.ipc'
 import { registerPluginIpcHandlers } from './plugins.ipc'
 import { registerWorkerIpc } from './worker.ipc'
+import { registerDecisionIpcHandlers } from './decision.ipc'
 
 export function registerAllIpcHandlers(win: BrowserWindow): void {
   registerLeadIpcHandlers()
@@ -28,4 +29,5 @@ export function registerAllIpcHandlers(win: BrowserWindow): void {
   registerUsersHandlers()
   registerPluginIpcHandlers()
   registerWorkerIpc()
+  registerDecisionIpcHandlers(win)
 }
