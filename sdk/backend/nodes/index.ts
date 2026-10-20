@@ -28,6 +28,13 @@ import { registerApprovalNode } from './approval-node'
 import { registerN8nBridgeNode } from './n8n-bridge-node'
 import { registerDedupeNode } from './dedupe-node'
 import { registerFormatNode } from './format-node'
+import { registerWaterfallEnricherNode } from './waterfall-enricher-node'
+import { registerJobScraperNode } from './job-scraper-node'
+import { registerNewsRadarNode } from './news-radar-node'
+import { registerLinkedInNode } from './linkedin-node'
+import { registerVoiceCallNode } from './voice-call-node'
+import { registerCrmUpsertNode } from './crm-upsert-node'
+import { registerBatchNode } from './batch-node'
 
 let _initialized = false
 
@@ -41,6 +48,7 @@ export function registerBuiltInNodes(): void {
 
   // ── Sources ───────────────────────────────────────
   registerScraperNode()
+  registerJobScraperNode()  // career boards & hiring intent signals
   registerHttpNode()       // isStart: true — can run with no upstream
   registerStoreNode()      // isStart: true — query mode
   registerSetNode()        // isStart: true — seed mode
@@ -48,6 +56,8 @@ export function registerBuiltInNodes(): void {
 
   // ── Enrichment / Processing / Autonomous AI ───────
   registerEnricherNode()
+  registerWaterfallEnricherNode() // multi-vendor cascading discovery & verification
+  registerNewsRadarNode()          // funding, PR, executive intent triggers
   registerAiNode()
   registerAgentNode()
   registerVisionNode()
@@ -66,12 +76,16 @@ export function registerBuiltInNodes(): void {
   registerDelayNode()
   registerApprovalNode()
   registerDedupeNode()
+  registerBatchNode()
 
   // ── Storage ───────────────────────────────────────
+  registerCrmUpsertNode() // 2-way sync with HubSpot, Salesforce, Pipedrive
   // (store-node registered in Sources as it's bidirectional)
 
   // ── Output / Notification ─────────────────────────
   registerOutreachNode()
+  registerLinkedInNode()   // LinkedIn profile views, connection notes, InMails
+  registerVoiceCallNode()  // Conversational Voice AI SDR outbound calling
   registerConnectorNode()
   registerNotifyNode()
   registerN8nBridgeNode()
@@ -85,3 +99,10 @@ export function registerBuiltInNodes(): void {
 export { registerN8nBridgeNode } from './n8n-bridge-node'
 export { registerDedupeNode } from './dedupe-node'
 export { registerFormatNode } from './format-node'
+export { registerWaterfallEnricherNode } from './waterfall-enricher-node'
+export { registerJobScraperNode } from './job-scraper-node'
+export { registerNewsRadarNode } from './news-radar-node'
+export { registerLinkedInNode } from './linkedin-node'
+export { registerVoiceCallNode } from './voice-call-node'
+export { registerCrmUpsertNode } from './crm-upsert-node'
+export { registerBatchNode } from './batch-node'
