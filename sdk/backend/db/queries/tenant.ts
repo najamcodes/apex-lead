@@ -63,6 +63,8 @@ const SYSTEM_ROLE_LEVELS: Record<string, number> = {
 
 // Organization member roles
 const ORG_ROLE_LEVELS: Record<string, number> = {
+  owner: 4,
+  admin: 4,
   org_admin: 4,
   manager: 3,
   user: 2,
@@ -83,7 +85,7 @@ export function isOrgRole(role: string): boolean {
 
 export function hasPermission(permission: string, role?: string, perms?: string[]): boolean {
   const r = role ?? getCurrentUserRole()
-  if (roleLevel(r) >= 4) return true // super_admin & org_admin have all permissions
+  if (roleLevel(r) >= 4) return true // super_admin, owner, admin, & org_admin have all permissions
   if (roleLevel(r) >= 3) {
     // managers have operational permissions by default
     const managerDefaults = [
@@ -101,19 +103,25 @@ export function hasPermission(permission: string, role?: string, perms?: string[
   }
 
   const p = perms ?? getCurrentUserPermissions()
-  return p.includes(permission) || p.includes('*')
+  return p.includes(permission) || p.includes('*') || p.includes('all')
 }
 
 export function canViewPipelines(role?: string, perms?: string[]): boolean {
-  return hasPermission('view_pipelines', role, perms) || roleLevel(role ?? getCurrentUserRole()) >= 2
+  const r = role ?? getCurrentUserRole()
+  if (process.env.NODE_ENV === 'desktop' && roleLevel(r) >= 2) return true
+  return hasPermission('view_pipelines', role, perms) || roleLevel(r) >= 2
 }
 
 export function canRunPipelines(role?: string, perms?: string[]): boolean {
-  return hasPermission('run_pipelines', role, perms) || roleLevel(role ?? getCurrentUserRole()) >= 2
+  const r = role ?? getCurrentUserRole()
+  if (process.env.NODE_ENV === 'desktop' && roleLevel(r) >= 2) return true
+  return hasPermission('run_pipelines', role, perms) || roleLevel(r) >= 2
 }
 
 export function canEditPipelines(role?: string, perms?: string[]): boolean {
-  return hasPermission('edit_pipelines', role, perms) || roleLevel(role ?? getCurrentUserRole()) >= 3
+  const r = role ?? getCurrentUserRole()
+  if (process.env.NODE_ENV === 'desktop' && roleLevel(r) >= 2) return true
+  return hasPermission('edit_pipelines', role, perms) || roleLevel(r) >= 3
 }
 
 export function canManagePlugins(role?: string, perms?: string[]): boolean {

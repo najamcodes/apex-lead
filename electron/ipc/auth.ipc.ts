@@ -2,6 +2,7 @@ import { ipcMain } from 'electron'
 import { getDataSource } from '../../backend/db'
 import { UserEntity } from '../../backend/db/entities/UserEntity'
 import { OrganizationEntity } from '../../backend/db/entities/OrganizationEntity'
+import { UserOrganizationEntity } from '../../backend/db/entities/UserOrganizationEntity'
 import { hashPassword, verifyPassword } from '@sdk/core/utils/crypto'
 
 export function registerAuthHandlers() {
@@ -60,11 +61,30 @@ export function registerAuthHandlers() {
       const user = userRepo.create({
         email: args.email,
         password_hash: hashPassword(args.password),
-        role: 'admin',
+        role: 'org_admin',
         default_org_id: org.id,
-        permissions: JSON.stringify(['view_leads', 'run_scraper', 'manage_settings', 'send_outreach'])
+        permissions: JSON.stringify([
+          'view_leads',
+          'run_scraper',
+          'manage_settings',
+          'send_outreach',
+          'view_pipelines',
+          'run_pipelines',
+          'edit_pipelines',
+          'manage_plugins',
+          'approve_runs',
+          'view_all_data'
+        ])
       })
       await userRepo.save(user)
+
+      const userOrgRepo = getDataSource().getRepository(UserOrganizationEntity)
+      await userOrgRepo.save(userOrgRepo.create({
+        user_id: user.id,
+        org_id: org.id,
+        role: 'org_admin',
+        permissions: JSON.stringify(['all']),
+      }))
 
       // Set global tenant context for Phase 3 queries
       global.currentUserId = user.id;

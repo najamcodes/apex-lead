@@ -1,9 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm'
 
-export type UserRole = 'super_admin' | 'org_admin' | 'manager' | 'user' | 'viewer'
+export type UserRole = 'super_admin' | 'owner' | 'admin' | 'org_admin' | 'manager' | 'user' | 'viewer'
 
 export const ROLE_HIERARCHY: Record<UserRole, number> = {
   super_admin: 5,
+  owner: 4,
+  admin: 4,
   org_admin: 4,
   manager: 3,
   user: 2,

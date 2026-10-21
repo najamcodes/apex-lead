@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { api } from '../../services/api'
 import { PipelineEditor } from './PipelineEditor'
 import { useAuthStore, canEditPipelines } from '../../store/auth.store'
+import toast from 'react-hot-toast'
 import type { NodeTypeDescriptor, PipelineDefinition, PipelineNode, NodeEdge, PipelineRun } from '../../../shared/types/pipeline.types'
 
 export function Pipelines() {
@@ -61,9 +62,10 @@ export function Pipelines() {
       await api.pipelines.update(selected.id, { nodes, edges })
       setSelected({ ...selected, nodes, edges })
       setPipelines(prev => prev.map(p => p.id === selected.id ? { ...p, nodes, edges } : p))
-    } catch (err) {
+      toast.success('Pipeline saved')
+    } catch (err: any) {
       console.error('Failed to save pipeline:', err)
-      alert('Failed to save pipeline. Check console.')
+      toast.error(`Failed to save pipeline: ${err?.message || err}`)
     }
   }, [selected])
 
@@ -74,7 +76,9 @@ export function Pipelines() {
       const res = await api.pipelines.run(selected.id, {}, target) as any
       const runId = res.runId
       if (res.execution_target === 'farm') {
-        alert(`Dispatched to desktop worker: ${res.workerName || res.workerId}`)
+        toast(`Dispatched to desktop worker: ${res.workerName || res.workerId}`)
+      } else {
+        toast.success('Pipeline execution started')
       }
       // Poll for run status
       const poll = async () => {
@@ -91,7 +95,7 @@ export function Pipelines() {
       poll()
     } catch (err: any) {
       console.error('Failed to run pipeline:', err)
-      alert(`Failed to start pipeline run: ${err?.message || err}`)
+      toast.error(`Failed to start pipeline run: ${err?.message || err}`)
     }
   }, [selected, handleSave, loadRuns])
 
@@ -99,7 +103,7 @@ export function Pipelines() {
     try {
       const res = await api.pipelines.create({
         name: 'New Pipeline',
-        collection: 'data',
+        collection: 'leads',
         status: 'draft',
         nodes: [
           {
@@ -115,8 +119,10 @@ export function Pipelines() {
       }) as any
       setPipelines(prev => [res, ...prev])
       handleSelect(res)
-    } catch (err) {
+      toast.success('New pipeline created')
+    } catch (err: any) {
       console.error('Failed to create pipeline:', err)
+      toast.error(`Failed to create pipeline: ${err?.message || err}`)
     }
   }
 
@@ -125,8 +131,10 @@ export function Pipelines() {
     try {
       const copy = await api.pipelines.duplicate(id) as any
       setPipelines(prev => [copy, ...prev])
-    } catch (err) {
+      toast.success('Pipeline duplicated')
+    } catch (err: any) {
       console.error('Failed to duplicate pipeline:', err)
+      toast.error(`Failed to duplicate pipeline: ${err?.message || err}`)
     }
   }
 
@@ -135,9 +143,10 @@ export function Pipelines() {
       const instantiated = await api.pipelines.instantiateTemplate(templateId) as any
       setPipelines(prev => [instantiated, ...prev])
       handleSelect(instantiated)
-    } catch (err) {
+      toast.success('Pipeline created from template')
+    } catch (err: any) {
       console.error('Failed to instantiate template:', err)
-      alert('Failed to create pipeline from template.')
+      toast.error(`Failed to create pipeline from template: ${err?.message || err}`)
     }
   }
 
@@ -148,8 +157,10 @@ export function Pipelines() {
       await api.pipelines.delete(id)
       setPipelines(prev => prev.filter(p => p.id !== id))
       if (selected?.id === id) setSelected(null)
-    } catch (err) {
+      toast.success('Pipeline deleted')
+    } catch (err: any) {
       console.error('Failed to delete pipeline:', err)
+      toast.error(`Failed to delete pipeline: ${err?.message || err}`)
     }
   }
 

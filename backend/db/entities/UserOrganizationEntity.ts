@@ -2,9 +2,11 @@ import { Entity, PrimaryGeneratedColumn, Column, Index, CreateDateColumn, Update
 import { UserEntity } from './UserEntity'
 import { OrganizationEntity } from './OrganizationEntity'
 
-export type OrgMemberRole = 'org_admin' | 'manager' | 'user' | 'viewer'
+export type OrgMemberRole = 'owner' | 'admin' | 'org_admin' | 'manager' | 'user' | 'viewer'
 
 export const ORG_MEMBER_ROLE_HIERARCHY: Record<OrgMemberRole, number> = {
+  owner: 4,
+  admin: 4,
   org_admin: 4,
   manager: 3,
   user: 2,

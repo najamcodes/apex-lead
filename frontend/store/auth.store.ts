@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware'
 
 export const ROLE_HIERARCHY: Record<string, number> = {
   super_admin: 5,
+  owner: 4,
+  admin: 4,
   org_admin: 4,
   manager: 3,
   user: 2,
@@ -15,7 +17,7 @@ export function roleLevel(role: string): number {
 
 export function hasPermission(permission: string, role?: string | null, perms?: string[]): boolean {
   const r = role ?? 'user'
-  if (roleLevel(r) >= 4) return true // super_admin & org_admin have all permissions
+  if (roleLevel(r) >= 4) return true // super_admin, owner, admin, & org_admin have all permissions
   if (roleLevel(r) >= 3) {
     const managerDefaults = [
       'view_leads',
@@ -32,7 +34,7 @@ export function hasPermission(permission: string, role?: string | null, perms?: 
   }
 
   const p = perms ?? []
-  return p.includes(permission) || p.includes('*')
+  return p.includes(permission) || p.includes('*') || p.includes('all')
 }
 
 export function canManageOrg(role: string): boolean {
@@ -44,7 +46,10 @@ export function canViewAllData(role: string): boolean {
 }
 
 export function canViewPipelines(role?: string | null, perms?: string[]): boolean {
-  return hasPermission('view_pipelines', role, perms) || roleLevel(role ?? 'user') >= 2
+  const isDesktop = typeof window !== 'undefined' && Boolean((window as any).api)
+  const r = role ?? 'user'
+  if (isDesktop && roleLevel(r) >= 2) return true
+  return hasPermission('view_pipelines', role, perms) || roleLevel(r) >= 2
 }
 
 export function canRunPipeline(role: string): boolean {
@@ -52,11 +57,17 @@ export function canRunPipeline(role: string): boolean {
 }
 
 export function canRunPipelines(role?: string | null, perms?: string[]): boolean {
-  return hasPermission('run_pipelines', role, perms) || roleLevel(role ?? 'user') >= 2
+  const isDesktop = typeof window !== 'undefined' && Boolean((window as any).api)
+  const r = role ?? 'user'
+  if (isDesktop && roleLevel(r) >= 2) return true
+  return hasPermission('run_pipelines', role, perms) || roleLevel(r) >= 2
 }
 
 export function canEditPipelines(role?: string | null, perms?: string[]): boolean {
-  return hasPermission('edit_pipelines', role, perms) || roleLevel(role ?? 'user') >= 3
+  const isDesktop = typeof window !== 'undefined' && Boolean((window as any).api)
+  const r = role ?? 'user'
+  if (isDesktop && roleLevel(r) >= 2) return true
+  return hasPermission('edit_pipelines', role, perms) || roleLevel(r) >= 3
 }
 
 export function canManagePlugins(role?: string | null, perms?: string[]): boolean {
