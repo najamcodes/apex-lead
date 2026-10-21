@@ -76,7 +76,16 @@ export async function initDb(): Promise<DataSource> {
       dbPath = process.env.LEADHUNTER_DB_PATH
     } else if (typeof process !== 'undefined' && process.versions && process.versions.electron) {
       const { app } = require('electron')
-      dbPath = path.join(app.getPath('userData'), 'leadhunter.db')
+      if (app && app.isPackaged) {
+        dbPath = path.join(app.getPath('userData'), 'leadhunter.db')
+      } else {
+        const fs = require('fs')
+        const dataDir = path.join(process.cwd(), 'data')
+        if (!fs.existsSync(dataDir)) {
+          fs.mkdirSync(dataDir, { recursive: true })
+        }
+        dbPath = path.join(dataDir, 'leadhunter.db')
+      }
     } else {
       // Default for server/bun if env var not set
       const fs = require('fs')
