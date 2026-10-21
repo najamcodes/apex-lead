@@ -9,4 +9,5 @@ build
 artifacts
 .kilo
 *.db
+data/
 scratch/

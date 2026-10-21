@@ -1,6 +1,5 @@
-﻿import { z } from 'zod'
+import { z } from 'zod'
 import type { ConnectorPlugin, PluginEvent } from '../../types'
-import { sendDiscordAlert } from './discord'
 
 const ConfigSchema = z.object({
   webhook_url: z.string().url(),
@@ -17,6 +16,7 @@ const discordPlugin: ConnectorPlugin = {
   on: ['outreach.replied'],
 
   async push(event: PluginEvent, config: Record<string, unknown>): Promise<void> {
+    const { sendDiscordAlert } = await import('./discord')
     const pluginCfg = ConfigSchema.parse(config)
     await sendDiscordAlert(pluginCfg.webhook_url, event)
   },

@@ -1,8 +1,5 @@
 import { z } from 'zod'
 import type { EnricherPlugin, LeadSnapshot } from '../../types'
-import { crawlWebsiteForDecisionMakers } from './website-crawler'
-import { extractDecisionMaker } from './extract-decision-maker'
-import { getSettings } from '../../../backend/db/queries/settings.queries'
 
 const ConfigSchema = z.object({})
 
@@ -16,6 +13,7 @@ const aiDecisionMakerPlugin: EnricherPlugin = {
   configSchema: ConfigSchema,
 
   async enrich(lead: LeadSnapshot): Promise<Record<string, unknown>> {
+    const { getSettings } = await import('../../../backend/db/queries/settings.queries')
     const settings = await getSettings()
     
     if (!settings.ai_enabled || !lead.website_url) {
@@ -23,6 +21,8 @@ const aiDecisionMakerPlugin: EnricherPlugin = {
     }
 
     try {
+      const { crawlWebsiteForDecisionMakers } = await import('./website-crawler')
+      const { extractDecisionMaker } = await import('./extract-decision-maker')
       const crawlerData = await crawlWebsiteForDecisionMakers(lead.website_url as string)
       const aiDecisionMaker = await extractDecisionMaker(settings, settings.ai_model_site_scoring, crawlerData)
       
