@@ -1,4 +1,4 @@
-﻿// electron/scraper/engine/result-validator.ts
+// electron/scraper/engine/result-validator.ts
 // Validates, scores, and deduplicates scraped results before DB insert.
 
 import type { RawMapListing } from '../../../../shared/types/scraper.types'
@@ -78,8 +78,8 @@ export function validateAndScore(listings: RawMapListing[]): ValidatedListing[] 
       website_url:   cleanWebsite(listing.website_url),
     }
 
-    if (!listing.phone && cleaned.phone) notes.push('Phone cleaned')
-    if (!listing.website_url && cleaned.website_url) notes.push('Website cleaned')
+    if (listing.phone && listing.phone !== cleaned.phone) notes.push('Phone cleaned')
+    if (listing.website_url && listing.website_url !== cleaned.website_url) notes.push('Website cleaned')
 
     const quality_score = scoreQuality(cleaned)
     results.push({ ...cleaned, quality_score, validation_notes: notes })

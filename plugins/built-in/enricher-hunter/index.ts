@@ -1,4 +1,4 @@
-﻿// plugins/built-in/enricher-hunter/index.ts
+// plugins/built-in/enricher-hunter/index.ts
 // Wraps src/core/email-finder/hunter.ts + pattern-guesser.ts as an EnricherPlugin.
 
 import { z } from 'zod'
@@ -44,7 +44,7 @@ const hunterPlugin: EnricherPlugin = {
     // Try Hunter.io first (only if API key is configured)
     let foundEmail: string | null = null
     if (config.api_key) {
-      foundEmail = await findEmailWithHunter(domain).catch(() => null)
+      foundEmail = await findEmailWithHunter(domain, config.api_key).catch(() => null)
     }
 
     // Fallback to pattern guesser

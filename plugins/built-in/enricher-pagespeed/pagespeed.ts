@@ -1,8 +1,7 @@
-﻿// electron/analysis/pagespeed.ts
+// electron/analysis/pagespeed.ts
 // Calls Google PageSpeed Insights API (free, no key needed for basic use,
 // key recommended for higher quota — 25,000 req/day free with key).
 
-import fetch from 'node-fetch'
 import type { PageSpeedResult } from '../../../shared/types/analysis.types'
 
 const PSI_BASE = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed'

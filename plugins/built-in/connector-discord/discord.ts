@@ -1,7 +1,6 @@
-import fetch from 'node-fetch'
 import type { PluginEvent } from '../../types'
 
-export async function sendDiscordAlert(webhookUrl: string, event: PluginEvent) {
+export async function sendDiscordAlert(webhookUrl: string, event: PluginEvent): Promise<void> {
   try {
     const lead = event.lead
     const metadata = event.metadata || {}
@@ -40,11 +39,16 @@ export async function sendDiscordAlert(webhookUrl: string, event: PluginEvent) {
       timestamp: new Date().toISOString()
     }
 
-    await fetch(webhookUrl, {
+    const res = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ embeds: [embed] })
     })
+
+    if (!res.ok) {
+      console.error(`[Discord] Webhook rejected with status ${res.status}: ${await res.text().catch(() => '')}`)
+      return
+    }
 
     console.log(`[Discord] Alert sent for lead ${lead.email || lead.id || 'unknown'}`)
   } catch (error) {

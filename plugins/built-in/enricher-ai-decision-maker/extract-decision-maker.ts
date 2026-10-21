@@ -2,6 +2,8 @@ import type { AppSettings } from '../../../shared/types'
 import { getAiClient } from '@sdk/core/ai/ai-client'
 import type { CrawledWebsiteData } from './website-crawler'
 
+import { cleanAndParseJson } from '@sdk/core/ai/json-cleaner'
+
 export interface DecisionMakerInfo {
   contact_name: string | null
   direct_email: string | null
@@ -57,13 +59,11 @@ ${data.contactText.slice(0, 3000)}
       temperature: 0.1,
     })
 
-    // Clean markdown if present
-    const cleaned = responseText.content.replace(/```json/g, '').replace(/```/g, '').trim()
-    const result = JSON.parse(cleaned)
+    const result = cleanAndParseJson<Record<string, any>>(responseText.content)
     return {
-      contact_name: result.contact_name || null,
-      role: result.role || null,
-      direct_email: result.direct_email || null,
+      contact_name: (result.contact_name as string) || null,
+      role: (result.role as string) || null,
+      direct_email: (result.direct_email as string) || null,
     }
   } catch (err) {
     console.error('[AI] Failed to extract decision maker:', err)

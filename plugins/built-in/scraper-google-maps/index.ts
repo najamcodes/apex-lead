@@ -2,6 +2,17 @@
 import { z } from 'zod'
 import type { ScraperPlugin, ScraperRunConfig, ScrapedItem } from '../../types'
 
+export interface ScrapeControlToken {
+  cancelled: boolean
+  paused?: boolean
+}
+
+export async function checkPause(token: ScrapeControlToken): Promise<void> {
+  while (token.paused && !token.cancelled) {
+    await new Promise(r => setTimeout(r, 1000))
+  }
+}
+
 const ConfigSchema = z.object({
   proxy_url:      z.string().url().optional(),
   proxy_username: z.string().optional(),
@@ -23,7 +34,7 @@ const googleMapsPlugin: ScraperPlugin = {
     const { scrapeGoogleMaps } = await import('./google-maps')
 
     const pluginCfg = ConfigSchema.parse(config.pluginConfig)
-    const proxyConfig = config.proxyConfig || (pluginCfg.proxy_url
+    const rawProxy = config.proxyConfig || (pluginCfg.proxy_url
       ? {
           server:   pluginCfg.proxy_url,
           username: pluginCfg.proxy_username,
@@ -31,10 +42,16 @@ const googleMapsPlugin: ScraperPlugin = {
         }
       : null)
 
+    const proxyConfig = rawProxy ? {
+      server: rawProxy.server,
+      username: rawProxy.username || undefined,
+      password: rawProxy.password || undefined,
+    } : null
+
     const { context } = await createStealthContext(proxyConfig, !pluginCfg.headful)
 
     try {
-      const cancelToken = { 
+      const cancelToken: ScrapeControlToken = { 
         get cancelled() { return config.isCancelled ? config.isCancelled() : false }, 
         paused: false 
       }
@@ -47,7 +64,7 @@ const googleMapsPlugin: ScraperPlugin = {
         (found, current) => {
           if (config.onProgress) config.onProgress(found, current)
         },
-        cancelToken as any
+        cancelToken
       )
 
       for (const listing of listings) {
@@ -72,4 +89,3 @@ const googleMapsPlugin: ScraperPlugin = {
 }
 
 export default googleMapsPlugin
-

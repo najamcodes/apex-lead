@@ -1,5 +1,5 @@
-﻿import { createStealthContext, humanDelay } from '@sdk/core/scraper/stealth'
-import { getSettings } from '../../db/queries/settings.queries'
+import { createStealthContext, humanDelay } from '@sdk/core/scraper/stealth'
+import { getSettings } from '../../../backend/db/queries/settings.queries'
 
 export interface LinkedInDorkResult {
   contact_name: string | null

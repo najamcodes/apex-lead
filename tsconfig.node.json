@@ -5,6 +5,7 @@
     "electron/**/*",
     "backend/**/*",
     "sdk/**/*",
+    "plugins/**/*",
     "shared/types/**/*"
   ],
   "compilerOptions": {

@@ -1,1 +1,1 @@
-export * from '@sdk/core/scraper/website-crawler'
+export * from '../../../sdk/core/scraper/website-crawler'

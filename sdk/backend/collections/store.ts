@@ -47,12 +47,17 @@ export async function storeRecord(input: StoreRecordInput): Promise<string> {
   // For now, dedupe on a `unique_key` field if present in data.
   let existingId: string | null = null
   if (mode !== 'insert' && data.unique_key) {
+    const isPostgres = process.env.DB_TYPE === 'postgres'
+    const keyCondition = isPostgres
+      ? "cr.data ->> 'unique_key' = :key"
+      : "json_extract(cr.data, '$.unique_key') = :key"
+
     const existing = await ds.createQueryBuilder()
       .select('id')
       .from('collection_records', 'cr')
       .where('cr.collection = :collection', { collection })
       .andWhere('cr.org_id = :orgId', { orgId })
-      .andWhere("cr.data ->> 'unique_key' = :key", { key: String(data.unique_key) })
+      .andWhere(keyCondition, { key: String(data.unique_key) })
       .getRawOne<{ id: string } | undefined>()
     existingId = existing?.id ?? null
   }

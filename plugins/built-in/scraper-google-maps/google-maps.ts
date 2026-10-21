@@ -1,4 +1,4 @@
-﻿// electron/scraper/google-maps.ts
+// electron/scraper/google-maps.ts
 // Main entry point — tries strategies in order, retries on failure.
 
 import type { BrowserContext } from 'playwright'
@@ -10,7 +10,7 @@ import { extractFromPlacePage } from './extractors/dom-extractor'
 import { AdaptiveThrottler }    from '@sdk/core/scraper/engine/adaptive-throttler'
 import { detectCaptcha, handleCaptcha } from '@sdk/core/scraper/engine/captcha-handler'
 import { validateAndScore }     from './extractors/result-validator'
-import { getSettings }          from '../../db/queries/settings.queries'
+import { getSettings }          from '../../../backend/db/queries/settings.queries'
 import type { RawMapListing }   from '../../../shared/types/scraper.types'
 
 function buildSearchUrl(query: string, city: string): string {
