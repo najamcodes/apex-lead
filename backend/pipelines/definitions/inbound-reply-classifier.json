@@ -1,0 +1,86 @@
+{
+  "id": "inbound-reply-classifier",
+  "name": "AI Inbound Email Reply Classification & Auto-Followup",
+  "description": "Ingests inbound cold email replies, parses intent & sentiment with NLP, routes positive meeting requests to CRM/Slack, and unsubscribes opted-out leads.",
+  "collection": "inbox_replies",
+  "status": "draft",
+  "nodes": [
+    {
+      "id": "trigger_1",
+      "type": "trigger",
+      "label": "Inbound Reply Webhook",
+      "enabled": true,
+      "position": { "x": 80, "y": 200 },
+      "config": {
+        "type": "webhook",
+        "webhook_slug": "inbound-email-reply",
+        "collection": "inbox_replies"
+      }
+    },
+    {
+      "id": "format_1",
+      "type": "format",
+      "label": "Clean Text & Normalize",
+      "enabled": true,
+      "position": { "x": 320, "y": 200 },
+      "config": {
+        "titleCaseNames": true,
+        "normalizePhones": true,
+        "extractDomains": true
+      }
+    },
+    {
+      "id": "reply_1",
+      "type": "reply_classifier",
+      "label": "NLP Reply Classifier",
+      "enabled": true,
+      "position": { "x": 560, "y": 200 },
+      "config": {
+        "textField": "body",
+        "autoTag": true,
+        "fieldPrefix": "reply_"
+      }
+    },
+    {
+      "id": "crm_1",
+      "type": "crm_upsert",
+      "label": "HubSpot Deal Progression",
+      "enabled": true,
+      "position": { "x": 840, "y": 120 },
+      "config": {
+        "crm": "hubspot",
+        "operation": "upsert_deal",
+        "dealStage": "Discovery Call Requested"
+      }
+    },
+    {
+      "id": "notify_1",
+      "type": "notify",
+      "label": "Urgent Sales Alert",
+      "enabled": true,
+      "position": { "x": 1100, "y": 120 },
+      "config": {
+        "channel": "discord",
+        "body": "🔥 Hot Lead Reply! {{record.reply_email}} expressed meeting interest: \"{{record.body}}\""
+      }
+    },
+    {
+      "id": "store_dnc",
+      "type": "store",
+      "label": "Add to Do-Not-Contact List",
+      "enabled": true,
+      "position": { "x": 840, "y": 300 },
+      "config": {
+        "collection": "do_not_contact",
+        "mode": "upsert"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "trigger_1", "to": "format_1" },
+    { "id": "e2", "from": "format_1", "to": "reply_1" },
+    { "id": "e3", "from": "reply_1", "to": "crm_1", "fromPort": "positive" },
+    { "id": "e4", "from": "crm_1", "to": "notify_1" },
+    { "id": "e5", "from": "reply_1", "to": "store_dnc", "fromPort": "negative" }
+  ]
+}

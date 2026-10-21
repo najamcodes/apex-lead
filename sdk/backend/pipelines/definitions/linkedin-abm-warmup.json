@@ -1,0 +1,96 @@
+{
+  "id": "linkedin-abm-warmup",
+  "name": "LinkedIn ABM Social Selling & Warmup Sequence",
+  "description": "Executes profile visits, pauses for social awareness, and sends customized connection requests.",
+  "collection": "leads",
+  "status": "draft",
+  "nodes": [
+    {
+      "id": "trigger_1",
+      "type": "trigger",
+      "label": "Manual / Scheduled ABM",
+      "enabled": true,
+      "position": { "x": 80, "y": 200 },
+      "config": {
+        "type": "manual",
+        "collection": "leads"
+      }
+    },
+    {
+      "id": "store_input",
+      "type": "store",
+      "label": "Fetch Target Executives",
+      "enabled": true,
+      "position": { "x": 300, "y": 200 },
+      "config": {
+        "collection": "leads",
+        "mode": "query",
+        "filterField": "status",
+        "filterValue": "new"
+      }
+    },
+    {
+      "id": "linkedin_view",
+      "type": "linkedin",
+      "label": "Stealth Profile Visit",
+      "enabled": true,
+      "position": { "x": 520, "y": 200 },
+      "config": {
+        "action": "view_profile",
+        "simulateHumanDelay": true
+      }
+    },
+    {
+      "id": "delay_1",
+      "type": "delay",
+      "label": "Wait 48 Hours",
+      "enabled": true,
+      "position": { "x": 740, "y": 200 },
+      "config": {
+        "delay_seconds": 172800
+      }
+    },
+    {
+      "id": "pers_1",
+      "type": "personalizer",
+      "label": "Connection Note Drafter",
+      "enabled": true,
+      "position": { "x": 960, "y": 200 },
+      "config": {
+        "tone": "conversational",
+        "outputField": "connectionNote"
+      }
+    },
+    {
+      "id": "linkedin_connect",
+      "type": "linkedin",
+      "label": "Send Connection Request",
+      "enabled": true,
+      "position": { "x": 1180, "y": 200 },
+      "config": {
+        "action": "send_connection",
+        "noteField": "connectionNote"
+      }
+    },
+    {
+      "id": "crm_1",
+      "type": "crm_upsert",
+      "label": "Update CRM Lead Status",
+      "enabled": true,
+      "position": { "x": 1400, "y": 200 },
+      "config": {
+        "crm": "hubspot",
+        "operation": "upsert_lead",
+        "leadStatus": "linkedin_invited"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "trigger_1", "to": "store_input" },
+    { "id": "e2", "from": "store_input", "to": "linkedin_view" },
+    { "id": "e3", "from": "linkedin_view", "to": "delay_1" },
+    { "id": "e4", "from": "delay_1", "to": "pers_1" },
+    { "id": "e5", "from": "pers_1", "to": "linkedin_connect" },
+    { "id": "e6", "from": "linkedin_connect", "to": "crm_1" }
+  ]
+}

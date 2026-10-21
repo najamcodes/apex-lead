@@ -1,0 +1,75 @@
+{
+  "id": "ecommerce-price-watcher",
+  "name": "E-Commerce Competitor Price Intelligence & Alert System",
+  "description": "Scrapes competitor prices, calculates price drops, and fires automated dynamic repricing webhooks.",
+  "collection": "products",
+  "status": "draft",
+  "nodes": [
+    {
+      "id": "cron_1",
+      "type": "trigger",
+      "label": "Price Check Schedule",
+      "enabled": true,
+      "position": { "x": 80, "y": 200 },
+      "config": {
+        "type": "cron",
+        "cron": "0 */4 * * *",
+        "collection": "products"
+      }
+    },
+    {
+      "id": "scraper_1",
+      "type": "scraper",
+      "label": "Product Catalog Scraper",
+      "enabled": true,
+      "position": { "x": 300, "y": 200 },
+      "config": {
+        "plugin": "google-maps",
+        "query": "Electronics competitor store",
+        "max_results": 25
+      }
+    },
+    {
+      "id": "price_1",
+      "type": "price_tracker",
+      "label": "Price & Stock Analyzer",
+      "enabled": true,
+      "position": { "x": 540, "y": 200 },
+      "config": {
+        "priceField": "price",
+        "comparePriceField": "listPrice",
+        "minDropPercent": 15,
+        "stockField": "inStock"
+      }
+    },
+    {
+      "id": "webhook_1",
+      "type": "webhook_dispatcher",
+      "label": "Repricing API Dispatcher",
+      "enabled": true,
+      "position": { "x": 800, "y": 140 },
+      "config": {
+        "url": "https://api.mystore.com/v1/repricer/sync",
+        "secret": "prod_repricer_secret_key",
+        "retryCount": 2
+      }
+    },
+    {
+      "id": "notify_1",
+      "type": "notify",
+      "label": "Discord Deal Ping",
+      "enabled": true,
+      "position": { "x": 1060, "y": 140 },
+      "config": {
+        "channel": "discord",
+        "body": "📉 Competitor Price Drop Alert! {{record.title}} dropped {{record.price_discount_percent}}% to ${{record.price_current}}"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "cron_1", "to": "scraper_1" },
+    { "id": "e2", "from": "scraper_1", "to": "price_1" },
+    { "id": "e3", "from": "price_1", "to": "webhook_1", "fromPort": "price_drop" },
+    { "id": "e4", "from": "webhook_1", "to": "notify_1" }
+  ]
+}

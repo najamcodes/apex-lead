@@ -1,0 +1,85 @@
+{
+  "id": "competitor-tech-displacement",
+  "name": "Competitor Tech Stack Displacement & Winback Campaign",
+  "description": "Identifies competitor technologies installed on prospect websites and automates competitor comparison outreach.",
+  "collection": "leads",
+  "status": "draft",
+  "nodes": [
+    {
+      "id": "set_1",
+      "type": "set",
+      "label": "Target Account Seed",
+      "enabled": true,
+      "position": { "x": 80, "y": 200 },
+      "config": {
+        "collection": "leads",
+        "fields": [{ "name": "industry", "value": "E-commerce & SaaS" }]
+      }
+    },
+    {
+      "id": "techno_1",
+      "type": "technographic",
+      "label": "Competitor Tech Radar",
+      "enabled": true,
+      "position": { "x": 320, "y": 200 },
+      "config": {
+        "domainField": "domain",
+        "targetTechnologies": "Zendesk, Intercom, Salesforce",
+        "matchMode": "any"
+      }
+    },
+    {
+      "id": "filter_1",
+      "type": "filter",
+      "label": "Has Competitor Tech",
+      "enabled": true,
+      "position": { "x": 560, "y": 200 },
+      "config": {
+        "filter_mode": "expression",
+        "condition": "data.techMatches && data.techMatches.length > 0"
+      }
+    },
+    {
+      "id": "waterfall_1",
+      "type": "waterfall_enricher",
+      "label": "Enrich Decision Maker",
+      "enabled": true,
+      "position": { "x": 800, "y": 200 },
+      "config": {
+        "companyField": "companyName",
+        "domainField": "domain",
+        "enrichPhone": true
+      }
+    },
+    {
+      "id": "pers_1",
+      "type": "personalizer",
+      "label": "Feature-Gap Pitch Generator",
+      "enabled": true,
+      "position": { "x": 1040, "y": 200 },
+      "config": {
+        "tone": "consultative",
+        "outputField": "icebreaker"
+      }
+    },
+    {
+      "id": "crm_1",
+      "type": "crm_upsert",
+      "label": "Log HubSpot Deal",
+      "enabled": true,
+      "position": { "x": 1280, "y": 200 },
+      "config": {
+        "crm": "hubspot",
+        "operation": "upsert_both",
+        "dealStage": "Competitor Displacement"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "set_1", "to": "techno_1" },
+    { "id": "e2", "from": "techno_1", "to": "filter_1" },
+    { "id": "e3", "from": "filter_1", "to": "waterfall_1" },
+    { "id": "e4", "from": "waterfall_1", "to": "pers_1" },
+    { "id": "e5", "from": "pers_1", "to": "crm_1" }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "id": "hiring-velocity-intent",
+  "name": "Hiring Velocity & Strategic Role Change Hunter",
+  "description": "Detects high-growth hiring spikes, verifies decision makers, and deploys hiring-momentum outreach.",
+  "collection": "leads",
+  "status": "draft",
+  "nodes": [
+    {
+      "id": "trigger_1",
+      "type": "trigger",
+      "label": "Weekly Hiring Scan",
+      "enabled": true,
+      "position": { "x": 80, "y": 200 },
+      "config": {
+        "type": "cron",
+        "cron": "0 8 * * 1",
+        "collection": "leads"
+      }
+    },
+    {
+      "id": "job_1",
+      "type": "job_scraper",
+      "label": "ATS Career Scraper",
+      "enabled": true,
+      "position": { "x": 300, "y": 200 },
+      "config": {
+        "targetDepartments": "Engineering, Sales, Marketing",
+        "minOpenings": 3
+      }
+    },
+    {
+      "id": "format_1",
+      "type": "format",
+      "label": "Data Normalizer",
+      "enabled": true,
+      "position": { "x": 520, "y": 200 },
+      "config": {
+        "cleanCompanyNames": true,
+        "cleanJobTitles": true,
+        "extractDomains": true
+      }
+    },
+    {
+      "id": "decision_1",
+      "type": "system_one_decision",
+      "label": "OpenJev Growth Qualification",
+      "enabled": true,
+      "position": { "x": 740, "y": 200 },
+      "config": {
+        "mode": "local_onnx",
+        "questions": {
+          "is_scaling_enterprise": {
+            "type": "noul",
+            "instructions": "Company is expanding headcount rapidly in core revenue or technical leadership positions.",
+            "threshold": 0.7
+          }
+        }
+      }
+    },
+    {
+      "id": "waterfall_1",
+      "type": "waterfall_enricher",
+      "label": "Waterfall Contact Enrichment",
+      "enabled": true,
+      "position": { "x": 960, "y": 200 },
+      "config": {
+        "enrichPhone": true,
+        "minScoreThreshold": 65,
+        "stopOnFirstVerified": true
+      }
+    },
+    {
+      "id": "pers_1",
+      "type": "personalizer",
+      "label": "Hiring Hook Personalizer",
+      "enabled": true,
+      "position": { "x": 1180, "y": 200 },
+      "config": {
+        "tone": "growth_focused",
+        "outputField": "icebreaker"
+      }
+    },
+    {
+      "id": "outreach_1",
+      "type": "outreach",
+      "label": "Schedule Outreach",
+      "enabled": true,
+      "position": { "x": 1400, "y": 200 },
+      "config": {
+        "sequenceId": "hiring-spike-sequence-v1"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "trigger_1", "to": "job_1" },
+    { "id": "e2", "from": "job_1", "to": "format_1" },
+    { "id": "e3", "from": "format_1", "to": "decision_1" },
+    { "id": "e4", "from": "decision_1", "to": "waterfall_1", "fromPort": "approved" },
+    { "id": "e5", "from": "waterfall_1", "to": "pers_1" },
+    { "id": "e6", "from": "pers_1", "to": "outreach_1" }
+  ]
+}

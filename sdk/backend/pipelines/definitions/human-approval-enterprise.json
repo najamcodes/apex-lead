@@ -1,0 +1,86 @@
+{
+  "id": "human-approval-enterprise",
+  "name": "Human-in-the-Loop High-Value Enterprise Deal Approval",
+  "description": "Scores enterprise deals, pauses for interactive human signoff, and initiates high-touch sales ops.",
+  "collection": "enterprise_deals",
+  "status": "draft",
+  "nodes": [
+    {
+      "id": "webhook_1",
+      "type": "trigger",
+      "label": "Enterprise Demo Request",
+      "enabled": true,
+      "position": { "x": 80, "y": 200 },
+      "config": {
+        "type": "webhook",
+        "webhook_slug": "enterprise-inquiry",
+        "collection": "enterprise_deals"
+      }
+    },
+    {
+      "id": "techno_1",
+      "type": "technographic",
+      "label": "Tech Scale Analysis",
+      "enabled": true,
+      "position": { "x": 300, "y": 200 },
+      "config": {
+        "domainField": "domain",
+        "targetTechnologies": "Salesforce, Workday, SAP, Snowflake"
+      }
+    },
+    {
+      "id": "ai_1",
+      "type": "ai",
+      "label": "Deal Value Estimator",
+      "enabled": true,
+      "position": { "x": 520, "y": 200 },
+      "config": {
+        "model": "anthropic/claude-3-haiku",
+        "prompt": "Estimate annual contract value (ACV) and company maturity based on: Company={{input.companyName}}, Tech={{input.detectedTechnologies}}",
+        "output_field": "deal_estimate"
+      }
+    },
+    {
+      "id": "approval_1",
+      "type": "approval",
+      "label": "Director Sign-off Gate",
+      "enabled": true,
+      "position": { "x": 760, "y": 200 },
+      "config": {
+        "title": "Enterprise Opportunity Review: {{record.companyName}}",
+        "timeoutSeconds": 86400,
+        "requiredRole": "manager"
+      }
+    },
+    {
+      "id": "crm_1",
+      "type": "crm_upsert",
+      "label": "HubSpot Enterprise Pipeline",
+      "enabled": true,
+      "position": { "x": 1020, "y": 140 },
+      "config": {
+        "crm": "hubspot",
+        "operation": "upsert_deal",
+        "dealStage": "Enterprise Proposal Generated"
+      }
+    },
+    {
+      "id": "notify_1",
+      "type": "notify",
+      "label": "Slack Executive Celebration",
+      "enabled": true,
+      "position": { "x": 1260, "y": 140 },
+      "config": {
+        "channel": "discord",
+        "body": "🚀 Enterprise Deal Approved! {{record.companyName}} moved to active contract review."
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "webhook_1", "to": "techno_1" },
+    { "id": "e2", "from": "techno_1", "to": "ai_1" },
+    { "id": "e3", "from": "ai_1", "to": "approval_1" },
+    { "id": "e4", "from": "approval_1", "to": "crm_1", "fromPort": "approved" },
+    { "id": "e5", "from": "crm_1", "to": "notify_1" }
+  ]
+}

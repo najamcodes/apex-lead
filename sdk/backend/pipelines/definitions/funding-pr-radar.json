@@ -1,0 +1,98 @@
+{
+  "id": "funding-pr-radar",
+  "name": "High-Growth Funding & PR Executive Intent Trigger",
+  "description": "Tracks venture funding milestones and triggers instant executive outreach.",
+  "collection": "leads",
+  "status": "draft",
+  "nodes": [
+    {
+      "id": "trigger_1",
+      "type": "trigger",
+      "label": "Daily Funding Monitor",
+      "enabled": true,
+      "position": { "x": 80, "y": 200 },
+      "config": {
+        "type": "cron",
+        "cron": "0 9 * * *",
+        "collection": "leads"
+      }
+    },
+    {
+      "id": "news_1",
+      "type": "news_radar",
+      "label": "Venture & PR Radar",
+      "enabled": true,
+      "position": { "x": 300, "y": 200 },
+      "config": {
+        "eventTypes": "funding, leadership, product_launch",
+        "maxDaysOld": 14
+      }
+    },
+    {
+      "id": "filter_1",
+      "type": "filter",
+      "label": "Funding Round >= $5M",
+      "enabled": true,
+      "position": { "x": 520, "y": 200 },
+      "config": {
+        "filter_mode": "expression",
+        "condition": "data.fundingAmountUsd >= 5000000 || data.eventType === \"leadership\""
+      }
+    },
+    {
+      "id": "waterfall_1",
+      "type": "waterfall_enricher",
+      "label": "Executive Enrichment",
+      "enabled": true,
+      "position": { "x": 740, "y": 200 },
+      "config": {
+        "enrichPhone": true,
+        "minScoreThreshold": 70,
+        "stopOnFirstVerified": true
+      }
+    },
+    {
+      "id": "pers_1",
+      "type": "personalizer",
+      "label": "Funding Milestone Hook",
+      "enabled": true,
+      "position": { "x": 960, "y": 200 },
+      "config": {
+        "tone": "conversational",
+        "outputField": "icebreaker"
+      }
+    },
+    {
+      "id": "router_1",
+      "type": "channel_router",
+      "label": "Omnichannel Routing",
+      "enabled": true,
+      "position": { "x": 1180, "y": 200 },
+      "config": {
+        "primaryChannel": "email_first",
+        "requireVerifiedEmail": true,
+        "requireMobileForVoice": true
+      }
+    },
+    {
+      "id": "crm_1",
+      "type": "crm_upsert",
+      "label": "HubSpot High-Value Deal",
+      "enabled": true,
+      "position": { "x": 1400, "y": 200 },
+      "config": {
+        "crm": "hubspot",
+        "operation": "upsert_both",
+        "dealStage": "Funded Growth Lead"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "trigger_1", "to": "news_1" },
+    { "id": "e2", "from": "news_1", "to": "filter_1" },
+    { "id": "e3", "from": "filter_1", "to": "waterfall_1" },
+    { "id": "e4", "from": "waterfall_1", "to": "pers_1" },
+    { "id": "e5", "from": "pers_1", "to": "router_1" },
+    { "id": "e6", "from": "router_1", "to": "crm_1", "fromPort": "email" }
+  ]
+}

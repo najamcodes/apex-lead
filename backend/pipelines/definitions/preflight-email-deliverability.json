@@ -1,0 +1,84 @@
+{
+  "id": "preflight-email-deliverability",
+  "name": "Pre-Flight Email Deliverability & DNS Health Sanitizer",
+  "description": "Audits raw lead CSVs, flags disposable/role inboxes, verifies domain DNS health, and exports deliverable leads.",
+  "collection": "sanitized_leads",
+  "status": "draft",
+  "nodes": [
+    {
+      "id": "csv_1",
+      "type": "spreadsheet",
+      "label": "Raw Leads CSV",
+      "enabled": true,
+      "position": { "x": 80, "y": 200 },
+      "config": {
+        "mode": "read",
+        "collection": "sanitized_leads"
+      }
+    },
+    {
+      "id": "format_1",
+      "type": "format",
+      "label": "Sanitize & Extract Domain",
+      "enabled": true,
+      "position": { "x": 320, "y": 200 },
+      "config": {
+        "extractDomains": true,
+        "normalizePhones": true,
+        "titleCaseNames": true
+      }
+    },
+    {
+      "id": "verifier_1",
+      "type": "email_verifier",
+      "label": "Deliverability Hygiene",
+      "enabled": true,
+      "position": { "x": 560, "y": 200 },
+      "config": {
+        "emailField": "email",
+        "minScoreThreshold": 75,
+        "fieldPrefix": "verify_"
+      }
+    },
+    {
+      "id": "dns_1",
+      "type": "dns_health",
+      "label": "DNS & MX Deliverability",
+      "enabled": true,
+      "position": { "x": 800, "y": 150 },
+      "config": {
+        "domainField": "domain",
+        "minScore": 70
+      }
+    },
+    {
+      "id": "export_clean",
+      "type": "export",
+      "label": "Export Clean CSV",
+      "enabled": true,
+      "position": { "x": 1040, "y": 150 },
+      "config": {
+        "format": "csv",
+        "fileNameTemplate": "deliverable_clean_{{date}}"
+      }
+    },
+    {
+      "id": "notify_quarantine",
+      "type": "notify",
+      "label": "Quarantine Alert",
+      "enabled": true,
+      "position": { "x": 800, "y": 320 },
+      "config": {
+        "channel": "discord",
+        "body": "⚠️ High Risk Lead quarantined: {{record.email}} (Reason: {{record.verify_reasons}})"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "csv_1", "to": "format_1" },
+    { "id": "e2", "from": "format_1", "to": "verifier_1" },
+    { "id": "e3", "from": "verifier_1", "to": "dns_1", "fromPort": "valid" },
+    { "id": "e4", "from": "dns_1", "to": "export_clean", "fromPort": "main" },
+    { "id": "e5", "from": "verifier_1", "to": "notify_quarantine", "fromPort": "invalid" }
+  ]
+}

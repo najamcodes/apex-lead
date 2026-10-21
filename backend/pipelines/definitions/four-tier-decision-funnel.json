@@ -1,0 +1,86 @@
+{
+  "id": "four-tier-decision-funnel",
+  "name": "4-Tier OpenJev Decision Funnel & Cost Optimization",
+  "description": "Cuts AI inference bills by 95%+ using intelligent 4-tier decision cascade.",
+  "collection": "leads",
+  "status": "draft",
+  "nodes": [
+    {
+      "id": "trigger_1",
+      "type": "trigger",
+      "label": "Lead Batch Input",
+      "enabled": true,
+      "position": { "x": 80, "y": 200 },
+      "config": {
+        "type": "manual",
+        "collection": "leads"
+      }
+    },
+    {
+      "id": "format_1",
+      "type": "format",
+      "label": "Normalize Titles & Domain",
+      "enabled": true,
+      "position": { "x": 300, "y": 200 },
+      "config": {
+        "cleanJobTitles": true,
+        "cleanCompanyNames": true,
+        "extractDomains": true
+      }
+    },
+    {
+      "id": "cascade_1",
+      "type": "decision_cascade",
+      "label": "4-Tier Decision Cascade",
+      "enabled": true,
+      "position": { "x": 540, "y": 200 },
+      "config": {
+        "tier1ModelId": "Xenova/nli-deberta-v3-small",
+        "tier2ModelId": "HuggingFaceTB/SmolLM2-135M-Instruct",
+        "tier3FallbackEnabled": true,
+        "tier3ModelId": "deepseek/deepseek-v4-flash",
+        "decisionFieldPrefix": "cascade_",
+        "tier0Rules": [
+          { "field": "email", "operator": "contains", "value": "@gmail.com", "outcome": "reject", "reason": "Consumer email" },
+          { "field": "email", "operator": "contains", "value": "@yahoo.com", "outcome": "reject", "reason": "Consumer email" }
+        ],
+        "questions": {
+          "is_b2b_icp": {
+            "type": "noul",
+            "instructions": "Prospect is a B2B corporate enterprise decision maker with executive or director authority.",
+            "threshold": 0.75
+          }
+        }
+      }
+    },
+    {
+      "id": "crm_1",
+      "type": "crm_upsert",
+      "label": "Sync Approved to CRM",
+      "enabled": true,
+      "position": { "x": 820, "y": 140 },
+      "config": {
+        "crm": "hubspot",
+        "operation": "upsert_both",
+        "dealStage": "ICP Qualified"
+      }
+    },
+    {
+      "id": "export_audit",
+      "type": "export",
+      "label": "Audit & Telemetry Export",
+      "enabled": true,
+      "position": { "x": 820, "y": 280 },
+      "config": {
+        "format": "json",
+        "fileNameTemplate": "cascade_audit_{{date}}"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "trigger_1", "to": "format_1" },
+    { "id": "e2", "from": "format_1", "to": "cascade_1" },
+    { "id": "e3", "from": "cascade_1", "to": "crm_1", "fromPort": "approved" },
+    { "id": "e4", "from": "cascade_1", "to": "export_audit", "fromPort": "telemetry" }
+  ]
+}

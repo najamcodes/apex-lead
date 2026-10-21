@@ -43,6 +43,9 @@ import { registerWebhookDispatcherNode } from './webhook-dispatcher-node'
 import { registerExportNode } from './export-node'
 import { registerSystemOneNode } from './system-one-node'
 import { registerDecisionCascadeNode } from './decision-cascade-node'
+import { registerReplyClassifierNode } from './reply-classifier-node'
+import { registerEmailVerifierNode } from './email-verifier-node'
+import { registerPriceTrackerNode } from './price-tracker-node'
 
 let _initialized = false
 
@@ -68,7 +71,10 @@ export function registerBuiltInNodes(): void {
   registerNewsRadarNode()          // funding, PR, executive intent triggers
   registerTechnographicNode()      // installed tech stack, e-commerce, CRM, analytics
   registerDnsHealthNode()          // SPF, DKIM, DMARC, MX deliverability health score
+  registerEmailVerifierNode()      // RFC syntax, disposable burner, role account hygiene
   registerPersonalizerNode()       // 1-to-1 dynamic cold outreach icebreakers & hooks
+  registerPriceTrackerNode()       // e-commerce price monitoring, discount %, stock tracker
+  registerReplyClassifierNode()    // inbound cold reply intent & sentiment classification
   registerSystemOneNode()          // OpenJev System-One probabilistic decision engine (Choice, Score, Noul)
   registerDecisionCascadeNode()    // 4-Tier decision cascade (Rules -> NLI -> SLM -> Cloud Fallback)
   registerAiNode()
@@ -130,3 +136,6 @@ export { registerWebhookDispatcherNode } from './webhook-dispatcher-node'
 export { registerExportNode } from './export-node'
 export { registerSystemOneNode } from './system-one-node'
 export { registerDecisionCascadeNode } from './decision-cascade-node'
+export { registerReplyClassifierNode } from './reply-classifier-node'
+export { registerEmailVerifierNode } from './email-verifier-node'
+export { registerPriceTrackerNode } from './price-tracker-node'
