@@ -149,7 +149,12 @@ export const useAuthStore = create<AuthState>()(
         const res = await fetch('/api/orgs/switch', {
           method: 'POST',
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Desktop-App': 'true',
+            'X-User-Id': String(get().userId || ''),
+            'X-Org-Id': String(orgId),
+          },
           body: JSON.stringify({ org_id: orgId }),
         })
         

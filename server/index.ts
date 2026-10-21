@@ -64,7 +64,7 @@ app.use('*', cors({
   },
   credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Desktop-App', 'X-User-Id', 'X-Org-Id', 'X-Current-Role'],
 }))
 
 // ── Structured request logging (Pino) ──────────────────────────────
@@ -100,26 +100,79 @@ app.use('/api/*', async (c, next) => {
   if (c.req.path.startsWith('/api/auth/login') || c.req.path.startsWith('/api/auth/register')) {
     return next()
   }
-  const token = getCookie(c, 'leadhunter_token')
-  if (!token) return c.json({ error: 'Unauthorized' }, 401)
-  
-  const payload = verifyToken(token)
-  if (!payload) return c.json({ error: 'Unauthorized' }, 401)
-  
+
+  // 1. Try cookie
+  let token = getCookie(c, 'leadhunter_token')
+
+  // 2. Try Authorization: Bearer <token>
+  if (!token) {
+    const authHeader = c.req.header('authorization')
+    if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+      token = authHeader.substring(7).trim()
+    }
+  }
+
+  let resolvedUserId: number | null = null
+  let resolvedOrgId: number | null = null
+
+  if (token) {
+    const payload = verifyToken(token) as any
+    if (payload && payload.id) {
+      resolvedUserId = Number(payload.id)
+      if (payload.org_id) resolvedOrgId = Number(payload.org_id)
+    }
+  }
+
+  // 3. Desktop / Local mode fallback:
+  // When running in desktop mode or with X-Desktop-App header from local UI
+  const isDesktopMode =
+    process.env.NODE_ENV === 'desktop' ||
+    c.req.header('x-desktop-app') === 'true'
+
+  if (!resolvedUserId && isDesktopMode) {
+    const headerUserId = c.req.header('x-user-id')
+    if (headerUserId) {
+      const parsed = parseInt(headerUserId, 10)
+      if (!isNaN(parsed)) resolvedUserId = parsed
+    }
+    const headerOrgId = c.req.header('x-org-id')
+    if (headerOrgId) {
+      const parsedOrg = parseInt(headerOrgId, 10)
+      if (!isNaN(parsedOrg)) resolvedOrgId = parsedOrg
+    }
+
+    // Default to global.currentUserId or 1 (primary administrator)
+    if (!resolvedUserId) {
+      resolvedUserId = global.currentUserId || 1
+    }
+  }
+
+  if (!resolvedUserId) {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
+
   const userRepo = getDataSource().getRepository(UserEntity)
-  const user = await userRepo.findOneBy({ id: (payload as any).id })
-  if (!user) return c.json({ error: 'Unauthorized' }, 401)
-  
-  // Resolve current org: prefer token's org_id, fallback to user's default_org_id
-  const tokenOrgId: number = (payload as any).org_id ?? user.default_org_id ?? 1
-  
+  let user = await userRepo.findOneBy({ id: resolvedUserId })
+
+  // Desktop mode fallback if specific ID not found, resolve primary user
+  if (!user && isDesktopMode) {
+    user = await userRepo.findOne({ where: {}, order: { id: 'ASC' } })
+  }
+
+  if (!user) {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
+
+  // Resolve current org: prefer resolvedOrgId, fallback to user's default_org_id, then 1
+  const activeOrgId: number = resolvedOrgId ?? user.default_org_id ?? 1
+
   // Resolve org-specific role from user_organizations table
   let orgRole = user.role // fallback to global role (e.g. super_admin)
   let orgPermissions: string[] = JSON.parse(user.permissions || '[]')
   if (user.role !== 'super_admin') {
     try {
       const userOrgRepo = getDataSource().getRepository(UserOrganizationEntity)
-      const link = await userOrgRepo.findOne({ where: { user_id: user.id, org_id: tokenOrgId } })
+      const link = await userOrgRepo.findOne({ where: { user_id: user.id, org_id: activeOrgId } })
       if (link) {
         orgRole = link.role
         orgPermissions = JSON.parse(link.permissions || '[]')
@@ -131,7 +184,7 @@ app.use('/api/*', async (c, next) => {
 
   const requestUser: RequestUser = {
     id: user.id,
-    org_id: tokenOrgId,
+    org_id: activeOrgId,
     role: orgRole,
     permissions: orgPermissions,
     name: user.name,
@@ -140,13 +193,13 @@ app.use('/api/*', async (c, next) => {
 
   // Set Sentry user context for error tracking
   setUserContext({ id: String(user.id), email: user.email, role: orgRole })
-  
+
   // Store full user on Hono context for direct access in route handlers
   ;(c as any).set('user', requestUser)
 
   // Set legacy globals for Electron / non-server contexts (backward compat)
   global.currentUserId = user.id
-  global.currentOrgId = tokenOrgId
+  global.currentOrgId = activeOrgId
   global.currentUserRole = orgRole
   global.currentUserPermissions = orgPermissions
 

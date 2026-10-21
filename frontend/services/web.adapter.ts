@@ -4,17 +4,15 @@
 
 import type { IApiService } from './api.interface'
 import { wsClient } from './ws-client'
-import { sharedServerAdapters } from './pipelines.adapter'
-
-// In Next.js use NEXT_PUBLIC_API_URL; in Vite use VITE_API_URL
-const BASE = (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_URL)
-  || (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL)
-  || 'http://localhost:4000'
+import { sharedServerAdapters, BASE, getAuthHeaders } from './pipelines.adapter'
 
 // ─── HTTP helpers ───────────────────────────────────────────────────────────
 
 async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { credentials: 'include' })
+  const res = await fetch(`${BASE}${path}`, {
+    credentials: 'include',
+    headers: getAuthHeaders(),
+  })
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText)
     throw new Error(text)
@@ -23,10 +21,16 @@ async function get<T>(path: string): Promise<T> {
 }
 
 async function post<T>(path: string, body?: unknown): Promise<T> {
+  const headers: Record<string, string> = {
+    ...getAuthHeaders(),
+  }
+  if (body !== undefined) {
+    headers['Content-Type'] = 'application/json'
+  }
   const res = await fetch(`${BASE}${path}`, {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: body ? JSON.stringify(body) : undefined
   })
   if (!res.ok) {
@@ -37,10 +41,16 @@ async function post<T>(path: string, body?: unknown): Promise<T> {
 }
 
 async function put<T>(path: string, body?: unknown): Promise<T> {
+  const headers: Record<string, string> = {
+    ...getAuthHeaders(),
+  }
+  if (body !== undefined) {
+    headers['Content-Type'] = 'application/json'
+  }
   const res = await fetch(`${BASE}${path}`, {
     method: 'PUT',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: body ? JSON.stringify(body) : undefined
   })
   if (!res.ok) {
@@ -51,10 +61,16 @@ async function put<T>(path: string, body?: unknown): Promise<T> {
 }
 
 async function patch<T>(path: string, body?: unknown): Promise<T> {
+  const headers: Record<string, string> = {
+    ...getAuthHeaders(),
+  }
+  if (body !== undefined) {
+    headers['Content-Type'] = 'application/json'
+  }
   const res = await fetch(`${BASE}${path}`, {
     method: 'PATCH',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: body ? JSON.stringify(body) : undefined
   })
   if (!res.ok) {
@@ -65,10 +81,16 @@ async function patch<T>(path: string, body?: unknown): Promise<T> {
 }
 
 async function del<T = void>(path: string, body?: unknown): Promise<T> {
+  const headers: Record<string, string> = {
+    ...getAuthHeaders(),
+  }
+  if (body !== undefined) {
+    headers['Content-Type'] = 'application/json'
+  }
   const res = await fetch(`${BASE}${path}`, {
     method: 'DELETE',
     credentials: 'include',
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    headers,
     body: body ? JSON.stringify(body) : undefined
   })
   if (!res.ok) {

@@ -3,41 +3,81 @@
 // Used by both the electron and web adapters since pipelines always
 // run on the Hono server (not via IPC).
 
-const BASE =
+import { useAuthStore } from '../store/auth.store'
+
+export const BASE =
   (typeof process !== 'undefined' && (process as any).env?.NEXT_PUBLIC_API_URL) ||
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) ||
   'http://localhost:4000'
 
+export function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'X-Desktop-App': 'true',
+  }
+  try {
+    const state = useAuthStore.getState()
+    if (state?.userId) {
+      headers['X-User-Id'] = String(state.userId)
+    }
+    if (state?.orgId) {
+      headers['X-Org-Id'] = String(state.orgId)
+    }
+    if (state?.role) {
+      headers['X-Current-Role'] = state.role
+    }
+  } catch {}
+  return headers
+}
+
 async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { credentials: 'include' })
+  const res = await fetch(`${BASE}${path}`, {
+    credentials: 'include',
+    headers: getAuthHeaders(),
+  })
   if (!res.ok) throw new Error(`${res.status} ${await res.text().catch(() => res.statusText)}`)
   return res.json()
 }
 
 async function post<T>(path: string, body?: unknown): Promise<T> {
+  const headers: Record<string, string> = {
+    ...getAuthHeaders(),
+  }
+  if (body !== undefined) {
+    headers['Content-Type'] = 'application/json'
+  }
   const res = await fetch(`${BASE}${path}`, {
     method: 'POST',
     credentials: 'include',
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   })
   if (!res.ok) throw new Error(`${res.status} ${await res.text().catch(() => res.statusText)}`)
   return res.json()
 }
 
 async function put<T>(path: string, body?: unknown): Promise<T> {
+  const headers: Record<string, string> = {
+    ...getAuthHeaders(),
+  }
+  if (body !== undefined) {
+    headers['Content-Type'] = 'application/json'
+  }
   const res = await fetch(`${BASE}${path}`, {
     method: 'PUT',
     credentials: 'include',
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   })
   if (!res.ok) throw new Error(`${res.status} ${await res.text().catch(() => res.statusText)}`)
   return res.json()
 }
 
 async function del<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { method: 'DELETE', credentials: 'include' })
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'DELETE',
+    credentials: 'include',
+    headers: getAuthHeaders(),
+  })
   if (!res.ok) throw new Error(`${res.status} ${await res.text().catch(() => res.statusText)}`)
   const text = await res.text()
   return text ? JSON.parse(text) : (undefined as T)

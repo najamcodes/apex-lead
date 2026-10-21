@@ -3,6 +3,7 @@ import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Building2, Plus, Users, Trash2, UserPlus, Crown, RefreshCw } from 'lucide-react'
 import { useAuthStore } from '../../store/auth.store'
+import { BASE, getAuthHeaders } from '../../services/pipelines.adapter'
 
 interface OrgMember {
   user_id: number
@@ -57,7 +58,10 @@ export function OrgManager() {
   const loadOrgs = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/orgs', { credentials: 'include' })
+      const res = await fetch(`${BASE}/api/orgs`, {
+        credentials: 'include',
+        headers: getAuthHeaders(),
+      })
       const data = await res.json()
       if (data.success) setOrgs(data.organizations ?? [])
     } catch (e) {
@@ -69,7 +73,10 @@ export function OrgManager() {
 
   const loadMembers = async (orgId: number) => {
     try {
-      const res = await fetch(`/api/orgs/${orgId}/members`, { credentials: 'include' })
+      const res = await fetch(`${BASE}/api/orgs/${orgId}/members`, {
+        credentials: 'include',
+        headers: getAuthHeaders(),
+      })
       const data = await res.json()
       if (data.success) setMembers(data.members ?? [])
     } catch (e) {
@@ -90,10 +97,10 @@ export function OrgManager() {
   const handleCreateOrg = async () => {
     if (!newOrgName.trim()) return
     try {
-      const res = await fetch('/api/orgs', {
+      const res = await fetch(`${BASE}/api/orgs`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ name: newOrgName, tier: newOrgTier }),
       })
       const data = await res.json()
@@ -112,9 +119,10 @@ export function OrgManager() {
   const handleDeleteOrg = async (orgId: number) => {
     if (!confirm('Delete this organization? This will remove all associated data.')) return
     try {
-      const res = await fetch(`/api/orgs/${orgId}`, {
+      const res = await fetch(`${BASE}/api/orgs/${orgId}`, {
         method: 'DELETE',
         credentials: 'include',
+        headers: getAuthHeaders(),
       })
       const data = await res.json()
       if (data.success) {
@@ -131,10 +139,10 @@ export function OrgManager() {
   const handleAddMember = async () => {
     if (!selectedOrg || !memberUserId) return
     try {
-      const res = await fetch(`/api/orgs/${selectedOrg.id}/members`, {
+      const res = await fetch(`${BASE}/api/orgs/${selectedOrg.id}/members`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ user_id: Number(memberUserId), role: memberRole }),
       })
       const data = await res.json()
@@ -155,9 +163,10 @@ export function OrgManager() {
     if (!selectedOrg) return
     if (!confirm('Remove this member from the organization?')) return
     try {
-      const res = await fetch(`/api/orgs/${selectedOrg.id}/members/${userId}`, {
+      const res = await fetch(`${BASE}/api/orgs/${selectedOrg.id}/members/${userId}`, {
         method: 'DELETE',
         credentials: 'include',
+        headers: getAuthHeaders(),
       })
       const data = await res.json()
       if (data.success) {
@@ -173,10 +182,10 @@ export function OrgManager() {
   const handleUpdateMemberRole = async (userId: number, newRole: string) => {
     if (!selectedOrg) return
     try {
-      const res = await fetch(`/api/orgs/${selectedOrg.id}/members/${userId}`, {
+      const res = await fetch(`${BASE}/api/orgs/${selectedOrg.id}/members/${userId}`, {
         method: 'PUT',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ role: newRole }),
       })
       const data = await res.json()
