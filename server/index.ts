@@ -50,12 +50,26 @@ declare global {
 export const app = new Hono()
 
 app.use('*', cors({
-  origin: (origin) => {
+  origin: (origin, c) => {
     if (!origin) return '*'
-    if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+    if (origin === 'null') return 'null'
+    if (
+      c.req.header('x-desktop-app') === 'true' ||
+      c.req.header('access-control-request-headers')?.toLowerCase().includes('x-desktop-app') ||
+      process.env.NODE_ENV === 'desktop'
+    ) {
+      return origin || '*'
+    }
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
       return origin
     }
-    if (origin.startsWith('vscode-webview://') || origin.startsWith('file://')) {
+    if (
+      origin.startsWith('vscode-webview://') ||
+      origin.startsWith('file://') ||
+      origin.startsWith('app://') ||
+      origin.startsWith('electron://') ||
+      origin.startsWith('devtools://')
+    ) {
       return origin
     }
     const envOrigins = process.env.CORS_ORIGIN?.split(',').map(s => s.trim()) || []
@@ -64,7 +78,17 @@ app.use('*', cors({
   },
   credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Desktop-App', 'X-User-Id', 'X-Org-Id', 'X-Current-Role'],
+  allowHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'X-Desktop-App',
+    'X-User-Id',
+    'X-Org-Id',
+    'X-Current-Role',
+    'Accept',
+    'Origin',
+  ],
 }))
 
 // ── Structured request logging (Pino) ──────────────────────────────

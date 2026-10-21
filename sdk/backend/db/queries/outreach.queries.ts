@@ -1,4 +1,4 @@
-import { getTenantId } from './tenant'
+import { getTenantId, getUserScopeFilter } from './tenant'
 import { getDataSource } from '../index'
 import { OutreachEntity } from '../entities/OutreachEntity'
 import type {
@@ -46,7 +46,6 @@ export async function getAllOutreach(
     qb.andWhere('outreach.status = :status', { status })
   }
 
-  const { getUserScopeFilter } = require('./tenant')
   const scope = getUserScopeFilter('lead')
   if (scope.clause) {
     qb.andWhere(scope.clause.replace('AND ', ''), scope.params)
@@ -115,7 +114,6 @@ export async function getSequenceSummaries(
     .innerJoin('leads', 'l', 'l.id = o.lead_id')
     .where('o.org_id = :orgId', { orgId: getTenantId() })
     
-  const { getUserScopeFilter } = require('./tenant')
   const scope = getUserScopeFilter('l')
   if (scope.clause) {
     countRes.andWhere(scope.clause.replace('AND ', ''), scope.params)
@@ -163,7 +161,6 @@ export async function getPendingOutreachQueue(): Promise<any[]> {
     .andWhere('o.org_id = :orgId', { orgId: getTenantId() })
     .orderBy('o.scheduled_at', 'ASC')
 
-  const { getUserScopeFilter } = require('./tenant')
   const scope = getUserScopeFilter('l')
   if (scope.clause) {
     qb.andWhere(scope.clause.replace('AND ', ''), scope.params)

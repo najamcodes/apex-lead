@@ -11,7 +11,7 @@ import { registerBuiltInNodes } from '../nodes'
 import { loadAndRegisterCustomNodes } from '../engine/custom-nodes'
 import { getAllPlugins } from '../../plugins/registry'
 import { randomUUID } from 'crypto'
-import { getTenantId, getCurrentUserRole, isRoleBelow, canViewPipelines, canRunPipelines, canEditPipelines } from '../db/queries/tenant'
+import { getTenantId, getCurrentUserId, canViewAllData, getCurrentUserRole, isRoleBelow, canViewPipelines, canRunPipelines, canEditPipelines } from '../db/queries/tenant'
 import { getProxyConfigForPipeline } from '../db/queries/proxy-configs.queries'
 import type { PipelineDefinition, PipelineNode, NodeEdge } from '../../shared/types/pipeline.types'
 
@@ -242,7 +242,7 @@ pipelinesRouter.post('/:id/run', async (c) => {
           id: runId,
           pipeline_id: id,
           org_id: tenantId,
-          created_by_user_id: require('../db/queries/tenant').getCurrentUserId(),
+          created_by_user_id: getCurrentUserId(),
           status: 'running',
           started_at: now,
           input: JSON.stringify(input),
@@ -283,7 +283,7 @@ pipelinesRouter.post('/:id/run', async (c) => {
     id: runId,
     pipeline_id: id,
     org_id: tenantId,
-    created_by_user_id: require('../db/queries/tenant').getCurrentUserId(),
+    created_by_user_id: getCurrentUserId(),
     status: 'running',
     started_at: now,
     input: JSON.stringify(input),
@@ -399,7 +399,7 @@ pipelinesRouter.post('/runs/:runId/replay', async (c) => {
     id: newRunId,
     pipeline_id: def.id,
     org_id: tenantId,
-    created_by_user_id: require('../db/queries/tenant').getCurrentUserId(),
+    created_by_user_id: getCurrentUserId(),
     status: 'running',
     started_at: now,
     input: JSON.stringify({ replay_of: runId, from_node: fromNodeId }),
@@ -471,7 +471,6 @@ pipelinesRouter.get('/runs/:runId', async (c) => {
   const runId = c.req.param('runId')
   const runRepo = getDataSource().getRepository(PipelineRunEntity)
   const where: any = { id: runId, org_id: getTenantId() }
-  const { canViewAllData, getCurrentUserId } = require('../db/queries/tenant')
   if (!canViewAllData()) {
     where.created_by_user_id = getCurrentUserId()
   }
@@ -617,7 +616,6 @@ pipelinesRouter.post('/:id/duplicate', async (c) => {
 pipelinesRouter.get('/:id/runs', async (c) => {
   const runRepo = getDataSource().getRepository(PipelineRunEntity)
   const where: any = { pipeline_id: c.req.param('id'), org_id: getTenantId() }
-  const { canViewAllData, getCurrentUserId } = require('../db/queries/tenant')
   if (!canViewAllData()) {
     where.created_by_user_id = getCurrentUserId()
   }

@@ -1,4 +1,4 @@
-import { getTenantId } from './tenant'
+import { getTenantId, getUserScopeFilter } from './tenant'
 import { getDataSource } from '../index'
 import { ActivityEntity } from '../entities/ActivityEntity'
 import type { ActivityEvent, ActivityRecord } from '@sdk/core/types/activity.types'
@@ -30,7 +30,6 @@ export async function getRecentActivity(limit = 30): Promise<(ActivityRecord & {
     .innerJoinAndSelect('activity.lead', 'lead')
     .where('activity.org_id = :orgId', { orgId: getTenantId() })
     
-  const { getUserScopeFilter } = require('./tenant')
   const scope = getUserScopeFilter('lead')
   if (scope.clause) {
     qb.andWhere(scope.clause.replace('AND ', ''), scope.params)
