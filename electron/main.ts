@@ -12,6 +12,9 @@ process.on('warning', (warning) => {
 
 import { app, BrowserWindow, shell } from 'electron'
 import path from 'path'
+
+// Prevent GPU disk cache locked file errors on Windows
+app.commandLine.appendSwitch('disable-gpu-cache')
 import { initDb } from '../backend/db'
 import { registerAllIpcHandlers } from './ipc'
 import { initScheduler } from './scheduler'
@@ -41,7 +44,11 @@ async function createWindow(): Promise<void> {
   // Initialize Scheduler
   await initScheduler(win)
 
-  if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
+  const rendererUrl = process.env['ELECTRON_RENDERER_URL']
+  if (rendererUrl) {
+    win.loadURL(rendererUrl)
+    win.webContents.openDevTools()
+  } else if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
     win.loadURL('http://localhost:5173')
     win.webContents.openDevTools()
   } else {
