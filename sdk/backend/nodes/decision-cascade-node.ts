@@ -21,7 +21,7 @@ export function registerDecisionCascadeNode() {
   const handler: NodeHandler = {
     type: 'decision_cascade' as any,
     async execute(ctx) {
-      const prefix = (ctx.config.decisionFieldPrefix as string) || 'cascade_'
+      const prefix = ctx.config.decisionFieldPrefix !== undefined ? String(ctx.config.decisionFieldPrefix) : 'cascade_'
       const tier0Rules = (ctx.config.tier0Rules as Tier0Rule[]) || [
         { field: 'email', operator: 'contains', value: '@gmail.com', outcome: 'reject', reason: 'Consumer email' },
         { field: 'email', operator: 'contains', value: '@yahoo.com', outcome: 'reject', reason: 'Consumer email' },
@@ -58,11 +58,12 @@ export function registerDecisionCascadeNode() {
       const allRecords: PipelineRecord[] = []
 
       for (const rec of ctx.incoming) {
+        const recData = (rec && typeof rec.data === 'object' && rec.data !== null) ? rec.data : {}
         try {
-          const response = await decisionCascadeEngine.evaluate(rec.data, policy)
+          const response = await decisionCascadeEngine.evaluate(recData, policy)
 
           const enrichedData: Record<string, unknown> = {
-            ...rec.data,
+            ...recData,
             [`${prefix}tier_resolved`]: response.tierResolved,
             [`${prefix}model`]: response.modelId,
             [`${prefix}latency_ms`]: response.latencyMs,
@@ -78,9 +79,12 @@ export function registerDecisionCascadeNode() {
             } else if (d.type === 'choice') {
               enrichedData[`${prefix}${qKey}`] = d.selected
               enrichedData[`${prefix}${qKey}_conf`] = d.confidence
+              enrichedData[`${prefix}${qKey}_probs`] = d.probabilities
             } else if (d.type === 'score') {
               enrichedData[`${prefix}${qKey}`] = d.score
+              enrichedData[`${prefix}${qKey}_normalized`] = d.normalizedScore
               enrichedData[`${prefix}${qKey}_conf`] = d.confidence
+              if (d.level) enrichedData[`${prefix}${qKey}_level`] = d.level
             }
           }
 
@@ -100,7 +104,7 @@ export function registerDecisionCascadeNode() {
           const errorRec: PipelineRecord = {
             ...rec,
             data: {
-              ...rec.data,
+              ...recData,
               [`${prefix}error`]: err?.message || String(err),
             },
           }

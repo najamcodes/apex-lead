@@ -23,13 +23,14 @@ export function generateIcebreaker(
   const isDirect = tone === 'direct'
 
   // 1. Hiring Velocity Angle (Highest conversion)
-  if (data.openJobsCount && Number(data.openJobsCount) > 0) {
+  const openJobs = Number(data.openJobsCount || data.openRolesCount || 0)
+  if (openJobs > 0) {
     const roles = Array.isArray(data.topOpenRoles) ? data.topOpenRoles.slice(0, 2).join(' & ') : ''
     const roleSnippet = roles ? ` (${roles})` : ''
     const templates = [
-      `{Saw|Noticed|Loved seeing} that ${company} is actively scaling with ${data.openJobsCount} open roles right now${roleSnippet} — exciting growth trajectory!`,
-      `Saw you're expanding the team at ${company} with ${data.openJobsCount} open positions — huge kudos on the hiring momentum.`,
-      `Noticed ${company} is hiring aggressively right now — congrats on scaling the team!`,
+      `{Saw|Noticed|Loved seeing} that ${company} is actively scaling with ${openJobs} open roles right now${roleSnippet} — exciting growth trajectory!`,
+      `Saw you're expanding the team at ${company} with ${openJobs} open positions — huge kudos on the hiring momentum.`,
+      `Noticed ${company} has ${openJobs} open roles and is hiring aggressively right now — congrats on scaling the team!`,
     ]
     const chosen = templates[Math.floor(Math.random() * templates.length)]
     return {

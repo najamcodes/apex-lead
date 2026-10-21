@@ -530,4 +530,171 @@ describe('OpenJev System-One Decision Suite', () => {
       expect(telData.estimatedCostSavingsUsd).toBeGreaterThan(0)
     })
   })
+
+  // ── 6. Edge Cases & Bug Fix Regression Tests ───────────────────────
+  describe('Bug Fix & Edge Case Hardening', () => {
+    it('should resolve nested dot-notation paths in Tier 0 rules', async () => {
+      const cascade = new DecisionCascadeEngine()
+      const nestedLead = {
+        contact: {
+          email: 'founder@disposable.org',
+          profile: {
+            seniority: 'intern',
+          },
+        },
+        meta: {
+          industry: {
+            primary: 'Casino & Gambling',
+          },
+        },
+      }
+
+      const policy: CascadePolicy = {
+        tier0Rules: [
+          { field: 'contact.profile.seniority', operator: 'equals', value: 'intern', outcome: 'reject', reason: 'Intern role' },
+          { field: 'meta.industry.primary', operator: 'contains', value: 'gambling', outcome: 'reject', reason: 'Restricted industry' },
+        ],
+        questions: {
+          is_b2b: { type: 'noul', instructions: 'B2B enterprise company' },
+        },
+      }
+
+      const result = await cascade.evaluate(nestedLead, policy)
+      expect(result.tierResolved).toBe(0)
+      expect(result.isApproved).toBe(false)
+      expect(result.decisions.rule_decision.value).toBe(false)
+    })
+
+    it('should evaluate decisiveness for score questions in cascade', async () => {
+      const cascade = new DecisionCascadeEngine()
+      const highFitLead = {
+        company: 'Cloud Scale Networks',
+        description: 'Global cloud infrastructure, SD-WAN, and enterprise network platform',
+        employees: 500,
+      }
+
+      const policy: CascadePolicy = {
+        tier1HighThreshold: 0.70,
+        tier1LowThreshold: 0.20,
+        questions: {
+          cloud_infrastructure_fit: {
+            type: 'score',
+            instructions: 'Enterprise cloud infrastructure, networking, and platform services',
+            scale: [1, 10],
+          },
+        },
+      }
+
+      const result = await cascade.evaluate(highFitLead, policy)
+      // High alignment on cloud infrastructure should resolve decisively at Tier 1
+      expect(result.tierResolved).toBe(1)
+      expect(result.decisions.cloud_infrastructure_fit.type).toBe('score')
+    })
+
+    it('should handle empty choices array in evaluateChoiceNli gracefully', async () => {
+      const engine = new SystemOneEngine()
+      const res = await engine.execute({ role: 'CTO' }, {
+        empty_choice: {
+          type: 'choice',
+          instructions: 'Pick a category',
+          choices: [],
+        },
+      }, { mode: 'local_onnx' })
+
+      const choiceRes = res.decisions.empty_choice as any
+      expect(choiceRes.type).toBe('choice')
+      expect(choiceRes.selected).toBe('')
+      expect(choiceRes.confidence).toBe(0)
+    })
+
+    it('should handle inverted or equal score scales without division by zero', async () => {
+      const engine = new SystemOneEngine()
+      // Inverted scale [10, 1]
+      const resInverted = await engine.execute({ text: 'Enterprise software platform' }, {
+        inverted_score: {
+          type: 'score',
+          instructions: 'Software enterprise platform',
+          scale: [10, 1],
+        },
+      }, { mode: 'local_onnx' })
+
+      const scoreInv = resInverted.decisions.inverted_score as any
+      expect(scoreInv.type).toBe('score')
+      expect(scoreInv.score).toBeGreaterThanOrEqual(1)
+      expect(scoreInv.score).toBeLessThanOrEqual(10)
+
+      // Equal scale [5, 5]
+      const resEqual = await engine.execute({ text: 'Enterprise software platform' }, {
+        equal_score: {
+          type: 'score',
+          instructions: 'Software enterprise platform',
+          scale: [5, 5],
+        },
+      }, { mode: 'local_onnx' })
+
+      const scoreEq = resEqual.decisions.equal_score as any
+      expect(scoreEq.type).toBe('score')
+      expect(scoreEq.score).toBe(5)
+    })
+
+    it('should reject malformed LAN URLs with a descriptive error', async () => {
+      const engine = new SystemOneEngine()
+      try {
+        await engine.execute({ test: true }, {
+          test_q: { type: 'noul', instructions: 'Test question' },
+        }, {
+          mode: 'lan',
+          lanEndpoint: ':::invalid-url:::',
+        })
+        expect(false).toBe(true) // Should not reach here
+      } catch (err: any) {
+        expect(err.message).toContain('Invalid URL')
+      }
+    })
+
+    it('should handle null or undefined rec.data in SystemOneNode safely', async () => {
+      const handler = getNodeHandler('system_one_decision' as any)!
+      const emitted: Record<string, PipelineRecord[]> = {}
+
+      await handler.execute({
+        nodeId: 'node-null-test',
+        pipelineId: 'pipe-null',
+        runId: 'run-null',
+        orgId: 1,
+        userRole: 'admin',
+        proxyConfig: null,
+        incoming: [
+          {
+            id: 'rec-null-data',
+            collection: 'leads',
+            data: null as any,
+            meta: {
+              pipelineId: 'pipe-null',
+              runId: 'run-null',
+              sourceNodeId: 'src-1',
+              orgId: 1,
+              createdAt: new Date().toISOString(),
+              trace: [],
+            },
+          },
+        ],
+        config: {
+          decisionFieldPrefix: '',
+          questions: {
+            test_noul: { type: 'noul', instructions: 'Any content' },
+          },
+        },
+        emit: (records, port) => {
+          emitted[port] = records
+        },
+        log: () => {},
+        progress: () => {},
+      })
+
+      expect(emitted['main']).toBeDefined()
+      expect(emitted['main'].length).toBe(1)
+      // When decisionFieldPrefix is empty string "", prefix should be "" and not fallback to "decision_"
+      expect(emitted['main'][0].data.model).toBeDefined()
+    })
+  })
 })

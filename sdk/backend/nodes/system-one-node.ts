@@ -22,7 +22,7 @@ export function registerSystemOneNode() {
     async execute(ctx) {
       const mode = (ctx.config.mode as SystemOneMode) || 'local_onnx'
       const modelId = (ctx.config.modelId as string) || 'Xenova/nli-deberta-v3-small'
-      const prefix = (ctx.config.decisionFieldPrefix as string) || 'decision_'
+      const prefix = ctx.config.decisionFieldPrefix !== undefined ? String(ctx.config.decisionFieldPrefix) : 'decision_'
       const lanEndpoint = ctx.config.lanEndpoint as string | undefined
       const apiKey = ctx.config.apiKey as string | undefined
       const questions = (ctx.config.questions as Record<string, SystemOneQuestion>) || {
@@ -39,8 +39,9 @@ export function registerSystemOneNode() {
       const allRecords: PipelineRecord[] = []
 
       for (const rec of ctx.incoming) {
+        const recData = (rec && typeof rec.data === 'object' && rec.data !== null) ? rec.data : {}
         try {
-          const response = await systemOneEngine.execute(rec.data, questions, {
+          const response = await systemOneEngine.execute(recData, questions, {
             mode,
             modelId,
             lanEndpoint,
@@ -48,7 +49,7 @@ export function registerSystemOneNode() {
           })
 
           const enrichedData: Record<string, unknown> = {
-            ...rec.data,
+            ...recData,
             [`${prefix}model`]: response.modelId,
             [`${prefix}mode`]: response.mode,
             [`${prefix}latency_ms`]: response.latencyMs,
@@ -91,7 +92,7 @@ export function registerSystemOneNode() {
           const errorRec: PipelineRecord = {
             ...rec,
             data: {
-              ...rec.data,
+              ...recData,
               [`${prefix}error`]: err?.message || String(err),
             },
           }

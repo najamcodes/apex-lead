@@ -27,12 +27,13 @@ export function registerDecisionIpcHandlers(win?: BrowserWindow): void {
   })
 
   // 3. Download a model from Hugging Face Hub
-  ipcMain.handle('decision:download-model', async (_event, modelId: string) => {
+  ipcMain.handle('decision:download-model', async (event, modelId: string) => {
     try {
       const filePath = await modelDownloadManager.downloadModel(modelId, {
         onProgress: (progress) => {
-          if (win && !win.isDestroyed()) {
-            win.webContents.send('decision:download-progress', progress)
+          const target = event?.sender && !event.sender.isDestroyed() ? event.sender : (win && !win.isDestroyed() ? win.webContents : null)
+          if (target) {
+            target.send('decision:download-progress', progress)
           }
         },
       })
