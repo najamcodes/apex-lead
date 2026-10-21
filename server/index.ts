@@ -49,11 +49,22 @@ declare global {
 
 export const app = new Hono()
 
-const corsOrigin = process.env.CORS_ORIGIN?.split(',').map(s => s.trim()) || ['http://localhost:3000']
-
 app.use('*', cors({
-  origin: corsOrigin,
+  origin: (origin) => {
+    if (!origin) return '*'
+    if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      return origin
+    }
+    if (origin.startsWith('vscode-webview://') || origin.startsWith('file://')) {
+      return origin
+    }
+    const envOrigins = process.env.CORS_ORIGIN?.split(',').map(s => s.trim()) || []
+    if (envOrigins.includes(origin)) return origin
+    return null
+  },
   credentials: true,
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }))
 
 // ── Structured request logging (Pino) ──────────────────────────────

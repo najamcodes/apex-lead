@@ -27,7 +27,13 @@ export default defineConfig({
         }
       }
     },
-    plugins: [externalizeDepsPlugin()]
+    resolve: {
+      alias: {
+        '@sdk/core': resolve(__dirname, 'sdk/core'),
+        '@sdk/backend': resolve(__dirname, 'sdk/backend')
+      }
+    },
+    plugins: [externalizeDepsPlugin({ exclude: ['@sdk/core', '@sdk/backend'] })]
   },
   renderer: {
     root: 'frontend',
