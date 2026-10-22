@@ -163,5 +163,11 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.removeListener('decision:download-progress', handler)
       }
     }
+  },
+  server: {
+    getConfig: () => ipcRenderer.invoke(IPC.SERVER_GET_CONFIG),
+    saveConfig: (config: any) => ipcRenderer.invoke(IPC.SERVER_SAVE_CONFIG, config),
+    testConnection: (url?: string) => ipcRenderer.invoke(IPC.SERVER_TEST_URL, url),
+    restartLocal: () => ipcRenderer.invoke(IPC.SERVER_RESTART_LOCAL)
   }
 })

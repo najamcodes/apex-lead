@@ -4,12 +4,12 @@
 
 import type { IApiService } from './api.interface'
 import { wsClient } from './ws-client'
-import { sharedServerAdapters, BASE, getAuthHeaders } from './pipelines.adapter'
+import { sharedServerAdapters, getBaseUrl, getAuthHeaders } from './pipelines.adapter'
 
 // ─── HTTP helpers ───────────────────────────────────────────────────────────
 
 async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${getBaseUrl()}${path}`, {
     credentials: 'include',
     headers: getAuthHeaders(),
   })
@@ -27,7 +27,7 @@ async function post<T>(path: string, body?: unknown): Promise<T> {
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
   }
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${getBaseUrl()}${path}`, {
     method: 'POST',
     credentials: 'include',
     headers,
@@ -47,7 +47,7 @@ async function put<T>(path: string, body?: unknown): Promise<T> {
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
   }
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${getBaseUrl()}${path}`, {
     method: 'PUT',
     credentials: 'include',
     headers,
@@ -67,7 +67,7 @@ async function patch<T>(path: string, body?: unknown): Promise<T> {
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
   }
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${getBaseUrl()}${path}`, {
     method: 'PATCH',
     credentials: 'include',
     headers,
@@ -87,7 +87,7 @@ async function del<T = void>(path: string, body?: unknown): Promise<T> {
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
   }
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${getBaseUrl()}${path}`, {
     method: 'DELETE',
     credentials: 'include',
     headers,

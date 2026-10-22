@@ -10,6 +10,7 @@ import { EmailAccountsManager } from './EmailAccountsManager'
 import { EmailTemplatesManager } from './EmailTemplatesManager'
 import { TeamManager } from './TeamManager'
 import { WorkerSettings } from './WorkerSettings'
+import { BackendServerSettings } from './BackendServerSettings'
 import { api } from '../../services/api'
 
 export function Settings() {
@@ -23,9 +24,17 @@ export function Settings() {
   if (!loaded || !settings) return null
 
   return (
-    <form
-      className="space-y-6 max-w-2xl"
-      onSubmit={(e) => {
+    <div className="space-y-6 max-w-2xl font-sans">
+      <div>
+        <h2 className="text-lg font-semibold text-zinc-100">Settings</h2>
+        <p className="text-sm text-zinc-500 mt-0.5">Configure scraping, backend connections, and AI preferences</p>
+      </div>
+
+      <BackendServerSettings />
+
+      <form
+        className="space-y-6"
+        onSubmit={(e) => {
         e.preventDefault()
         const formData = new FormData(e.currentTarget)
         save({
@@ -445,5 +454,6 @@ export function Settings() {
         {saving && <p className="text-xs text-emerald-400">Saving…</p>}
       </div>
     </form>
+    </div>
   )
 }

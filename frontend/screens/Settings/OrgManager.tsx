@@ -3,7 +3,9 @@ import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Building2, Plus, Users, Trash2, UserPlus, Crown, RefreshCw } from 'lucide-react'
 import { useAuthStore } from '../../store/auth.store'
-import { BASE, getAuthHeaders } from '../../services/pipelines.adapter'
+import { getBaseUrl, getAuthHeaders } from '../../services/pipelines.adapter'
+const BASE = getBaseUrl()
+
 
 interface OrgMember {
   user_id: number

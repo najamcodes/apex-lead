@@ -81,7 +81,9 @@ export const DEFAULTS: AppSettings = {
   default_email_template_id: null,
   imap_cron: '*/5 * * * *',
   warmup_cron: '*/30 * * * *',
-  outreach_disabled: false
+  outreach_disabled: false,
+  backend_server_url: 'http://localhost:4000',
+  backend_auto_start_local: true,
 }
 
 export async function getSettings(maskSensitive = false): Promise<AppSettings> {

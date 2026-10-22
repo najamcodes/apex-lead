@@ -54,13 +54,33 @@ function connect(url: string) {
   }
 }
 
+export function getWsUrlFromHttpUrl(httpUrl: string): string {
+  try {
+    const url = new URL(httpUrl)
+    const protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
+    return `${protocol}//${url.host}/ws`
+  } catch {
+    return 'ws://localhost:4000/ws'
+  }
+}
+
 export const wsClient = {
   /**
    * Connect to the WebSocket server.
    * Call once on app mount.
    */
-  connect(url: string) {
-    connect(url)
+  connect(url?: string) {
+    const targetUrl = url || getWsUrlFromHttpUrl('http://localhost:4000')
+    connect(targetUrl)
+  },
+
+  /**
+   * Reconnect to a different base HTTP URL.
+   */
+  reconnectTo(baseUrl: string) {
+    const newWsUrl = getWsUrlFromHttpUrl(baseUrl)
+    this.disconnect()
+    this.connect(newWsUrl)
   },
 
   /**

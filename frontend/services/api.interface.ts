@@ -223,6 +223,12 @@ export interface IApiService {
     connectLocal: () => Promise<any>
     disconnectLocal: () => Promise<any>
   }
+  server: {
+    getConfig: () => Promise<{ serverUrl: string; autoStartLocal: boolean; isRemote: boolean; isLocalRunning: boolean; port: number }>
+    saveConfig: (config: { serverUrl: string; autoStartLocal?: boolean }) => Promise<{ success: boolean; serverUrl: string }>
+    testConnection: (url?: string) => Promise<{ ok: boolean; status?: number; latencyMs: number; error?: string; serverInfo?: any }>
+    restartLocal: () => Promise<{ success: boolean; port: number }>
+  }
 }
 
 export interface WorkerNodeSummary {

@@ -5,10 +5,29 @@
 
 import { useAuthStore } from '../store/auth.store'
 
-export const BASE =
-  (typeof process !== 'undefined' && (process as any).env?.NEXT_PUBLIC_API_URL) ||
-  (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) ||
-  'http://localhost:4000'
+export function getBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    const custom = window.localStorage.getItem('backend_server_url')
+    if (custom && custom.trim()) {
+      return custom.trim().replace(/\/+$/, '')
+    }
+  }
+  return (
+    (typeof process !== 'undefined' && (process as any).env?.NEXT_PUBLIC_API_URL) ||
+    (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) ||
+    'http://localhost:4000'
+  )
+}
+
+export function setBaseUrl(url: string): void {
+  const clean = url.trim().replace(/\/+$/, '')
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem('backend_server_url', clean)
+  }
+  BASE = clean
+}
+
+export let BASE = getBaseUrl()
 
 export function getAuthHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
@@ -30,7 +49,7 @@ export function getAuthHeaders(): Record<string, string> {
 }
 
 async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${getBaseUrl()}${path}`, {
     credentials: 'include',
     headers: getAuthHeaders(),
   })
@@ -45,7 +64,7 @@ async function post<T>(path: string, body?: unknown): Promise<T> {
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
   }
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${getBaseUrl()}${path}`, {
     method: 'POST',
     credentials: 'include',
     headers,
@@ -62,7 +81,7 @@ async function put<T>(path: string, body?: unknown): Promise<T> {
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
   }
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${getBaseUrl()}${path}`, {
     method: 'PUT',
     credentials: 'include',
     headers,
@@ -73,7 +92,7 @@ async function put<T>(path: string, body?: unknown): Promise<T> {
 }
 
 async function del<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${getBaseUrl()}${path}`, {
     method: 'DELETE',
     credentials: 'include',
     headers: getAuthHeaders(),
@@ -155,6 +174,68 @@ export const workersServerAdapter = {
   dispatch: (args: any) => post('/api/workers/dispatch', args),
 }
 
+export const serverServerAdapter = {
+  getConfig: async () => {
+    const winApi = typeof window !== 'undefined' ? (window as any).api?.server : undefined
+    if (winApi && typeof winApi.getConfig === 'function') {
+      return winApi.getConfig()
+    }
+    const currentUrl = getBaseUrl()
+    const isRemote = !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(currentUrl)
+    return {
+      serverUrl: currentUrl,
+      autoStartLocal: true,
+      isRemote,
+      isLocalRunning: true,
+      port: 4000,
+    }
+  },
+  saveConfig: async (config: { serverUrl: string; autoStartLocal?: boolean }) => {
+    setBaseUrl(config.serverUrl)
+    const winApi = typeof window !== 'undefined' ? (window as any).api?.server : undefined
+    if (winApi && typeof winApi.saveConfig === 'function') {
+      return winApi.saveConfig(config)
+    }
+    return { success: true, serverUrl: getBaseUrl() }
+  },
+  testConnection: async (url?: string) => {
+    const target = (url || getBaseUrl()).replace(/\/+$/, '')
+    const startTime = performance.now()
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 4000)
+      const res = await fetch(`${target}/health`, {
+        signal: controller.signal,
+        headers: getAuthHeaders(),
+      })
+      clearTimeout(timeoutId)
+      const latencyMs = Math.round(performance.now() - startTime)
+      let info: any = null
+      try { info = await res.json() } catch {}
+      return {
+        ok: res.ok,
+        status: res.status,
+        latencyMs,
+        serverInfo: info,
+      }
+    } catch (err: any) {
+      const latencyMs = Math.round(performance.now() - startTime)
+      return {
+        ok: false,
+        latencyMs,
+        error: err?.name === 'AbortError' ? 'Connection timed out (4s)' : (err?.message || 'Connection failed'),
+      }
+    }
+  },
+  restartLocal: async () => {
+    const winApi = typeof window !== 'undefined' ? (window as any).api?.server : undefined
+    if (winApi && typeof winApi.restartLocal === 'function') {
+      return winApi.restartLocal()
+    }
+    return { success: true, port: 4000 }
+  },
+}
+
 export const sharedServerAdapters = {
   pipelines: pipelinesServerAdapter,
   collections: collectionsServerAdapter,
@@ -163,4 +244,5 @@ export const sharedServerAdapters = {
   aiConnections: aiConnectionsServerAdapter,
   customNodes: customNodesServerAdapter,
   workers: workersServerAdapter,
+  server: serverServerAdapter,
 }

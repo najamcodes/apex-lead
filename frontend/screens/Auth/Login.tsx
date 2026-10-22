@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuthStore } from '../../store/auth.store'
 import { api } from '../../services/api'
+import { useServerConfigStore } from '../../store/server-config.store'
+import { ServerConfigModal } from '../../components/common/ServerConfigModal'
+import { Server } from 'lucide-react'
 
 export function Login() {
   const [isLogin, setIsLogin] = useState(true)
@@ -8,7 +11,23 @@ export function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isServerModalOpen, setIsServerModalOpen] = useState(false)
   const { login } = useAuthStore()
+
+  const { init, serverUrl, healthStatus } = useServerConfigStore()
+
+  useEffect(() => {
+    init()
+  }, [init])
+
+  const displayHost = (() => {
+    try {
+      const u = new URL(serverUrl)
+      return u.host
+    } catch {
+      return serverUrl.replace(/^https?:\/\//, '')
+    }
+  })()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -126,7 +145,33 @@ export function Login() {
             {isLogin ? "Don't have an account? Register" : 'Already have an account? Sign in'}
           </button>
         </div>
+
+        {/* Backend Server Quick Config Footer */}
+        <div className="mt-6 pt-4 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-500">
+          <div className="flex items-center gap-1.5 truncate max-w-[170px]" title={`Server: ${serverUrl}`}>
+            <span
+              className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                healthStatus === 'healthy'
+                  ? 'bg-emerald-500 animate-pulse'
+                  : healthStatus === 'checking'
+                  ? 'bg-amber-500 animate-pulse'
+                  : 'bg-rose-500'
+              }`}
+            />
+            <span className="font-mono text-[11px] text-zinc-400 truncate">{displayHost}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsServerModalOpen(true)}
+            className="text-[11px] text-zinc-400 hover:text-zinc-200 underline underline-offset-2 transition-colors flex items-center gap-1 flex-shrink-0"
+          >
+            <Server className="w-3 h-3" />
+            <span>Configure Server</span>
+          </button>
+        </div>
       </div>
+
+      <ServerConfigModal isOpen={isServerModalOpen} onClose={() => setIsServerModalOpen(false)} />
     </div>
   )
 }

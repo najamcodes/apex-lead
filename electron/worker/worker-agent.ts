@@ -49,7 +49,7 @@ class WorkerAgentService {
 
       this.config = {
         enabled: stored.enabled ?? false,
-        serverUrl: stored.serverUrl || 'http://localhost:4000',
+        serverUrl: stored.serverUrl || (s as any).backend_server_url || 'http://localhost:4000',
         workerId: stored.workerId || randomUUID(),
         workerName: stored.workerName || `${os.hostname()} (${os.platform()})`,
         pairingToken: stored.pairingToken,
