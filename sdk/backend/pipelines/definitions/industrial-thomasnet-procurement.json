@@ -1,0 +1,89 @@
+{
+  "id": "industrial-thomasnet-procurement",
+  "name": "Industrial ThomasNet Procurement & RFP Bidding Funnel",
+  "description": "Harvests high-capacity manufacturers and CNC machine shops from ThomasNet, evaluates annual revenue and RFP contract bidding capacity, audits ISO/ITAR compliance, and routes Tier 1 prime opportunities to enterprise RFP outreach.",
+  "collection": "leads",
+  "status": "active",
+  "nodes": [
+    {
+      "id": "source",
+      "type": "directory_scraper",
+      "label": "Scrape ThomasNet Manufacturers",
+      "enabled": true,
+      "position": { "x": 50, "y": 200 },
+      "config": {
+        "directory": "thomasnet",
+        "category": "Precision CNC Machining",
+        "city": "Cleveland, OH",
+        "max_results": 50,
+        "simulate": true
+      }
+    },
+    {
+      "id": "rfp-eval",
+      "type": "rfp_estimator",
+      "label": "RFP Bidding Capacity & ISO Readiness",
+      "enabled": true,
+      "position": { "x": 350, "y": 200 },
+      "config": {
+        "prime_threshold": 500000,
+        "sub_threshold": 100000,
+        "require_iso_or_itar": true
+      }
+    },
+    {
+      "id": "waterfall-contacts",
+      "type": "waterfall_enricher",
+      "label": "Plant Manager & VP Operations Discovery",
+      "enabled": true,
+      "position": { "x": 650, "y": 150 },
+      "config": {
+        "cascade_depth": 3
+      }
+    },
+    {
+      "id": "rfp-outreach",
+      "type": "outreach",
+      "label": "Enterprise RFP Bidding Sequence",
+      "enabled": true,
+      "position": { "x": 950, "y": 150 },
+      "config": {
+        "subject": "Defense & Aerospace RFP Bidding Capabilities - {{business_name}}",
+        "body": "Hi {{contact_name}}, noticed {{business_name}}'s precision machining capabilities and AS9100/ISO certifications..."
+      }
+    },
+    {
+      "id": "erp-sync",
+      "type": "n8n_bridge",
+      "label": "ERP & Procurement Sync",
+      "enabled": true,
+      "position": { "x": 1250, "y": 150 },
+      "config": {
+        "webhook_url": "https://automation.leadgen.internal/webhook/industrial-erp-sync"
+      }
+    },
+    {
+      "id": "store-leads",
+      "type": "store",
+      "label": "Persist Qualified Industrial Leads",
+      "enabled": true,
+      "position": { "x": 1550, "y": 200 },
+      "config": {
+        "collection": "leads",
+        "mode": "upsert"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "source", "to": "rfp-eval", "mappings": [] },
+    { "id": "e2", "from": "rfp-eval", "to": "waterfall-contacts", "fromPort": "tier_1_prime", "mappings": [] },
+    { "id": "e3", "from": "rfp-eval", "to": "store-leads", "fromPort": "tier_2_sub", "mappings": [] },
+    { "id": "e4", "from": "waterfall-contacts", "to": "rfp-outreach", "mappings": [] },
+    { "id": "e5", "from": "rfp-outreach", "to": "erp-sync", "mappings": [] },
+    { "id": "e6", "from": "erp-sync", "to": "store-leads", "mappings": [] }
+  ],
+  "trigger": {
+    "type": "manual"
+  },
+  "version": 1
+}

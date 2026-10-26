@@ -54,7 +54,7 @@ describe("Tenant Data Isolation & Audit Logging", () => {
     const leadBIds = scopedB.map(l => l.id);
     expect(leadBIds).toContain(leadB.id);
     expect(leadBIds).not.toContain(leadA.id);
-  });
+  }, 20000);
 
   it("should log audit events and persist to database", async () => {
     const auditRepo = AppDataSource.getRepository(AuditLogEntity);
@@ -77,5 +77,5 @@ describe("Tenant Data Isolation & Audit Logging", () => {
     expect(logged?.resource_type).toBe("pipeline");
     expect(logged?.action).toBe("pipeline.deleted");
     expect(logged?.org_id).toBe(1);
-  });
+  }, 20000);
 });

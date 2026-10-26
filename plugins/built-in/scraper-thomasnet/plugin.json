@@ -1,0 +1,11 @@
+{
+  "id": "scraper-thomasnet",
+  "kind": "scraper",
+  "name": "ThomasNet Industrial & Manufacturing Scraper",
+  "version": "1.0.0",
+  "description": "Scrapes North American manufacturers, suppliers, CNC machine shops, ISO certifications, and annual revenue estimates from ThomasNet.",
+  "author": "LeadHunter",
+  "main": "index.ts",
+  "enabledByDefault": true,
+  "tags": ["scraper", "thomasnet", "manufacturing", "industrial", "b2b", "rfp", "built-in"]
+}

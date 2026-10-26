@@ -49,6 +49,8 @@ import { registerPriceTrackerNode } from './price-tracker-node'
 import { registerDnsNode } from './dns-node'
 import { registerCostEstimatorNode } from './cost-estimator-node'
 import { registerDirectoryScraperNode } from './directory-scraper-node'
+import { registerRfpEstimatorNode } from './rfp-estimator-node'
+import { registerFundingIntentNode } from './funding-intent-node'
 
 let _initialized = false
 
@@ -80,6 +82,8 @@ export function registerBuiltInNodes(): void {
   registerPersonalizerNode()       // 1-to-1 dynamic cold outreach icebreakers & hooks
   registerPriceTrackerNode()       // e-commerce price monitoring, discount %, stock tracker
   registerCostEstimatorNode()      // project cost estimation, annual LTV, high-ticket qualification
+  registerRfpEstimatorNode()       // industrial & manufacturing RFP contract capacity estimation
+  registerFundingIntentNode()      // venture capital deployment timeline & software budget estimation
   registerReplyClassifierNode()    // inbound cold reply intent & sentiment classification
   registerSystemOneNode()          // OpenJev System-One probabilistic decision engine (Choice, Score, Noul)
   registerDecisionCascadeNode()    // 4-Tier decision cascade (Rules -> NLI -> SLM -> Cloud Fallback)
@@ -148,3 +152,5 @@ export { registerEmailVerifierNode } from './email-verifier-node'
 export { registerPriceTrackerNode } from './price-tracker-node'
 export { registerCostEstimatorNode } from './cost-estimator-node'
 export { registerDirectoryScraperNode } from './directory-scraper-node'
+export { registerRfpEstimatorNode } from './rfp-estimator-node'
+export { registerFundingIntentNode } from './funding-intent-node'

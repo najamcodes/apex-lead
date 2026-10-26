@@ -1,0 +1,11 @@
+{
+  "id": "scraper-crunchbase",
+  "kind": "scraper",
+  "name": "Crunchbase Venture Capital & Startup Scraper",
+  "version": "1.0.0",
+  "description": "Scrapes venture-funded tech startups, funding rounds (Series A/B/C), lead investors, valuation estimates, and executive leadership from Crunchbase.",
+  "author": "LeadHunter",
+  "main": "index.ts",
+  "enabledByDefault": true,
+  "tags": ["scraper", "crunchbase", "startups", "vc", "funding", "b2b", "built-in"]
+}

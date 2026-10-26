@@ -1,0 +1,90 @@
+{
+  "id": "venture-funded-scaleup-abm",
+  "name": "Venture-Funded Scaleup ABM & Expansion Radar",
+  "description": "Monitors recently funded Series A, B, and C startups from Crunchbase, calculates software budget allocation and capital deployment urgency, executes executive waterfall enrichment, and triggers multi-channel LinkedIn ABM.",
+  "collection": "leads",
+  "status": "active",
+  "nodes": [
+    {
+      "id": "source",
+      "type": "directory_scraper",
+      "label": "Scrape Crunchbase Funded Scaleups",
+      "enabled": true,
+      "position": { "x": 50, "y": 200 },
+      "config": {
+        "directory": "crunchbase",
+        "category": "Artificial Intelligence & B2B SaaS",
+        "city": "San Francisco, CA",
+        "max_results": 40,
+        "simulate": true
+      }
+    },
+    {
+      "id": "intent-eval",
+      "type": "funding_intent",
+      "label": "Capital Deployment Urgency & Budget",
+      "enabled": true,
+      "position": { "x": 350, "y": 200 },
+      "config": {
+        "min_funding_threshold": 5000000,
+        "budget_allocation_pct": 12,
+        "freshness_days_immediate": 180
+      }
+    },
+    {
+      "id": "waterfall-contacts",
+      "type": "waterfall_enricher",
+      "label": "C-Suite & VP Engineering Waterfall Discovery",
+      "enabled": true,
+      "position": { "x": 650, "y": 150 },
+      "config": {
+        "cascade_depth": 3
+      }
+    },
+    {
+      "id": "linkedin-abm",
+      "type": "linkedin",
+      "label": "Executive LinkedIn ABM Outreach",
+      "enabled": true,
+      "position": { "x": 950, "y": 100 },
+      "config": {
+        "action": "connection_request",
+        "note_template": "Hi {{contact_name}}, congratulations on the recent {{last_funding_type}} funding round at {{business_name}}! Would love to connect."
+      }
+    },
+    {
+      "id": "crm-upsert",
+      "type": "crm_upsert",
+      "label": "Sync Deal to Salesforce CRM",
+      "enabled": true,
+      "position": { "x": 1250, "y": 150 },
+      "config": {
+        "platform": "salesforce",
+        "pipeline_stage": "New Funded Scaleup Deal"
+      }
+    },
+    {
+      "id": "store-leads",
+      "type": "store",
+      "label": "Persist Qualified Tech Leads",
+      "enabled": true,
+      "position": { "x": 1550, "y": 200 },
+      "config": {
+        "collection": "leads",
+        "mode": "upsert"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "source", "to": "intent-eval", "mappings": [] },
+    { "id": "e2", "from": "intent-eval", "to": "waterfall-contacts", "fromPort": "immediate_expansion", "mappings": [] },
+    { "id": "e3", "from": "intent-eval", "to": "store-leads", "fromPort": "growth_scale", "mappings": [] },
+    { "id": "e4", "from": "waterfall-contacts", "to": "linkedin-abm", "mappings": [] },
+    { "id": "e5", "from": "linkedin-abm", "to": "crm-upsert", "mappings": [] },
+    { "id": "e6", "from": "crm-upsert", "to": "store-leads", "mappings": [] }
+  ],
+  "trigger": {
+    "type": "manual"
+  },
+  "version": 1
+}

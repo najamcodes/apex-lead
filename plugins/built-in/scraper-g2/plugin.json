@@ -1,0 +1,11 @@
+{
+  "id": "scraper-g2",
+  "kind": "scraper",
+  "name": "G2 Software & Tech Vendor Scraper",
+  "version": "1.0.0",
+  "description": "Scrapes B2B software vendors, G2 Grid rankings, enterprise pricing estimates, review sentiment, and competitor lists from G2.",
+  "author": "LeadHunter",
+  "main": "index.ts",
+  "enabledByDefault": true,
+  "tags": ["scraper", "g2", "saas", "software", "tech", "competitor", "built-in"]
+}

@@ -1,5 +1,5 @@
 // sdk/backend/nodes/directory-scraper-node.ts
-// Direct source node for scraping business directories (YellowPages, Clutch, Contractor Estimator).
+// Direct source node for scraping business directories (YellowPages, Clutch, Contractor Estimator, ThomasNet, Crunchbase, G2).
 
 import { registerNode } from '../engine/registry'
 import { makeDescriptor, strField, numField, boolField, selectField, mainOutput, mainInput } from './descriptors'
@@ -9,6 +9,9 @@ import type { PipelineRecord } from '@sdk/core/types/pipeline.types'
 import { scrapeYellowPages } from '../../../plugins/built-in/scraper-yellowpages/yellowpages'
 import { scrapeClutch } from '../../../plugins/built-in/scraper-clutch/clutch'
 import { scrapeContractors } from '../../../plugins/built-in/scraper-contractor-estimator/contractor-estimator'
+import { scrapeThomasNet } from '../../../plugins/built-in/scraper-thomasnet/thomasnet'
+import { scrapeCrunchbase } from '../../../plugins/built-in/scraper-crunchbase/crunchbase'
+import { scrapeG2 } from '../../../plugins/built-in/scraper-g2/g2'
 
 export function registerDirectoryScraperNode() {
   const handler: NodeHandler = {
@@ -41,7 +44,7 @@ export function registerDirectoryScraperNode() {
               ctx.log('info', `Clutch: scraped ${found} — ${current}`)
             },
             cancelToken,
-            isSimulate || true // Node-level default runs simulated/safe mode unless headless browser explicitly wired
+            isSimulate || true
           )
         } else if (directory === 'contractor_estimator') {
           rawItems = await scrapeContractors(
@@ -51,6 +54,42 @@ export function registerDirectoryScraperNode() {
             maxResults,
             (found, current) => {
               ctx.log('info', `Contractor Estimator: scraped ${found} — ${current}`)
+            },
+            cancelToken,
+            isSimulate || true
+          )
+        } else if (directory === 'thomasnet') {
+          rawItems = await scrapeThomasNet(
+            null,
+            category,
+            city,
+            maxResults,
+            (found, current) => {
+              ctx.log('info', `ThomasNet: scraped ${found} — ${current}`)
+            },
+            cancelToken,
+            isSimulate || true
+          )
+        } else if (directory === 'crunchbase') {
+          rawItems = await scrapeCrunchbase(
+            null,
+            category,
+            city,
+            maxResults,
+            (found, current) => {
+              ctx.log('info', `Crunchbase: scraped ${found} — ${current}`)
+            },
+            cancelToken,
+            isSimulate || true
+          )
+        } else if (directory === 'g2') {
+          rawItems = await scrapeG2(
+            null,
+            category,
+            city,
+            maxResults,
+            (found, current) => {
+              ctx.log('info', `G2: scraped ${found} — ${current}`)
             },
             cancelToken,
             isSimulate || true
@@ -110,7 +149,7 @@ export function registerDirectoryScraperNode() {
   const descriptor = makeDescriptor({
     type: 'directory_scraper',
     name: 'Directory & Trade Scraper',
-    description: 'Extracts leads and listings directly from business directories (YellowPages, Clutch, Contractor Estimator).',
+    description: 'Extracts leads and listings directly from business directories (YellowPages, Clutch, Contractor Estimator, ThomasNet, Crunchbase, G2).',
     category: 'Source',
     icon: 'Compass',
     color: '#8b5cf6',
@@ -121,12 +160,12 @@ export function registerDirectoryScraperNode() {
     configSchema: {
       directory: selectField(
         'Directory Platform',
-        ['yellowpages', 'clutch', 'contractor_estimator'],
+        ['yellowpages', 'clutch', 'contractor_estimator', 'thomasnet', 'crunchbase', 'g2'],
         'Directory platform to harvest leads from',
         'yellowpages'
       ),
-      category: strField('Category / Trade', true, 'e.g. Roofing, HVAC, Custom Software Development', 'Roofing'),
-      city: strField('City / Region', false, 'e.g. Austin, TX or Chicago, IL', 'Dallas, TX'),
+      category: strField('Category / Trade', true, 'e.g. Roofing, Custom Software Development, CNC Machining, B2B SaaS', 'Roofing'),
+      city: strField('City / Region', false, 'e.g. Austin, TX, Chicago, IL, San Francisco, CA', 'Dallas, TX'),
       country: strField('Country', false, undefined, 'United States'),
       max_results: numField('Max Results', false, 'Maximum records to scrape', 50),
       simulate: boolField('Simulate / Mock Mode', 'Fast offline simulated data generation for testing/preview', true),

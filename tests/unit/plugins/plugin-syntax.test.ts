@@ -133,5 +133,44 @@ describe("Built-in Plugins Compilation & Syntax", () => {
     expect(contractorPlugin.kind).toBe("scraper");
     expect(typeof contractorPlugin.scrape).toBe("function");
   });
+
+  it("should successfully import ThomasNet Industrial Scraper plugin", async () => {
+    const thomasMod = await import("../../../plugins/built-in/scraper-thomasnet/thomasnet");
+    expect(thomasMod).toBeDefined();
+    expect(typeof thomasMod.scrapeThomasNet).toBe("function");
+
+    const thomasPluginMod = await import("../../../plugins/built-in/scraper-thomasnet/index");
+    const thomasPlugin = thomasPluginMod.default;
+    expect(thomasPlugin).toBeDefined();
+    expect(thomasPlugin.id).toBe("scraper-thomasnet");
+    expect(thomasPlugin.kind).toBe("scraper");
+    expect(typeof thomasPlugin.scrape).toBe("function");
+  });
+
+  it("should successfully import Crunchbase Startup Scraper plugin", async () => {
+    const crunchMod = await import("../../../plugins/built-in/scraper-crunchbase/crunchbase");
+    expect(crunchMod).toBeDefined();
+    expect(typeof crunchMod.scrapeCrunchbase).toBe("function");
+
+    const crunchPluginMod = await import("../../../plugins/built-in/scraper-crunchbase/index");
+    const crunchPlugin = crunchPluginMod.default;
+    expect(crunchPlugin).toBeDefined();
+    expect(crunchPlugin.id).toBe("scraper-crunchbase");
+    expect(crunchPlugin.kind).toBe("scraper");
+    expect(typeof crunchPlugin.scrape).toBe("function");
+  });
+
+  it("should successfully import G2 Software Scraper plugin", async () => {
+    const g2Mod = await import("../../../plugins/built-in/scraper-g2/g2");
+    expect(g2Mod).toBeDefined();
+    expect(typeof g2Mod.scrapeG2).toBe("function");
+
+    const g2PluginMod = await import("../../../plugins/built-in/scraper-g2/index");
+    const g2Plugin = g2PluginMod.default;
+    expect(g2Plugin).toBeDefined();
+    expect(g2Plugin.id).toBe("scraper-g2");
+    expect(g2Plugin.kind).toBe("scraper");
+    expect(typeof g2Plugin.scrape).toBe("function");
+  });
 });
 

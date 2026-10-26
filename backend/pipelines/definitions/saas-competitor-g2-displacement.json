@@ -1,0 +1,80 @@
+{
+  "id": "saas-competitor-g2-displacement",
+  "name": "SaaS Competitor G2 Displacement & Enterprise Rip-and-Replace",
+  "description": "Extracts B2B software vendors and G2 Grid Leaders in competitive categories, estimates enterprise contract deal values, audits DNS deliverability, and initiates competitor displacement campaigns.",
+  "collection": "leads",
+  "status": "active",
+  "nodes": [
+    {
+      "id": "source",
+      "type": "directory_scraper",
+      "label": "Scrape G2 Software Leaders",
+      "enabled": true,
+      "position": { "x": 50, "y": 200 },
+      "config": {
+        "directory": "g2",
+        "category": "CRM & Marketing Automation Software",
+        "city": "",
+        "max_results": 50,
+        "simulate": true
+      }
+    },
+    {
+      "id": "estimator",
+      "type": "cost_estimator",
+      "label": "Enterprise Contract Value Sizing",
+      "enabled": true,
+      "position": { "x": 350, "y": 200 },
+      "config": {
+        "high_ticket_threshold": 40000,
+        "mid_market_threshold": 15000,
+        "project_size_field": "estimated_enterprise_deal_usd"
+      }
+    },
+    {
+      "id": "dns-check",
+      "type": "dns_check",
+      "label": "Vendor Domain & DNS Deliverability",
+      "enabled": true,
+      "position": { "x": 650, "y": 150 },
+      "config": {
+        "field": "website_url",
+        "min_score": 65
+      }
+    },
+    {
+      "id": "displacement-email",
+      "type": "outreach",
+      "label": "Competitor Displacement Sequence",
+      "enabled": true,
+      "position": { "x": 950, "y": 150 },
+      "config": {
+        "subject": "Modernizing away from legacy {{category}} tooling at {{business_name}}",
+        "body": "Hi {{business_name}} team, we've helped companies transitioning away from {{key_competitors}} unlock 40% higher efficiency..."
+      }
+    },
+    {
+      "id": "store-leads",
+      "type": "store",
+      "label": "Persist Qualified SaaS Accounts",
+      "enabled": true,
+      "position": { "x": 1250, "y": 200 },
+      "config": {
+        "collection": "leads",
+        "mode": "upsert"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "source", "to": "estimator", "mappings": [] },
+    { "id": "e2", "from": "estimator", "to": "dns-check", "fromPort": "high_ticket", "mappings": [] },
+    { "id": "e3", "from": "estimator", "to": "store-leads", "fromPort": "mid_market", "mappings": [] },
+    { "id": "e4", "from": "dns-check", "to": "displacement-email", "fromPort": "deliverable", "mappings": [] },
+    { "id": "e5", "from": "dns-check", "to": "store-leads", "fromPort": "risky", "mappings": [] },
+    { "id": "e6", "from": "displacement-email", "to": "store-leads", "mappings": [] }
+  ],
+  "trigger": {
+    "type": "manual"
+  },
+  "version": 1
+}

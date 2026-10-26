@@ -24,21 +24,24 @@ describe("Pipeline Template Definitions & Seeder Validation", () => {
     "contractor-cost-estimator.json",
     "b2b-clutch-agency-estimator.json",
     "yellowpages-local-dominance.json",
+    "industrial-thomasnet-procurement.json",
+    "venture-funded-scaleup-abm.json",
+    "saas-competitor-g2-displacement.json",
   ];
 
-  it("should have backend definitions directory with all 17 template JSON files", () => {
+  it("should have backend definitions directory with all 20 template JSON files", () => {
     expect(existsSync(backendDefsDir)).toBe(true);
     const files = readdirSync(backendDefsDir).filter(f => f.endsWith(".json"));
-    expect(files.length).toBeGreaterThanOrEqual(17);
+    expect(files.length).toBeGreaterThanOrEqual(20);
     for (const expected of expectedPipelines) {
       expect(files).toContain(expected);
     }
   });
 
-  it("should have sdk backend definitions directory with all 17 template JSON files", () => {
+  it("should have sdk backend definitions directory with all 20 template JSON files", () => {
     expect(existsSync(sdkDefsDir)).toBe(true);
     const files = readdirSync(sdkDefsDir).filter(f => f.endsWith(".json"));
-    expect(files.length).toBeGreaterThanOrEqual(17);
+    expect(files.length).toBeGreaterThanOrEqual(20);
     for (const expected of expectedPipelines) {
       expect(files).toContain(expected);
     }
