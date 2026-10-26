@@ -185,7 +185,8 @@ export async function scrapeContractors(
 
   try {
     page = await context.newPage()
-    const searchUrl = `https://www.yellowpages.com/search?search_terms=${encodeURIComponent(query + ' contractors')}&geo_location_terms=${encodeURIComponent(city)}`
+    const cleanQuery = query.toLowerCase().includes('contractor') ? query : `${query} contractors`
+    const searchUrl = `https://www.yellowpages.com/search?search_terms=${encodeURIComponent(cleanQuery)}&geo_location_terms=${encodeURIComponent(city)}`
 
     await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 25000 }).catch(() => null)
     await page.waitForSelector('.result, .srp-listing', { timeout: 6000 }).catch(() => null)

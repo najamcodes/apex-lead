@@ -13,7 +13,9 @@ export function registerRfpEstimatorNode() {
       const subThreshold = Number(ctx.config.sub_threshold) || 100000
       const revField = (ctx.config.revenue_field as string) || 'estimated_annual_revenue'
       const bidRatio = Number(ctx.config.max_single_bid_ratio) || 0.25
-      const requireStrictCerts = Boolean(ctx.config.require_iso_or_itar)
+      const requireStrictCerts = ctx.config.require_iso_or_itar !== undefined
+        ? (ctx.config.require_iso_or_itar === true || ctx.config.require_iso_or_itar === 'true')
+        : true
 
       let primeCount = 0
       let subCount = 0

@@ -22,7 +22,9 @@ export function registerDirectoryScraperNode() {
       const city = (ctx.config.city as string) || (ctx.input.city as string) || ''
       const country = (ctx.config.country as string) || (ctx.input.country as string) || 'United States'
       const maxResults = Number(ctx.config.max_results) || 50
-      const isSimulate = Boolean(ctx.config.simulate)
+      const isSimulate = ctx.config.simulate !== undefined
+        ? (ctx.config.simulate === true || ctx.config.simulate === 'true')
+        : true
 
       ctx.log('info', `Starting directory scraper for [${directory}] category="${category}" in "${city}" (max: ${maxResults})`)
 
@@ -37,7 +39,28 @@ export function registerDirectoryScraperNode() {
       if (!isSimulate) {
         try {
           const { createStealthContext } = await import('@sdk/core/scraper/stealth')
-          const stealth = await createStealthContext(null, true)
+          const isHeadful = ctx.config.headful === true || ctx.config.headful === 'true'
+          const formattedProxyUrl = ctx.proxyConfig
+            ? (ctx.proxyConfig.server.startsWith('http://') || ctx.proxyConfig.server.startsWith('https://') || ctx.proxyConfig.server.startsWith('socks5://')
+                ? (ctx.proxyConfig.port ? `${ctx.proxyConfig.server}:${ctx.proxyConfig.port}` : ctx.proxyConfig.server)
+                : `${ctx.proxyConfig.type || 'http'}://${ctx.proxyConfig.server}${ctx.proxyConfig.port ? `:${ctx.proxyConfig.port}` : ''}`)
+            : (ctx.config.proxy_url as string | undefined)
+
+          const rawProxy = formattedProxyUrl
+            ? {
+                server: formattedProxyUrl,
+                username: ctx.proxyConfig?.username || (ctx.config.proxy_username as string | undefined),
+                password: ctx.proxyConfig?.password || (ctx.config.proxy_password as string | undefined),
+              }
+            : null
+
+          const proxyConfig = rawProxy ? {
+            server: rawProxy.server,
+            username: rawProxy.username || undefined,
+            password: rawProxy.password || undefined,
+          } : null
+
+          const stealth = await createStealthContext(proxyConfig, !isHeadful)
           context = stealth.context
         } catch {
           context = null
@@ -186,6 +209,8 @@ export function registerDirectoryScraperNode() {
       country: strField('Country', false, undefined, 'United States'),
       max_results: numField('Max Results', false, 'Maximum records to scrape', 50),
       simulate: boolField('Simulate / Mock Mode', 'Fast offline simulated data generation for testing/preview', true),
+      headful: boolField('Headful Mode', 'Launch visible browser window for debugging (non-headless)', false),
+      proxy_url: strField('Proxy URL', false, 'Optional proxy server URL (e.g. http://proxy.example.com:8080)'),
     },
     help: 'Extracts business records from directory platforms. Generates pipeline records with rich contact, cost, and reputation metadata.',
   })
