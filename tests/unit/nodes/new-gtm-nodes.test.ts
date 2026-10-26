@@ -5,11 +5,11 @@ import { registerPersonalizerNode, generateIcebreaker } from '@sdk/backend/nodes
 import { registerChannelRouterNode } from '@sdk/backend/nodes/channel-router-node'
 import { registerWebhookDispatcherNode, computeHmacSignature } from '@sdk/backend/nodes/webhook-dispatcher-node'
 import { registerExportNode, recordsToCsv, recordsToNdjson } from '@sdk/backend/nodes/export-node'
-import { registerFormatNode, cleanCompanyName, splitFullName } from '@sdk/backend/nodes/format-node'
+import { cleanCompanyName, splitFullName } from '@sdk/backend/nodes/format-node'
 import { registerFilterNode } from '@sdk/backend/nodes/filter-node'
 import { registerCodeNode } from '@sdk/backend/nodes/code-node'
 import { getNodeHandler } from '@sdk/backend/engine/registry'
-import { detectTechFromHtml, detectTechStack } from '@sdk/core/analysis/wappalyzer'
+import { detectTechFromHtml } from '@sdk/core/analysis/wappalyzer'
 import type { NodeExecutionContext } from '@sdk/backend/engine/types'
 
 describe('New GTM Nodes & Engine Modernization Suite', () => {
@@ -478,7 +478,7 @@ describe('New GTM Nodes & Engine Modernization Suite', () => {
       const handler = getNodeHandler('code')
       expect(handler).toBeDefined()
 
-      let emitted: any[] = []
+      const emitted: any[] = []
       const mockCtx: NodeExecutionContext = {
         nodeId: 'code-gen',
         runId: 'run-code',

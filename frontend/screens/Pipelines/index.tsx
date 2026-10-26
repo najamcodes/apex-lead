@@ -19,10 +19,6 @@ export function Pipelines() {
   const [loading, setLoading] = useState(true)
   const [viewTab, setViewTab] = useState<'my-pipelines' | 'templates'>('my-pipelines')
 
-  useEffect(() => {
-    loadAll()
-  }, [])
-
   const loadAll = async () => {
     setLoading(true)
     try {
@@ -40,6 +36,10 @@ export function Pipelines() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    loadAll()
+  }, [])
 
   const loadRuns = useCallback(async (pipelineId: string) => {
     try {

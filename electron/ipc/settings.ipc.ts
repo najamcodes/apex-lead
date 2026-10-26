@@ -1,16 +1,8 @@
-﻿// electron/ipc/settings.ipc.ts
+// electron/ipc/settings.ipc.ts
 import { ipcMain } from 'electron'
 import { IPC } from '../../shared/types'
 import { getSettings, saveSettings } from '../../backend/db/queries/settings.queries'
-import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
-
-function requirePermission(perm: string) {
-  if (getCurrentUserRole() === 'admin') return;
-  const perms = getCurrentUserPermissions();
-  if (!perms.includes(perm)) {
-    throw new Error(`Unauthorized: Missing permission ${perm}`);
-  }
-}
+import { requirePermission } from '../../backend/db/queries/tenant'
 import { initSmtp } from '@sdk/core/outreach'
 import { initScheduler } from '../scheduler'
 import { BrowserWindow } from 'electron'

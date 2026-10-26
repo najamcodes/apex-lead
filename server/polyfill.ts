@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-ignore -- bun:sqlite is only available in Bun runtime
 import { Database } from "bun:sqlite";
 import Module from "node:module";
 

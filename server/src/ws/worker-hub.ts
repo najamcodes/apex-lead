@@ -1,8 +1,7 @@
 // server/src/ws/worker-hub.ts
 // WebSocket hub and dispatch manager for child desktop worker farm nodes.
 
-import type { WebSocket } from 'ws'
-import { getDataSource } from '@sdk/backend/db'
+import { getDataSource, isDbInitialized } from '@sdk/backend/db'
 import { WorkerNodeEntity } from '@sdk/backend/db/entities/WorkerNodeEntity'
 import { PipelineRunEntity } from '@sdk/backend/db/entities/PipelineRunEntity'
 import { storeRecord } from '@sdk/backend/collections/store'
@@ -77,10 +76,12 @@ export const workerHub = {
           case 'worker:progress': {
             const { runId, nodeId, message, stats, logEntry } = data
             if (runId) {
-              // Update run in DB
-              const runRepo = getDataSource().getRepository(PipelineRunEntity)
-              if (stats) {
-                await runRepo.update(runId, { stats: JSON.stringify(stats) }).catch(() => {})
+              // Update run in DB if initialized
+              if (isDbInitialized()) {
+                const runRepo = getDataSource().getRepository(PipelineRunEntity)
+                if (stats) {
+                  await runRepo.update(runId, { stats: JSON.stringify(stats) }).catch(() => {})
+                }
               }
               // Broadcast progress to web UI subscribers
               wsHub.broadcast(`pipeline:${runId}:progress`, { runId, nodeId, message, stats, logEntry })
@@ -108,13 +109,15 @@ export const workerHub = {
           case 'worker:completed': {
             const { runId, stats, log } = data
             if (runId) {
-              const runRepo = getDataSource().getRepository(PipelineRunEntity)
-              await runRepo.update(runId, {
-                status: 'completed',
-                completed_at: new Date().toISOString(),
-                stats: stats ? JSON.stringify(stats) : undefined,
-                log: log ? JSON.stringify(log.slice(-200)) : undefined,
-              }).catch(() => {})
+              if (isDbInitialized()) {
+                const runRepo = getDataSource().getRepository(PipelineRunEntity)
+                await runRepo.update(runId, {
+                  status: 'completed',
+                  completed_at: new Date().toISOString(),
+                  stats: stats ? JSON.stringify(stats) : undefined,
+                  log: log ? JSON.stringify(log.slice(-200)) : undefined,
+                }).catch(() => {})
+              }
 
               wsHub.broadcast(`pipeline:${runId}:progress`, { runId, status: 'completed', stats })
               console.log(`[WorkerHub] Pipeline run ${runId} completed by worker ${currentWorkerId}`)
@@ -125,14 +128,16 @@ export const workerHub = {
           case 'worker:failed': {
             const { runId, error, stats, log } = data
             if (runId) {
-              const runRepo = getDataSource().getRepository(PipelineRunEntity)
-              await runRepo.update(runId, {
-                status: 'failed',
-                completed_at: new Date().toISOString(),
-                error: String(error || 'Worker execution failed'),
-                stats: stats ? JSON.stringify(stats) : undefined,
-                log: log ? JSON.stringify(log.slice(-200)) : undefined,
-              }).catch(() => {})
+              if (isDbInitialized()) {
+                const runRepo = getDataSource().getRepository(PipelineRunEntity)
+                await runRepo.update(runId, {
+                  status: 'failed',
+                  completed_at: new Date().toISOString(),
+                  error: String(error || 'Worker execution failed'),
+                  stats: stats ? JSON.stringify(stats) : undefined,
+                  log: log ? JSON.stringify(log.slice(-200)) : undefined,
+                }).catch(() => {})
+              }
 
               wsHub.broadcast(`pipeline:${runId}:progress`, { runId, status: 'failed', error })
               console.error(`[WorkerHub] Pipeline run ${runId} failed on worker ${currentWorkerId}:`, error)
@@ -247,6 +252,7 @@ export const workerHub = {
 // ── Database persistence helpers ─────────────────────────────────
 
 async function persistWorkerState(worker: ConnectedWorker, status: 'online' | 'busy' | 'idle', version?: string) {
+  if (!isDbInitialized()) return
   try {
     const repo = getDataSource().getRepository(WorkerNodeEntity)
     const existing = await repo.findOneBy({ id: worker.workerId })
@@ -289,6 +295,7 @@ async function persistWorkerState(worker: ConnectedWorker, status: 'online' | 'b
 }
 
 async function updateWorkerHeartbeat(workerId: string, activeJobs: number, status: 'online' | 'busy' | 'idle') {
+  if (!isDbInitialized()) return
   try {
     const repo = getDataSource().getRepository(WorkerNodeEntity)
     await repo.update(workerId, {
@@ -300,6 +307,7 @@ async function updateWorkerHeartbeat(workerId: string, activeJobs: number, statu
 }
 
 async function markWorkerOffline(workerId: string) {
+  if (!isDbInitialized()) return
   try {
     const repo = getDataSource().getRepository(WorkerNodeEntity)
     await repo.update(workerId, {

@@ -1,4 +1,4 @@
-﻿// electron/scraper/strategies/api-interceptor.ts
+// electron/scraper/strategies/api-interceptor.ts
 // Intercepts Google Maps internal XHR responses to extract raw JSON data.
 // Much faster than DOM scraping — gets data before it renders.
 // Use as primary strategy; fall back to URL collector if interception fails.
@@ -82,7 +82,8 @@ function extractFromArray(arr: any[]): InterceptedBusiness | null {
   // Fish through the array for known data types
   let address: string | null = null, phone: string | null = null, website: string | null = null
   let rating: number | null = null, reviewCount: number | null = null
-  let lat: number | null = null, lng: number | null = null, category: string | null = null, placeId: string | null = null
+  let lat: number | null = null, lng: number | null = null, placeId: string | null = null
+  const category: string | null = null
 
   function scanDeep(node: any): void {
     if (!node) return

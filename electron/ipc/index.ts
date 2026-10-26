@@ -16,7 +16,12 @@ import { registerWorkerIpc } from './worker.ipc'
 import { registerDecisionIpcHandlers } from './decision.ipc'
 import { registerServerIpcHandlers } from './server.ipc'
 
+let ipcRegistered = false
+
 export function registerAllIpcHandlers(win: BrowserWindow): void {
+  if (ipcRegistered) return
+  ipcRegistered = true
+
   registerLeadIpcHandlers()
   registerScraperIpcHandlers(win)
   registerAiIpcHandlers()

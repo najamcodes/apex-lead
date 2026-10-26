@@ -15,7 +15,7 @@ export function registerCodeNode() {
         return
       }
 
-      let fn: Function
+      let fn: (...args: any[]) => Promise<any>
       try {
         // Compile user script inside an async context
         fn = new AsyncFunction(

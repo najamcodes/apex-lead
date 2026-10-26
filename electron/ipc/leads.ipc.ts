@@ -1,4 +1,4 @@
-﻿// electron/ipc/leads.ipc.ts
+// electron/ipc/leads.ipc.ts
 import { ipcMain } from 'electron'
 import { IPC, LeadFilters } from '../../shared/types'
 import {
@@ -10,15 +10,7 @@ import {
 } from '../../backend/db/queries/leads.queries'
 import { getDashboardStats, getCityRoiStats } from '../../backend/db/queries/stats.queries'
 import { logActivity } from '../../backend/db/queries/activity.queries'
-import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
-
-function requirePermission(perm: string) {
-  if (getCurrentUserRole() === 'admin') return;
-  const perms = getCurrentUserPermissions();
-  if (!perms.includes(perm)) {
-    throw new Error(`Unauthorized: Missing permission ${perm}`);
-  }
-}
+import { requirePermission } from '../../backend/db/queries/tenant'
 
 export function registerLeadIpcHandlers(): void {
   ipcMain.handle(IPC.LEADS_GET_ALL, (_event, filters: LeadFilters) => {

@@ -32,7 +32,7 @@ export function registerStoreNode() {
         if (ctx.isCancelled()) break
         await ctx.isPaused()
         try {
-          let data = { ...rec.data }
+          const data = { ...rec.data }
           if (setStatus) data.status = setStatus
           const storedId = await storeRecord({
             collection,

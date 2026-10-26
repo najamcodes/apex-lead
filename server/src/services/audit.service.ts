@@ -1,4 +1,4 @@
-import { getDataSource } from '@sdk/backend/db'
+import { getDataSource, isDbInitialized } from '@sdk/backend/db'
 import { AuditLogEntity } from '@sdk/backend/db/entities/AuditLogEntity'
 import { getTenantId, getCurrentUserId } from '@sdk/backend/db/queries/tenant'
 
@@ -14,6 +14,7 @@ export interface LogAuditParams {
 
 export async function logAuditEvent(params: LogAuditParams): Promise<void> {
   try {
+    if (!isDbInitialized()) return
     const ds = getDataSource()
     if (!ds?.isInitialized) return
     const repo = ds.getRepository(AuditLogEntity)

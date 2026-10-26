@@ -1,17 +1,9 @@
-﻿import { ipcMain } from 'electron'
+import { ipcMain } from 'electron'
 import { getDataSource } from '../../backend/db'
 import { getTenantId } from '../../backend/db/queries/tenant'
 import { EmailTemplateEntity } from '../../backend/db/entities/EmailTemplateEntity'
 import { IPC } from '../../shared/types'
-import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
-
-function requirePermission(perm: string) {
-  if (getCurrentUserRole() === 'admin') return;
-  const perms = getCurrentUserPermissions();
-  if (!perms.includes(perm)) {
-    throw new Error(`Unauthorized: Missing permission ${perm}`);
-  }
-}
+import { requirePermission } from '../../backend/db/queries/tenant'
 
 export function registerTemplatesIpc() {
   ipcMain.handle(IPC.TEMPLATES_GET_ALL, async () => {

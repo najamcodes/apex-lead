@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Plus, Trash2, Mail, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 import type { EmailAccount, EmailAccountInsert } from '../../../shared/types'
 import { api } from '../../services/api'
@@ -14,14 +14,14 @@ export function EmailAccountsManager() {
   const [senderName, setSenderName] = useState('')
   const [dailyLimit, setDailyLimit] = useState('50')
 
-  useEffect(() => {
-    loadAccounts()
-  }, [])
-
   const loadAccounts = async () => {
     const data = await api.emailAccounts.getAll()
     setAccounts(data)
   }
+
+  useEffect(() => {
+    loadAccounts()
+  }, [])
 
   const handleAdd = async (e?: React.FormEvent | React.MouseEvent) => {
     if (e) e.preventDefault()

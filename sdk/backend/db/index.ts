@@ -192,6 +192,18 @@ export async function initDb(): Promise<DataSource> {
   return _dataSource
 }
 
+export function isDbInitialized(): boolean {
+  if (_dataSource && _dataSource.isInitialized) {
+    return true
+  }
+  try {
+    const { AppDataSource } = require('./data-source')
+    return Boolean(AppDataSource && AppDataSource.isInitialized)
+  } catch {
+    return false
+  }
+}
+
 export function getDataSource(): DataSource {
   if (_dataSource && _dataSource.isInitialized) {
     return _dataSource

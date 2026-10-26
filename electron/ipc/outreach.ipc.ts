@@ -19,15 +19,7 @@ import { logActivity } from '../../backend/db/queries/activity.queries'
 
 import type { SequenceInput } from '@sdk/core/outreach/sequence-engine'
 import { getDataSource } from '../../backend/db'
-import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
-
-function requirePermission(perm: string) {
-  if (getCurrentUserRole() === 'admin') return;
-  const perms = getCurrentUserPermissions();
-  if (!perms.includes(perm)) {
-    throw new Error(`Unauthorized: Missing permission ${perm}`);
-  }
-}
+import { requirePermission } from '../../backend/db/queries/tenant'
 
 export function registerOutreachIpcHandlers(): void {
   // Send a single outreach record

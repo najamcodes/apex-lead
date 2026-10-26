@@ -1,4 +1,4 @@
-import '../../server/polyfill';
+import '../../../server/polyfill';
 import { AppDataSource } from './data-source';
 
 async function runMigrations() {

@@ -92,25 +92,23 @@ function KeyboardShortcuts() {
 
 export default function App() {
   const { initTheme } = useThemeStore()
-  const { isAuthenticated } = useAuthStore()
-  const [isReady, setIsReady] = useState(false)
+  const { isAuthenticated, userId } = useAuthStore()
+  const [isReady, setIsReady] = useState(() => !isAuthenticated || !userId)
 
   useEffect(() => {
     initTheme()
 
-    // Restore session in main process if authenticated
-    const state = useAuthStore.getState()
-    if (state.isAuthenticated && state.userId) {
-      api.auth.restoreSession({ userId: state.userId })
-        .then(() => setIsReady(true))
+    if (isAuthenticated && userId) {
+      api.auth
+        .restoreSession({ userId })
         .catch((err) => {
           console.error(err)
+        })
+        .finally(() => {
           setIsReady(true)
         })
-    } else {
-      setIsReady(true)
     }
-  }, [])
+  }, [isAuthenticated, userId])
 
   if (!isReady) {
     return (

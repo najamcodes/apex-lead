@@ -9,10 +9,6 @@ export function QueueDashboard() {
   const [queue, setQueue] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadQueue()
-  }, [])
-
   const loadQueue = async () => {
     setLoading(true)
     try {
@@ -24,6 +20,10 @@ export function QueueDashboard() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    loadQueue()
+  }, [])
 
   const toggleAutoSend = async () => {
     if (!settings) return

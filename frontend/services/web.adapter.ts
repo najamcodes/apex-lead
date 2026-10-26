@@ -116,11 +116,11 @@ function toQueryString(params?: Record<string, any>): string {
 
 export const webAdapter: IApiService = {
   leads: {
-    getAll: (filters) => get(`/api/leads${toQueryString(filters as any)}`),
-    getById: (id) => get(`/api/leads/${id}`),
-    insert: (data) => post('/api/leads', data),
-    updateStatus: (id, status, notes) => patch(`/api/leads/${id}/status`, { status, notes }),
-    delete: (id) => del(`/api/leads/${id}`)
+    getAll: (filters?: any) => get(`/api/leads${toQueryString(filters as any)}`),
+    getById: (id: any) => get(`/api/leads/${id}`),
+    insert: (data: any) => post('/api/leads', data),
+    updateStatus: (id: any, status: any, notes?: any) => patch(`/api/leads/${id}/status`, { status, notes }),
+    delete: (id: any) => del(`/api/leads/${id}`)
   },
 
   stats: {
@@ -129,42 +129,42 @@ export const webAdapter: IApiService = {
   },
 
   scraper: {
-    start: (config) => post('/api/scraper/jobs', config),
-    cancel: (jobId) => post(`/api/scraper/jobs/${jobId}/cancel`),
-    pause: (jobId) => post(`/api/scraper/jobs/${jobId}/pause`),
-    resume: (jobId) => post(`/api/scraper/jobs/${jobId}/resume`),
-    delete: (jobId) => del(`/api/scraper/jobs/${jobId}`),
-    deleteBatch: (jobIds) => del('/api/scraper/jobs', { ids: jobIds }),
-    getJobs: (pagination) => get(`/api/scraper/jobs${toQueryString(pagination as any)}`),
-    onProgress: (cb) => wsClient.subscribe('scraper:progress', cb)
+    start: (config: any) => post('/api/scraper/jobs', config),
+    cancel: (jobId: any) => post(`/api/scraper/jobs/${jobId}/cancel`),
+    pause: (jobId: any) => post(`/api/scraper/jobs/${jobId}/pause`),
+    resume: (jobId: any) => post(`/api/scraper/jobs/${jobId}/resume`),
+    delete: (jobId: any) => del(`/api/scraper/jobs/${jobId}`),
+    deleteBatch: (jobIds: any) => del('/api/scraper/jobs', { ids: jobIds }),
+    getJobs: (pagination?: any) => get(`/api/scraper/jobs${toQueryString(pagination as any)}`),
+    onProgress: (cb: any) => wsClient.subscribe('scraper:progress', cb)
   },
 
   ai: {
-    scoreSite: (leadId, model) => post('/api/ai/score-site', { leadId, model }),
-    draftEmail: (leadId, model) => post('/api/ai/draft-email', { leadId, model }),
-    testConnection: (params) => post('/api/ai/test-connection', params || {})
+    scoreSite: (leadId: any, model?: any) => post('/api/ai/score-site', { leadId, model }),
+    draftEmail: (leadId: any, model?: any) => post('/api/ai/draft-email', { leadId, model }),
+    testConnection: (params?: any) => post('/api/ai/test-connection', params || {})
   },
 
   settings: {
     get: () => get('/api/settings'),
-    save: (patch_) => put('/api/settings', patch_)
+    save: (patch_: any) => put('/api/settings', patch_)
   },
 
   analysis: {
-    runLead: (leadId) => post(`/api/analysis/lead/${leadId}`),
-    runBatch: (leadIds) => post('/api/analysis/batch', { leadIds }),
-    onProgress: (cb) => wsClient.subscribe('analysis:progress', cb)
+    runLead: (leadId: any) => post(`/api/analysis/lead/${leadId}`),
+    runBatch: (leadIds: any) => post('/api/analysis/batch', { leadIds }),
+    onProgress: (cb: any) => wsClient.subscribe('analysis:progress', cb)
   },
 
   outreach: {
-    send: (recordId) => post(`/api/outreach/${recordId}/send`),
+    send: (recordId: any) => post(`/api/outreach/${recordId}/send`),
     sendBatch: () => post('/api/outreach/send-batch'),
-    getAll: (status, pagination) => get(`/api/outreach${toQueryString({ status, ...pagination })}`),
-    markReplied: (outreachId) => patch(`/api/outreach/${outreachId}/replied`),
-    markBounced: (outreachId) => patch(`/api/outreach/${outreachId}/bounced`),
+    getAll: (status?: any, pagination?: any) => get(`/api/outreach${toQueryString({ status, ...pagination })}`),
+    markReplied: (outreachId: any) => patch(`/api/outreach/${outreachId}/replied`),
+    markBounced: (outreachId: any) => patch(`/api/outreach/${outreachId}/bounced`),
     getPendingQueue: () => get('/api/outreach/pending-queue'),
-    scheduleSeq: (input, businessName) => post('/api/outreach/schedule-sequence', { input, businessName }),
-    getSequences: (pagination) => get(`/api/outreach/sequences${toQueryString(pagination as any)}`),
+    scheduleSeq: (input: any, businessName: any) => post('/api/outreach/schedule-sequence', { input, businessName }),
+    getSequences: (pagination?: any) => get(`/api/outreach/sequences${toQueryString(pagination as any)}`),
     exportCsv: () => get('/api/outreach/export-csv'),
     getChartData: () => get('/api/stats/chart-data'),
     smtp: {
@@ -174,19 +174,19 @@ export const webAdapter: IApiService = {
   },
 
   bulk: {
-    analyze: (leadIds) => post('/api/bulk/analyze', { leadIds }),
-    score: (leadIds) => post('/api/bulk/score', { leadIds }),
-    approve: (leadIds) => post('/api/bulk/approve', { leadIds }),
-    scheduleSequences: (leadIds, templateId) => post('/api/bulk/schedule-sequences', { leadIds, templateId })
+    analyze: (leadIds: any) => post('/api/bulk/analyze', { leadIds }),
+    score: (leadIds: any) => post('/api/bulk/score', { leadIds }),
+    approve: (leadIds: any) => post('/api/bulk/approve', { leadIds }),
+    scheduleSequences: (leadIds: any, templateId?: any) => post('/api/bulk/schedule-sequences', { leadIds, templateId })
   },
 
   notes: {
-    get: (leadId) => get(`/api/leads/${leadId}/notes`),
-    save: (leadId, body) => put(`/api/leads/${leadId}/notes`, { body })
+    get: (leadId: any) => get(`/api/leads/${leadId}/notes`),
+    save: (leadId: any, body: any) => put(`/api/leads/${leadId}/notes`, { body })
   },
 
   activity: {
-    get: (leadId) => get(`/api/leads/${leadId}/activity`),
+    get: (leadId: any) => get(`/api/leads/${leadId}/activity`),
     getRecent: () => get('/api/activity/recent')
   },
 
@@ -195,43 +195,43 @@ export const webAdapter: IApiService = {
   },
 
   emailFinder: {
-    run: (leadId) => post(`/api/email-finder/lead/${leadId}`),
-    runBatch: (leadIds) => post('/api/email-finder/batch', { leadIds }),
-    onProgress: (cb) => wsClient.subscribe('emailFinder:progress', cb)
+    run: (leadId: any) => post(`/api/email-finder/lead/${leadId}`),
+    runBatch: (leadIds: any) => post('/api/email-finder/batch', { leadIds }),
+    onProgress: (cb: any) => wsClient.subscribe('emailFinder:progress', cb)
   },
 
   emailVerifier: {
-    runBatch: (leadIds) => post('/api/email-verifier/batch', { leadIds }),
-    onProgress: (cb) => wsClient.subscribe('emailVerifier:progress', cb)
+    runBatch: (leadIds: any) => post('/api/email-verifier/batch', { leadIds }),
+    onProgress: (cb: any) => wsClient.subscribe('emailVerifier:progress', cb)
   },
 
   templates: {
     getAll: () => get('/api/templates'),
-    create: (data) => post('/api/templates', data),
-    update: (id, data) => put(`/api/templates/${id}`, data),
-    delete: (id) => del(`/api/templates/${id}`)
+    create: (data: any) => post('/api/templates', data),
+    update: (id: any, data: any) => put(`/api/templates/${id}`, data),
+    delete: (id: any) => del(`/api/templates/${id}`)
   },
 
   emailAccounts: {
     getAll: () => get('/api/email-accounts'),
-    add: (data) => post('/api/email-accounts', data),
-    update: (id, data) => put(`/api/email-accounts/${id}`, data),
-    delete: (id) => del(`/api/email-accounts/${id}`),
-    test: (id) => post(`/api/email-accounts/${id}/test`)
+    add: (data: any) => post('/api/email-accounts', data),
+    update: (id: any, data: any) => put(`/api/email-accounts/${id}`, data),
+    delete: (id: any) => del(`/api/email-accounts/${id}`),
+    test: (id: any) => post(`/api/email-accounts/${id}/test`)
   },
 
   auth: {
-    login: (args) => post('/api/auth/login', args),
-    register: (args) => post('/api/auth/register', args),
-    restoreSession: (args) => post('/api/auth/restore-session', args)
+    login: (args: any) => post('/api/auth/login', args),
+    register: (args: any) => post('/api/auth/register', args),
+    restoreSession: (args: any) => post('/api/auth/restore-session', args)
   },
 
   users: {
     list: () => get('/api/users'),
-    add: (args) => post('/api/users', args),
-    updatePermissions: (userId, permissions) => put(`/api/users/${userId}/permissions`, { permissions }),
-    updateRole: (userId, role) => put(`/api/users/${userId}/role`, { role }),
-    delete: (userId) => del(`/api/users/${userId}`)
+    add: (args: any) => post('/api/users', args),
+    updatePermissions: (userId: any, permissions: any) => put(`/api/users/${userId}/permissions`, { permissions }),
+    updateRole: (userId: any, role: any) => put(`/api/users/${userId}/role`, { role }),
+    delete: (userId: any) => del(`/api/users/${userId}`)
   },
   ...sharedServerAdapters,
   workers: {

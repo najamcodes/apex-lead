@@ -1,4 +1,4 @@
-﻿import { ipcMain } from 'electron'
+import { ipcMain } from 'electron'
 import { IPC } from '../../shared/types'
 import {
   getEmailAccounts,
@@ -7,15 +7,7 @@ import {
   deleteEmailAccount,
   getRawEmailAccountById
 } from '../../backend/db/queries/email-accounts.queries'
-import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
-
-function requirePermission(perm: string) {
-  if (getCurrentUserRole() === 'admin') return;
-  const perms = getCurrentUserPermissions();
-  if (!perms.includes(perm)) {
-    throw new Error(`Unauthorized: Missing permission ${perm}`);
-  }
-}
+import { requirePermission } from '../../backend/db/queries/tenant'
 import nodemailer from 'nodemailer'
 
 export function registerEmailAccountsIpc(): void {

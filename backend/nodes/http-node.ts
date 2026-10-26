@@ -13,7 +13,7 @@ export function registerHttpNode() {
     type: 'http',
     async execute(ctx) {
       const method = (ctx.config.method as string) || 'GET'
-      let urlTemplate = ctx.config.url as string
+      const urlTemplate = ctx.config.url as string
       const headersConfig = (ctx.config.headers as Record<string, string>) || {}
       const bodyTemplate = ctx.config.body as string | undefined
       const responseField = (ctx.config.response_field as string) || 'http_response'

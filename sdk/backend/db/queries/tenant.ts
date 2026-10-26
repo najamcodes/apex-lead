@@ -106,6 +106,12 @@ export function hasPermission(permission: string, role?: string, perms?: string[
   return p.includes(permission) || p.includes('*') || p.includes('all')
 }
 
+export function requirePermission(permission: string, role?: string, perms?: string[]): void {
+  if (!hasPermission(permission, role, perms)) {
+    throw new Error(`Unauthorized: Missing permission ${permission}`)
+  }
+}
+
 export function canViewPipelines(role?: string, perms?: string[]): boolean {
   const r = role ?? getCurrentUserRole()
   if (process.env.NODE_ENV === 'desktop' && roleLevel(r) >= 2) return true

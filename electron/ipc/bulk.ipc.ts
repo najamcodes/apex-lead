@@ -1,4 +1,4 @@
-﻿// electron/ipc/bulk.ipc.ts
+// electron/ipc/bulk.ipc.ts
 import { ipcMain } from 'electron'
 import { IPC } from '../../shared/types'
 import { analyzeBatch } from '@sdk/core/analysis'
@@ -18,15 +18,7 @@ import { createSequenceForLead } from '@sdk/core/outreach'
 import { getSchedulerStatus } from '../scheduler'
 import { parseSpintax } from '@sdk/core/outreach/spintax'
 import { draftOutreach } from '@sdk/core/ai/tasks/draft-outreach'
-import { getCurrentUserRole, getCurrentUserPermissions } from '../../backend/db/queries/tenant'
-
-function requirePermission(perm: string) {
-  if (getCurrentUserRole() === 'admin') return;
-  const perms = getCurrentUserPermissions();
-  if (!perms.includes(perm)) {
-    throw new Error(`Unauthorized: Missing permission ${perm}`);
-  }
-}
+import { requirePermission } from '../../backend/db/queries/tenant'
 
 export function registerBulkIpcHandlers(): void {
   // NOTES
