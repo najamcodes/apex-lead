@@ -15,6 +15,7 @@ import { registerPluginIpcHandlers } from './plugins.ipc'
 import { registerWorkerIpc } from './worker.ipc'
 import { registerDecisionIpcHandlers } from './decision.ipc'
 import { registerServerIpcHandlers } from './server.ipc'
+import { registerSuppressionIpcHandlers } from './suppression.ipc'
 
 let ipcRegistered = false
 
@@ -37,4 +38,5 @@ export function registerAllIpcHandlers(win: BrowserWindow): void {
   registerWorkerIpc()
   registerDecisionIpcHandlers(win)
   registerServerIpcHandlers()
+  registerSuppressionIpcHandlers()
 }

@@ -1,6 +1,7 @@
-﻿// src/screens/Leads/index.tsx
+// src/screens/Leads/index.tsx
 import { useEffect } from 'react'
-import { Users } from 'lucide-react'
+import { Users, Download, Plus } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { useLeadsStore } from '../../store/leads.store'
 import { LeadFilters } from './LeadFilters'
 import { LeadRow } from './LeadRow'
@@ -8,6 +9,8 @@ import { EmptyState } from '../../components/ui/EmptyState'
 import { Button } from '../../components/ui/Button'
 import { Skeleton } from '../../components/ui/Skeleton'
 import { BulkActionsBar } from './BulkActionsBar'
+import { AddLeadModal } from './AddLeadModal'
+import { api } from '../../services/api'
 import { useState } from 'react'
 
 import { Pagination } from '../../components/ui/Pagination'
@@ -18,6 +21,8 @@ export function Leads() {
   const { leads, loading, fetchLeads, total, filters, setFilters } = useLeadsStore()
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [auditLead, setAuditLead] = useState<Lead | null>(null)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) => {
@@ -33,6 +38,18 @@ export function Leads() {
     else setSelectedIds(new Set(leads.map((l) => l.id)))
   }
 
+  const handleExportCsv = async () => {
+    setExporting(true)
+    try {
+      const path = await api.outreach.exportCsv()
+      if (path) toast.success(`Exported leads to ${path}`)
+    } catch (err: any) {
+      toast.error('Failed to export leads')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   useEffect(() => {
     fetchLeads()
   }, [])
@@ -44,9 +61,16 @@ export function Leads() {
           <h2 className="text-lg font-semibold text-slate-100">Leads</h2>
           <p className="text-sm text-slate-500 mt-0.5">{total} total</p>
         </div>
-        <Button variant="primary" size="sm">
-          + Add manually
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={handleExportCsv} loading={exporting}>
+            <Download className="w-4 h-4 mr-1.5" />
+            Export CSV
+          </Button>
+          <Button variant="primary" size="sm" onClick={() => setIsAddModalOpen(true)}>
+            <Plus className="w-4 h-4 mr-1.5" />
+            Add manually
+          </Button>
+        </div>
       </div>
 
       <LeadFilters />
@@ -127,6 +151,15 @@ export function Leads() {
         lead={auditLead}
         isOpen={auditLead !== null}
         onClose={() => setAuditLead(null)}
+      />
+
+      <AddLeadModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={(count) => {
+          toast.success(`Successfully added ${count} lead${count === 1 ? '' : 's'}`)
+          fetchLeads()
+        }}
       />
     </div>
   )

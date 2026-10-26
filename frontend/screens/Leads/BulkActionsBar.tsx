@@ -1,6 +1,6 @@
 // src/screens/Leads/BulkActionsBar.tsx
 import { motion, AnimatePresence } from 'framer-motion'
-import { Zap, CheckCircle2, Send, MailSearch, X, UserCheck, Sparkles } from 'lucide-react'
+import { Zap, CheckCircle2, Send, MailSearch, X, UserCheck, Sparkles, Ban } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { useLeadsStore } from '../../store/leads.store'
 import { useTemplatesStore } from '../../store/templates.store'
@@ -113,6 +113,26 @@ export function BulkActionsBar({ selectedCount, onClear, leadIds }: Props) {
             >
               <Send className="w-4 h-4 text-rose-400" />
               Schedule Seq
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={loadingAction === 'suppress'}
+              disabled={loadingAction !== null && loadingAction !== 'suppress'}
+              onClick={() =>
+                handleAction('suppress', async () => {
+                  const selectedLeads = useLeadsStore.getState().leads.filter(l => leadIds.includes(l.id))
+                  const targets = selectedLeads
+                    .map(l => l.email || '')
+                    .filter(Boolean)
+                  if (targets.length > 0) {
+                    await api.suppression.batchAdd(targets, 'email', 'manual')
+                  }
+                })
+              }
+            >
+              <Ban className="w-4 h-4 text-red-400" />
+              Add to DNC
             </Button>
           </div>
 

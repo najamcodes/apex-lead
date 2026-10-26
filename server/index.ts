@@ -25,6 +25,7 @@ import { emailFinderRouter } from './src/routes/email-finder'
 import { emailVerifierRouter } from './src/routes/email-verifier'
 import { schedulerRouter } from './src/routes/scheduler'
 import { usersRouter } from './src/routes/users'
+import { suppressionRouter } from './src/routes/suppression'
 import { pipelinesRouter } from '@sdk/backend/routes/pipelines'
 import { collectionsRouter } from '@sdk/backend/routes/collections'
 import { analyticsRouter } from '@sdk/backend/routes/analytics'
@@ -256,6 +257,7 @@ app.route('/api/custom-nodes', customNodesRouter as any)
 app.route('/api/workers', workersRouter as any)
 app.route('/api/orgs', orgRouter as any)
 app.route('/api/proxy-configs', proxyConfigRouter as any)
+app.route('/api/suppression', suppressionRouter as any)
 app.route('/api', apiRouter as any)
 
 // ── OpenAPI / Swagger UI ───────────────────────────────────────────

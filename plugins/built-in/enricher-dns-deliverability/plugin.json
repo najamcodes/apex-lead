@@ -1,0 +1,11 @@
+{
+  "id": "enricher-dns-deliverability",
+  "kind": "enricher",
+  "name": "DNS & MX Deliverability Checker",
+  "version": "1.0.0",
+  "description": "Validates domain MX records, checks SPF and DMARC policies, identifies mail providers, and scores inbox deliverability health.",
+  "author": "LeadHunter",
+  "main": "index.ts",
+  "enabledByDefault": true,
+  "tags": ["dns", "mx", "spf", "dmarc", "deliverability", "email-health"]
+}

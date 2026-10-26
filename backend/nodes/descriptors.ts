@@ -24,6 +24,7 @@ export function strField(label: string, required = false, description?: string, 
 export function numField(label: string, required = false, description?: string, defaultValue?: number) {
   return { type: 'number', label, required, description, default: defaultValue }
 }
+export const numberField = numField
 export function boolField(label: string, description?: string, defaultValue = false) {
   return { type: 'boolean', label, description, default: defaultValue }
 }

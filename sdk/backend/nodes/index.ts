@@ -46,6 +46,7 @@ import { registerDecisionCascadeNode } from './decision-cascade-node'
 import { registerReplyClassifierNode } from './reply-classifier-node'
 import { registerEmailVerifierNode } from './email-verifier-node'
 import { registerPriceTrackerNode } from './price-tracker-node'
+import { registerDnsNode } from './dns-node'
 
 let _initialized = false
 
@@ -71,6 +72,7 @@ export function registerBuiltInNodes(): void {
   registerNewsRadarNode()          // funding, PR, executive intent triggers
   registerTechnographicNode()      // installed tech stack, e-commerce, CRM, analytics
   registerDnsHealthNode()          // SPF, DKIM, DMARC, MX deliverability health score
+  registerDnsNode()                // MX, SPF, DMARC routing to deliverable vs risky
   registerEmailVerifierNode()      // RFC syntax, disposable burner, role account hygiene
   registerPersonalizerNode()       // 1-to-1 dynamic cold outreach icebreakers & hooks
   registerPriceTrackerNode()       // e-commerce price monitoring, discount %, stock tracker
@@ -130,6 +132,7 @@ export { registerCrmUpsertNode } from './crm-upsert-node'
 export { registerBatchNode } from './batch-node'
 export { registerTechnographicNode } from './technographic-node'
 export { registerDnsHealthNode } from './dns-health-node'
+export { registerDnsNode } from './dns-node'
 export { registerPersonalizerNode } from './personalizer-node'
 export { registerChannelRouterNode } from './channel-router-node'
 export { registerWebhookDispatcherNode } from './webhook-dispatcher-node'

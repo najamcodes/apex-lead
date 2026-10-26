@@ -143,5 +143,12 @@ interface Window {
       testConnection: (url?: string) => Promise<{ ok: boolean; status?: number; latencyMs: number; error?: string; serverInfo?: any }>
       restartLocal: () => Promise<{ success: boolean; port: number }>
     }
+    suppression: {
+      getAll: (pagination?: { page?: number; pageSize?: number; search?: string }) => Promise<{ data: any[]; total: number }>
+      add: (payload: { value: string; type?: 'email' | 'domain' | 'phone'; reason?: string }) => Promise<any>
+      batchAdd: (values: string[], type?: 'email' | 'domain' | 'phone', reason?: string) => Promise<{ added: number; skipped: number }>
+      remove: (id: number) => Promise<boolean>
+      check: (query: string) => Promise<boolean>
+    }
   }
 }

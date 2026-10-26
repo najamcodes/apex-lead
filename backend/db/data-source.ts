@@ -24,6 +24,7 @@ import { ApprovalEntity } from './entities/ApprovalEntity';
 import { AIConnectionEntity } from './entities/AIConnectionEntity';
 import { CustomNodeEntity } from './entities/CustomNodeEntity';
 import { AuditLogEntity } from './entities/AuditLogEntity';
+import { SuppressionEntity } from './entities/SuppressionEntity';
 
 export const allEntities = [
   OrganizationEntity,
@@ -47,6 +48,7 @@ export const allEntities = [
   AIConnectionEntity,
   CustomNodeEntity,
   AuditLogEntity,
+  SuppressionEntity,
 ];
 
 const isPostgres = process.env.DB_TYPE === 'postgres' || (typeof process.env.DATABASE_URL === 'string' && process.env.DATABASE_URL.startsWith('postgres'));

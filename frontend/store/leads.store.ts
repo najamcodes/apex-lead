@@ -1,4 +1,4 @@
-﻿// src/store/leads.store.ts
+// src/store/leads.store.ts
 import { create } from 'zustand'
 import type { Lead, LeadFilters, LeadStatus } from '../../shared/types'
 import { api } from '../services/api'
@@ -14,6 +14,8 @@ interface LeadsState {
   setFilters: (filters: LeadFilters) => void
   updateStatus: (id: number, status: LeadStatus, notes?: string) => Promise<void>
   deleteLead: (id: number) => Promise<void>
+  addLead: (data: import('../../shared/types').LeadInsert) => Promise<Lead>
+  importBatch: (leads: import('../../shared/types').LeadInsert[]) => Promise<{ imported: number; skipped: number }>
 }
 
 export const useLeadsStore = create<LeadsState>((set, get) => ({
@@ -54,5 +56,17 @@ export const useLeadsStore = create<LeadsState>((set, get) => ({
   deleteLead: async (id) => {
     await api.leads.delete(id)
     await get().fetchLeads()
+  },
+
+  addLead: async (data) => {
+    const lead = await api.leads.insert(data)
+    await get().fetchLeads()
+    return lead
+  },
+
+  importBatch: async (leads) => {
+    const res = await api.leads.insertBatch(leads)
+    await get().fetchLeads()
+    return res
   }
 }))

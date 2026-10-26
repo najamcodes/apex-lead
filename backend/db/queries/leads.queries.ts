@@ -1,4 +1,4 @@
-﻿import { getTenantId, getCurrentUserId, getUserScopeFilter, canViewAllData } from './tenant'
+import { getTenantId, getCurrentUserId, getUserScopeFilter, canViewAllData } from './tenant'
 import { getDataSource } from '../index'
 import { LeadEntity } from '../entities/LeadEntity'
 import type { LeadInsert, LeadFilters, LeadStatus } from '../../../shared/types'
@@ -6,22 +6,31 @@ import type { LeadInsert, LeadFilters, LeadStatus } from '../../../shared/types'
 export async function insertLead(data: LeadInsert): Promise<LeadEntity | null> {
   const repo = getDataSource().getRepository(LeadEntity)
   
-  // Try to insert
   try {
-    const lead = repo.create({
-    org_id: getTenantId(),
-    scraped_by_user_id: getCurrentUserId(),
-    business_name: data.business_name,
-      category: data.category,
-      city: data.city,
-      country: data.country,
+    const orgId = getTenantId()
+    const businessName = data.business_name || 'Unnamed Business'
+    const city = data.city || ''
+
+    // Return existing lead if duplicate by unique constraint
+    const existing = await repo.findOne({
+      where: { org_id: orgId, business_name: businessName, city },
+    })
+    if (existing) return existing
+
+    const result = await repo.insert({
+      org_id: orgId,
+      scraped_by_user_id: getCurrentUserId(),
+      business_name: businessName,
+      category: data.category || '',
+      city,
+      country: data.country || '',
       phone: data.phone ?? null,
       email: data.email ?? null,
       website_url: data.website_url ?? null,
       google_maps_url: data.google_maps_url ?? null,
       website_status: data.website_status ?? 'unchecked',
       ssl_valid: data.ssl_valid ?? null,
-      source: data.source,
+      source: data.source || 'manual',
       ai_personalized_hook: data.ai_personalized_hook ?? null,
       ai_icebreaker: data.ai_icebreaker ?? null,
       contact_name: data.contact_name ?? null,
@@ -30,25 +39,31 @@ export async function insertLead(data: LeadInsert): Promise<LeadEntity | null> {
       tech_stack: data.tech_stack ?? null,
       social_links: data.social_links ?? null,
       seo_metrics: data.seo_metrics ?? null,
-      email_verified: data.email_verified ?? null
+      email_verified: data.email_verified ?? null,
     })
 
-    const result = await repo.createQueryBuilder()
-      .insert()
-      .into(LeadEntity)
-      .values(lead)
-      .orIgnore() // SQLite ON CONFLICT DO NOTHING
-      .execute()
-
-    if (!result.identifiers[0]) {
-      // It means it was ignored
-      return null
-    }
-
-    return await getLeadById(result.identifiers[0].id)
+    const id = result.identifiers[0]?.id || (result.raw as number)
+    if (!id) return null
+    return await getLeadById(id)
   } catch (err) {
+    console.error('[db] insertLead error:', err)
     return null
   }
+}
+
+export async function insertBatchLeads(leads: LeadInsert[]): Promise<{ imported: number; skipped: number }> {
+  let imported = 0
+  let skipped = 0
+  for (const item of leads) {
+    if (!item || !item.business_name) {
+      skipped++
+      continue
+    }
+    const res = await insertLead(item)
+    if (res) imported++
+    else skipped++
+  }
+  return { imported, skipped }
 }
 
 export async function getLeadById(id: number): Promise<LeadEntity | null> {

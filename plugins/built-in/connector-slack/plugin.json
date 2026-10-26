@@ -1,0 +1,11 @@
+{
+  "id": "connector-slack",
+  "kind": "connector",
+  "name": "Slack Notifications",
+  "version": "1.0.0",
+  "description": "Broadcasts high-intent replies and approved leads to a Slack channel via Block Kit incoming webhooks.",
+  "author": "LeadHunter",
+  "main": "index.ts",
+  "enabledByDefault": true,
+  "tags": ["slack", "notifications", "crm", "alerts"]
+}

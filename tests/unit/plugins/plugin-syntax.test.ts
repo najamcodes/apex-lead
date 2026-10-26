@@ -67,4 +67,30 @@ describe("Built-in Plugins Compilation & Syntax", () => {
     expect(aiPlugin.kind).toBe("enricher");
     expect(typeof aiPlugin.enrich).toBe("function");
   });
+
+  it("should successfully import Slack Connector plugin", async () => {
+    const slackMod = await import("../../../plugins/built-in/connector-slack/slack");
+    expect(slackMod).toBeDefined();
+    expect(typeof slackMod.sendSlackAlert).toBe("function");
+
+    const slackPluginMod = await import("../../../plugins/built-in/connector-slack/index");
+    const slackPlugin = slackPluginMod.default;
+    expect(slackPlugin).toBeDefined();
+    expect(slackPlugin.id).toBe("connector-slack");
+    expect(slackPlugin.kind).toBe("connector");
+    expect(typeof slackPlugin.push).toBe("function");
+  });
+
+  it("should successfully import DNS Deliverability Enricher plugin", async () => {
+    const dnsMod = await import("../../../plugins/built-in/enricher-dns-deliverability/dns-checker");
+    expect(dnsMod).toBeDefined();
+    expect(typeof dnsMod.checkDomainDeliverability).toBe("function");
+
+    const dnsPluginMod = await import("../../../plugins/built-in/enricher-dns-deliverability/index");
+    const dnsPlugin = dnsPluginMod.default;
+    expect(dnsPlugin).toBeDefined();
+    expect(dnsPlugin.id).toBe("enricher-dns-deliverability");
+    expect(dnsPlugin.kind).toBe("enricher");
+    expect(typeof dnsPlugin.enrich).toBe("function");
+  });
 });

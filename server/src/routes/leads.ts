@@ -84,6 +84,28 @@ leadsRouter.openapi({
   return c.json(result, 201)
 })
 
+// POST /api/leads/batch - Create multiple leads (CSV import)
+leadsRouter.openapi({
+  method: 'post',
+  path: '/batch',
+  summary: 'Batch insert leads',
+  tags: ['Leads'],
+  request: {
+    body: { content: { 'application/json': { schema: z.object({ leads: z.array(LeadInsertSchema) }) } } },
+  },
+  responses: {
+    200: {
+      description: 'Batch insert result',
+      content: { 'application/json': { schema: z.object({ imported: z.number(), skipped: z.number() }) } },
+    },
+  },
+}, async (c) => {
+  const { leads } = c.req.valid('json')
+  const { insertBatchLeads } = await import('@sdk/backend/db/queries/leads.queries')
+  const result = await insertBatchLeads(leads as any)
+  return c.json(result)
+})
+
 // PATCH /api/leads/:id/status - Update lead status
 leadsRouter.openapi({
   method: 'patch',

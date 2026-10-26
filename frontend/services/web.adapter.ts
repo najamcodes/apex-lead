@@ -119,6 +119,7 @@ export const webAdapter: IApiService = {
     getAll: (filters?: any) => get(`/api/leads${toQueryString(filters as any)}`),
     getById: (id: any) => get(`/api/leads/${id}`),
     insert: (data: any) => post('/api/leads', data),
+    insertBatch: (leads: any) => post('/api/leads/batch', { leads }),
     updateStatus: (id: any, status: any, notes?: any) => patch(`/api/leads/${id}/status`, { status, notes }),
     delete: (id: any) => del(`/api/leads/${id}`)
   },
@@ -165,7 +166,22 @@ export const webAdapter: IApiService = {
     getPendingQueue: () => get('/api/outreach/pending-queue'),
     scheduleSeq: (input: any, businessName: any) => post('/api/outreach/schedule-sequence', { input, businessName }),
     getSequences: (pagination?: any) => get(`/api/outreach/sequences${toQueryString(pagination as any)}`),
-    exportCsv: () => get('/api/outreach/export-csv'),
+    exportCsv: async () => {
+      const res = await get<{ csv: string }>('/api/outreach/export-csv')
+      if (res?.csv && typeof window !== 'undefined') {
+        const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8;' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `leadhunter-export-${new Date().toISOString().slice(0, 10)}.csv`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        return a.download
+      }
+      return null
+    },
     getChartData: () => get('/api/stats/chart-data'),
     smtp: {
       verify: () => get('/api/smtp/verify'),
@@ -232,6 +248,17 @@ export const webAdapter: IApiService = {
     updatePermissions: (userId: any, permissions: any) => put(`/api/users/${userId}/permissions`, { permissions }),
     updateRole: (userId: any, role: any) => put(`/api/users/${userId}/role`, { role }),
     delete: (userId: any) => del(`/api/users/${userId}`)
+  },
+
+  suppression: {
+    getAll: (pagination?: any) => get(`/api/suppression${toQueryString(pagination)}`),
+    add: (payload: any) => post('/api/suppression', payload),
+    batchAdd: (values: any, type?: any, reason?: any) => post('/api/suppression/batch', { values, type, reason }),
+    remove: (id: any) => del(`/api/suppression/${id}`),
+    check: async (query: any) => {
+      const res = await get<{ suppressed: boolean }>(`/api/suppression/check?query=${encodeURIComponent(query)}`)
+      return res?.suppressed ?? false
+    },
   },
   ...sharedServerAdapters,
   workers: {

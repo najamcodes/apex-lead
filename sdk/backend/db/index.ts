@@ -23,6 +23,7 @@ import { ApprovalEntity } from './entities/ApprovalEntity'
 import { AIConnectionEntity } from './entities/AIConnectionEntity'
 import { CustomNodeEntity } from './entities/CustomNodeEntity'
 import { AuditLogEntity } from './entities/AuditLogEntity'
+import { SuppressionEntity } from './entities/SuppressionEntity'
 import { seedDefaultPipelines } from '../pipelines/seed'
 import { registerStorageProvider } from '@sdk/core/storage'
 import * as leadsQueries from './queries/leads.queries'
@@ -59,6 +60,7 @@ export async function initDb(): Promise<DataSource> {
     AIConnectionEntity,
     CustomNodeEntity,
     AuditLogEntity,
+    SuppressionEntity,
   ]
 
   const isPostgres = process.env.DB_TYPE === 'postgres'
@@ -105,6 +107,7 @@ export async function initDb(): Promise<DataSource> {
   }
 
   await _dataSource.initialize()
+  ;(global as any).__APEX_DATA_SOURCE__ = _dataSource
   
   // Create default organization if missing
   const orgRepo = _dataSource.getRepository(OrganizationEntity)
@@ -196,6 +199,15 @@ export function isDbInitialized(): boolean {
   if (_dataSource && _dataSource.isInitialized) {
     return true
   }
+  const gDs = (global as any).__APEX_DATA_SOURCE__
+  if (gDs && gDs.isInitialized) {
+    return true
+  }
+  try {
+    const { getDataSource: getStorageDs } = require('@sdk/core/storage')
+    const sDs = getStorageDs?.()
+    if (sDs && sDs.isInitialized) return true
+  } catch {}
   try {
     const { AppDataSource } = require('./data-source')
     return Boolean(AppDataSource && AppDataSource.isInitialized)
@@ -208,6 +220,15 @@ export function getDataSource(): DataSource {
   if (_dataSource && _dataSource.isInitialized) {
     return _dataSource
   }
+  const gDs = (global as any).__APEX_DATA_SOURCE__
+  if (gDs && gDs.isInitialized) {
+    return gDs
+  }
+  try {
+    const { getDataSource: getStorageDs } = require('@sdk/core/storage')
+    const sDs = getStorageDs?.()
+    if (sDs && sDs.isInitialized) return sDs
+  } catch {}
   const { AppDataSource } = require('./data-source')
   if (AppDataSource && AppDataSource.isInitialized) {
     return AppDataSource

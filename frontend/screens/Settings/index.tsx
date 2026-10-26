@@ -11,6 +11,7 @@ import { EmailTemplatesManager } from './EmailTemplatesManager'
 import { TeamManager } from './TeamManager'
 import { WorkerSettings } from './WorkerSettings'
 import { BackendServerSettings } from './BackendServerSettings'
+import { SuppressionManager } from './SuppressionManager'
 import { api } from '../../services/api'
 
 export function Settings() {
@@ -438,6 +439,8 @@ export function Settings() {
 
       <EmailAccountsManager />
       
+      <SuppressionManager />
+
       <TeamManager />
 
       <Card>

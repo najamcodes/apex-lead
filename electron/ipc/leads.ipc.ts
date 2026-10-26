@@ -25,6 +25,11 @@ export function registerLeadIpcHandlers(): void {
     requirePermission('manage_settings')
     return insertLead(data)
   })
+  ipcMain.handle(IPC.LEADS_INSERT_BATCH, async (_event, data: any[]) => {
+    requirePermission('manage_settings')
+    const { insertBatchLeads } = await import('../../backend/db/queries/leads.queries')
+    return await insertBatchLeads(data)
+  })
   ipcMain.handle(IPC.LEADS_UPDATE_STATUS, (_event, id, status, notes) => {
     requirePermission('view_leads')
     updateLeadStatus(id, status, notes)

@@ -34,6 +34,7 @@ export interface IApiService {
     getAll: (filters?: LeadFilters) => Promise<PaginatedResponse<Lead>>
     getById: (id: number) => Promise<Lead | null>
     insert: (data: LeadInsert) => Promise<Lead>
+    insertBatch: (data: LeadInsert[]) => Promise<{ imported: number; skipped: number }>
     updateStatus: (id: number, status: string, notes?: string) => Promise<void>
     delete: (id: number) => Promise<void>
   }
@@ -228,6 +229,13 @@ export interface IApiService {
     saveConfig: (config: { serverUrl: string; autoStartLocal?: boolean }) => Promise<{ success: boolean; serverUrl: string }>
     testConnection: (url?: string) => Promise<{ ok: boolean; status?: number; latencyMs: number; error?: string; serverInfo?: any }>
     restartLocal: () => Promise<{ success: boolean; port: number }>
+  }
+  suppression: {
+    getAll: (pagination?: { page?: number; pageSize?: number; search?: string }) => Promise<{ data: any[]; total: number }>
+    add: (payload: { value: string; type?: 'email' | 'domain' | 'phone'; reason?: string }) => Promise<any>
+    batchAdd: (values: string[], type?: 'email' | 'domain' | 'phone', reason?: string) => Promise<{ added: number; skipped: number }>
+    remove: (id: number) => Promise<boolean>
+    check: (query: string) => Promise<boolean>
   }
 }
 

@@ -169,5 +169,12 @@ contextBridge.exposeInMainWorld('api', {
     saveConfig: (config: any) => ipcRenderer.invoke(IPC.SERVER_SAVE_CONFIG, config),
     testConnection: (url?: string) => ipcRenderer.invoke(IPC.SERVER_TEST_URL, url),
     restartLocal: () => ipcRenderer.invoke(IPC.SERVER_RESTART_LOCAL)
+  },
+  suppression: {
+    getAll: (pagination?: any) => ipcRenderer.invoke(IPC.SUPPRESSION_GET_ALL, pagination),
+    add: (payload: any) => ipcRenderer.invoke(IPC.SUPPRESSION_ADD, payload),
+    batchAdd: (values: string[], type?: any, reason?: any) => ipcRenderer.invoke(IPC.SUPPRESSION_BATCH_ADD, values, type, reason),
+    remove: (id: number) => ipcRenderer.invoke(IPC.SUPPRESSION_REMOVE, id),
+    check: (query: string) => ipcRenderer.invoke(IPC.SUPPRESSION_CHECK, query),
   }
 })
