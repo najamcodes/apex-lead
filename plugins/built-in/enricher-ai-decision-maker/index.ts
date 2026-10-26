@@ -13,18 +13,22 @@ const aiDecisionMakerPlugin: EnricherPlugin = {
   configSchema: ConfigSchema,
 
   async enrich(lead: LeadSnapshot): Promise<Record<string, unknown>> {
-    const { getSettings } = await import('../../../backend/db/queries/settings.queries')
-    const settings = await getSettings()
-    
-    if (!settings.ai_enabled || !lead.website_url) {
+    if (!lead.website_url) {
       return {}
     }
 
     try {
+      const { getSettings } = await import('../../../backend/db/queries/settings.queries')
+      const settings = await getSettings().catch(() => ({} as any))
+      
+      if (!settings?.ai_enabled) {
+        return {}
+      }
+
       const { crawlWebsiteForDecisionMakers } = await import('./website-crawler')
       const { extractDecisionMaker } = await import('./extract-decision-maker')
       const crawlerData = await crawlWebsiteForDecisionMakers(lead.website_url as string)
-      const aiDecisionMaker = await extractDecisionMaker(settings, settings.ai_model_site_scoring, crawlerData)
+      const aiDecisionMaker = await extractDecisionMaker(settings, settings.ai_model_site_scoring || 'gpt-4o-mini', crawlerData)
       
       const result: Record<string, unknown> = {}
       if (aiDecisionMaker.contact_name) {
@@ -32,6 +36,10 @@ const aiDecisionMakerPlugin: EnricherPlugin = {
       }
       if (aiDecisionMaker.direct_email) {
         result.email = aiDecisionMaker.direct_email
+      }
+      if (aiDecisionMaker.role) {
+        result.contact_role = aiDecisionMaker.role
+        result.role = aiDecisionMaker.role
       }
       return result
     } catch (err) {

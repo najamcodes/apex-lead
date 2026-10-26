@@ -55,10 +55,14 @@ async function fetchStrategy(
 }
 
 export async function runPageSpeed(websiteUrl: string, apiKey: string): Promise<PageSpeedResult> {
+  const targetUrl = websiteUrl.trim().startsWith('http://') || websiteUrl.trim().startsWith('https://')
+    ? websiteUrl.trim()
+    : `https://${websiteUrl.trim()}`
+
   // Run mobile and desktop in parallel
   const [mobile, desktop] = await Promise.all([
-    fetchStrategy(websiteUrl, 'mobile', apiKey).catch(() => null),
-    fetchStrategy(websiteUrl, 'desktop', apiKey).catch(() => null)
+    fetchStrategy(targetUrl, 'mobile', apiKey).catch(() => null),
+    fetchStrategy(targetUrl, 'desktop', apiKey).catch(() => null)
   ])
 
   // Combine failed metrics from both mobile and desktop (unique)

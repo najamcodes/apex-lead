@@ -52,6 +52,7 @@ async function strategyUrlCollect(
 ): Promise<RawMapListing[]> {
   console.log('[Strategy A] URL Collector starting...')
   const searchPage = await context.newPage()
+  let detailPage: any = null
 
   try {
     const searchUrl = buildSearchUrl(query, city)
@@ -65,10 +66,10 @@ async function strategyUrlCollect(
 
     // Check for CAPTCHA immediately after load
     if (await detectCaptcha(searchPage)) {
-      const settings = await getSettings()
+      const settings = await getSettings().catch(() => ({} as any))
       const result = await handleCaptcha(searchPage, {
-        strategy:       (settings.captcha_strategy as any) ?? 'pause',
-        twoCaptchaKey:  settings.two_captcha_key,
+        strategy:       (settings?.captcha_strategy as any) ?? 'pause',
+        twoCaptchaKey:  settings?.two_captcha_key,
         pauseTimeoutMs: 120_000,
       }, (msg) => onProgress(-1, `⚠ ${msg}`))
 
@@ -81,14 +82,14 @@ async function strategyUrlCollect(
       (collected) => onProgress(collected, `Collecting URLs: ${collected}/${maxResults}`)
     )
 
-    await searchPage.close()
+    await searchPage.close().catch(() => {})
     console.log(`[Strategy A] Collected ${urls.length} URLs`)
 
     if (urls.length === 0) return []
 
     // Visit each URL and extract data
     const results: RawMapListing[] = []
-    const detailPage = await context.newPage()
+    detailPage = await context.newPage()
 
     for (let i = 0; i < urls.length && !cancelToken.cancelled; i++) {
       await checkPause(cancelToken)
@@ -113,9 +114,9 @@ async function strategyUrlCollect(
       }
     }
 
-    await detailPage.close().catch(() => {})
     return results
   } finally {
+    if (detailPage) await detailPage.close().catch(() => {})
     await searchPage.close().catch(() => {})
   }
 }

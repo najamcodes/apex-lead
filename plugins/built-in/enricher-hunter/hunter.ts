@@ -8,7 +8,7 @@ export async function findEmailWithHunter(domain: string, apiKey?: string): Prom
 
   try {
     const url = `https://api.hunter.io/v2/domain-search?domain=${encodeURIComponent(domain)}&api_key=${encodeURIComponent(key)}`
-    const res = await fetch(url)
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) })
     if (!res.ok) return null
 
     const data = (await res.json()) as any
@@ -32,7 +32,7 @@ export async function verifyEmailWithHunter(email: string, apiKey?: string): Pro
 
   try {
     const url = `https://api.hunter.io/v2/email-verifier?email=${encodeURIComponent(email)}&api_key=${encodeURIComponent(key)}`
-    const res = await fetch(url)
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) })
     if (!res.ok) return null
 
     const data = (await res.json()) as any

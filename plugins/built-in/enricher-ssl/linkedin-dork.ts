@@ -10,19 +10,22 @@ export async function searchLinkedInForOwner(
   businessName: string,
   city: string
 ): Promise<LinkedInDorkResult> {
-  const settings = await getSettings()
-  const proxyConfig = settings?.proxy_enabled
-    ? {
-        server: settings.proxy_url,
-        username: settings.proxy_username || undefined,
-        password: settings.proxy_password || undefined,
-      }
-    : null
+  let context: any = null
 
-  const { context } = await createStealthContext(proxyConfig, !settings.scraper_headful)
-  const page = await context.newPage()
-  
   try {
+    const settings = await getSettings().catch(() => ({} as any))
+    const proxyConfig = settings?.proxy_enabled
+      ? {
+          server: settings.proxy_url,
+          username: settings.proxy_username || undefined,
+          password: settings.proxy_password || undefined,
+        }
+      : null
+
+    const stealth = await createStealthContext(proxyConfig, !settings?.scraper_headful)
+    context = stealth.context
+    const page = await context.newPage()
+
     const query = `site:linkedin.com/in ("Founder" OR "Owner" OR "CEO") "${businessName}" "${city}"`
     const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}&hl=en`
 
@@ -54,10 +57,10 @@ export async function searchLinkedInForOwner(
         
         // Ensure we don't accidentally grab a massive string if parsing fails
         if (contactName.length > 40) {
-          contactName = contactName.split(' ')[0] + ' ' + contactName.split(' ')[1]
+          const words = contactName.split(/\s+/).filter(Boolean)
+          contactName = words.slice(0, 2).join(' ') || contactName.slice(0, 40)
         }
 
-        await context.close()
         return {
           contact_name: contactName,
           linkedin_url: topResult.url
@@ -65,10 +68,12 @@ export async function searchLinkedInForOwner(
       }
     }
 
-    await context.close()
     return { contact_name: null, linkedin_url: null }
-  } catch (err) {
-    await context.close().catch(() => {})
+  } catch {
     return { contact_name: null, linkedin_url: null }
+  } finally {
+    if (context) {
+      await context.close().catch(() => {})
+    }
   }
 }

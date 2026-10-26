@@ -1,4 +1,4 @@
-﻿import * as chromeLauncher from 'chrome-launcher'
+import * as chromeLauncher from 'chrome-launcher'
 import type { PageSpeedResult } from '../../../shared/types/analysis.types'
 
 export async function runLighthouse(websiteUrl: string): Promise<PageSpeedResult> {
@@ -38,8 +38,6 @@ export async function runLighthouse(websiteUrl: string): Promise<PageSpeedResult
       }
     }
 
-    await chrome.kill()
-
     return {
       mobile_score: score,
       desktop_score: score, // local lighthouse uses a single run by default
@@ -50,8 +48,11 @@ export async function runLighthouse(websiteUrl: string): Promise<PageSpeedResult
       seo_metrics: failedMetrics.length > 0 ? JSON.stringify(failedMetrics.slice(0, 5)) : null,
       fetched_at: new Date().toISOString()
     }
-  } catch (err) {
-    await chrome.kill()
-    throw err
+  } finally {
+    if (chrome) {
+      try {
+        await chrome.kill()
+      } catch {}
+    }
   }
 }

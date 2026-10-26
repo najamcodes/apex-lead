@@ -2,8 +2,13 @@ import type { PluginEvent } from '../../types'
 
 export async function sendDiscordAlert(webhookUrl: string, event: PluginEvent): Promise<void> {
   try {
-    const lead = event.lead
-    const metadata = event.metadata || {}
+    if (!webhookUrl || typeof webhookUrl !== 'string' || !webhookUrl.startsWith('http')) {
+      console.error('[Discord] Missing or invalid Discord Webhook URL')
+      return
+    }
+
+    const lead = event?.lead || ({} as any)
+    const metadata = event?.metadata || {}
     const intent = (metadata.intent as string) || 'unknown'
     const summary = (metadata.summary as string) || ''
 
@@ -42,7 +47,8 @@ export async function sendDiscordAlert(webhookUrl: string, event: PluginEvent): 
     const res = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ embeds: [embed] })
+      body: JSON.stringify({ embeds: [embed] }),
+      signal: AbortSignal.timeout(10000),
     })
 
     if (!res.ok) {

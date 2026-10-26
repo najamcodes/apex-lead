@@ -32,20 +32,20 @@ export async function extractDecisionMaker(
   data: CrawledWebsiteData
 ): Promise<DecisionMakerInfo> {
   const prompt = `
-Website URL: ${data.url}
-Emails Found on Site: ${JSON.stringify(data.emailsFound)}
+Website URL: ${data?.url || ''}
+Emails Found on Site: ${JSON.stringify(data?.emailsFound || [])}
 
 --- HOMEPAGE TEXT ---
-${data.homepageText.slice(0, 3000)}
+${(data?.homepageText || '').slice(0, 3000)}
 
 --- ABOUT US TEXT ---
-${data.aboutText.slice(0, 3000)}
+${(data?.aboutText || '').slice(0, 3000)}
 
 --- TEAM TEXT ---
-${data.teamText.slice(0, 3000)}
+${(data?.teamText || '').slice(0, 3000)}
 
 --- CONTACT TEXT ---
-${data.contactText.slice(0, 3000)}
+${(data?.contactText || '').slice(0, 3000)}
 `
 
   try {

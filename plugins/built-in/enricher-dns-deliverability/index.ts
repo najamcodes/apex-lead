@@ -27,7 +27,14 @@ const dnsDeliverabilityPlugin: EnricherPlugin = {
     // Merge or preserve existing SEO / technical metrics
     let existingMetrics: Record<string, any> = {}
     if ((lead as any).seo_metrics) {
-      try { existingMetrics = JSON.parse((lead as any).seo_metrics) } catch {}
+      try {
+        const parsed = JSON.parse((lead as any).seo_metrics)
+        if (Array.isArray(parsed)) {
+          existingMetrics = { failed_audits: parsed }
+        } else if (parsed && typeof parsed === 'object') {
+          existingMetrics = parsed
+        }
+      } catch {}
     }
 
     const updatedMetrics = {

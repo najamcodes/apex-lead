@@ -3,7 +3,7 @@
 
 import { registerNode } from '../engine/registry'
 import { makeDescriptor, selectField, mainOutput, mainInput } from './descriptors'
-import { runEnrichers, makeLeadSnapshot } from '@sdk/core/plugins'
+import { runEnrichers, makeLeadSnapshot, getEnabledEnrichers } from '@sdk/core/plugins'
 import type { NodeHandler } from '../engine/types'
 
 export function registerEnricherNode() {
@@ -13,13 +13,24 @@ export function registerEnricherNode() {
       const selectedPlugins = (ctx.config.plugins as string[]) || []
       const exclude = (ctx.config.exclude as string[]) || []
 
+      let effectiveExclude = [...exclude]
+      if (selectedPlugins.length > 0) {
+        try {
+          const allEnricherIds = getEnabledEnrichers().map(r => r.manifest.id)
+          const notSelected = allEnricherIds.filter(id => !selectedPlugins.includes(id))
+          effectiveExclude = Array.from(new Set([...effectiveExclude, ...notSelected]))
+        } catch {
+          // If registry is not yet initialized, fall back to exclude
+        }
+      }
+
       for (const rec of ctx.incoming) {
         if (ctx.isCancelled()) break
         await ctx.isPaused()
         try {
           // Enrichers currently expect a LeadSnapshot. We treat any record as a snapshot.
           const snapshot = makeLeadSnapshot(rec.data)
-          const enriched = await runEnrichers(snapshot, [...exclude, ...selectedPlugins.length ? [] : []])
+          const enriched = await runEnrichers(snapshot, effectiveExclude)
           // Merge enriched fields back onto the record
           ctx.emit({ ...rec, data: { ...rec.data, ...enriched } })
         } catch (err) {

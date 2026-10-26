@@ -15,7 +15,7 @@ function extractDomain(url: string | null): string | null {
   if (!url) return null
   try {
     const parsed = new URL(url.startsWith('http') ? url : `http://${url}`)
-    return parsed.hostname.replace('www.', '')
+    return parsed.hostname.replace(/^www\./i, '').toLowerCase().trim()
   } catch {
     return null
   }

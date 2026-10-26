@@ -33,10 +33,23 @@ export function registerDirectoryScraperNode() {
 
       let rawItems: any[] = []
 
+      let context: any = null
+      if (!isSimulate) {
+        try {
+          const { createStealthContext } = await import('@sdk/core/scraper/stealth')
+          const stealth = await createStealthContext(null, true)
+          context = stealth.context
+        } catch {
+          context = null
+        }
+      }
+
+      const simulateMode = isSimulate || !context
+
       try {
         if (directory === 'clutch') {
           rawItems = await scrapeClutch(
-            null,
+            context,
             category,
             city,
             maxResults,
@@ -44,11 +57,11 @@ export function registerDirectoryScraperNode() {
               ctx.log('info', `Clutch: scraped ${found} — ${current}`)
             },
             cancelToken,
-            isSimulate || true
+            simulateMode
           )
         } else if (directory === 'contractor_estimator') {
           rawItems = await scrapeContractors(
-            null,
+            context,
             category,
             city,
             maxResults,
@@ -56,11 +69,11 @@ export function registerDirectoryScraperNode() {
               ctx.log('info', `Contractor Estimator: scraped ${found} — ${current}`)
             },
             cancelToken,
-            isSimulate || true
+            simulateMode
           )
         } else if (directory === 'thomasnet') {
           rawItems = await scrapeThomasNet(
-            null,
+            context,
             category,
             city,
             maxResults,
@@ -68,11 +81,11 @@ export function registerDirectoryScraperNode() {
               ctx.log('info', `ThomasNet: scraped ${found} — ${current}`)
             },
             cancelToken,
-            isSimulate || true
+            simulateMode
           )
         } else if (directory === 'crunchbase') {
           rawItems = await scrapeCrunchbase(
-            null,
+            context,
             category,
             city,
             maxResults,
@@ -80,11 +93,11 @@ export function registerDirectoryScraperNode() {
               ctx.log('info', `Crunchbase: scraped ${found} — ${current}`)
             },
             cancelToken,
-            isSimulate || true
+            simulateMode
           )
         } else if (directory === 'g2') {
           rawItems = await scrapeG2(
-            null,
+            context,
             category,
             city,
             maxResults,
@@ -92,12 +105,12 @@ export function registerDirectoryScraperNode() {
               ctx.log('info', `G2: scraped ${found} — ${current}`)
             },
             cancelToken,
-            isSimulate || true
+            simulateMode
           )
         } else {
           // YellowPages default
           rawItems = await scrapeYellowPages(
-            null,
+            context,
             category,
             city,
             maxResults,
@@ -105,7 +118,7 @@ export function registerDirectoryScraperNode() {
               ctx.log('info', `YellowPages: scraped ${found} — ${current}`)
             },
             cancelToken,
-            isSimulate || true
+            simulateMode
           )
         }
 
@@ -142,6 +155,10 @@ export function registerDirectoryScraperNode() {
         ctx.log('info', `Directory scraper finished: produced ${count} records from ${directory}`)
       } catch (err: any) {
         ctx.log('error', `Directory scraper failed: ${err?.message || err}`)
+      } finally {
+        if (context) {
+          await context.close().catch(() => {})
+        }
       }
     },
   }

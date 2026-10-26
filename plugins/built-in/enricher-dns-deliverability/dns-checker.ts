@@ -11,6 +11,13 @@ export interface DnsDeliverabilityResult {
   errors: string[]
 }
 
+async function withTimeout<T>(promise: Promise<T>, ms = 5000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('DNS resolution timeout')), ms))
+  ])
+}
+
 export async function checkDomainDeliverability(domainOrEmail: string, simulate = false): Promise<DnsDeliverabilityResult> {
   let domain = domainOrEmail.trim().toLowerCase()
   if (domain.includes('@')) {
@@ -20,7 +27,7 @@ export async function checkDomainDeliverability(domainOrEmail: string, simulate 
       domain = new URL(domain).hostname
     } catch {}
   }
-  domain = domain.replace(/^www\./, '').split('/')[0]
+  domain = domain.replace(/^www\./, '').split('/')[0].split(':')[0].trim()
 
   if (simulate) {
     return {
@@ -48,9 +55,9 @@ export async function checkDomainDeliverability(domainOrEmail: string, simulate 
 
   if (!domain) return result
 
-  // 1. Resolve MX records
+  // 1. Resolve MX records with timeout
   try {
-    const mxEntries = await dns.resolveMx(domain)
+    const mxEntries = await withTimeout(dns.resolveMx(domain), 5000)
     if (mxEntries && mxEntries.length > 0) {
       result.has_mx = true
       result.mx_records = mxEntries.sort((a, b) => a.priority - b.priority).map(m => m.exchange)
@@ -81,9 +88,9 @@ export async function checkDomainDeliverability(domainOrEmail: string, simulate 
     return result
   }
 
-  // 2. Resolve TXT records for SPF
+  // 2. Resolve TXT records for SPF with timeout
   try {
-    const txtEntries = await dns.resolveTxt(domain)
+    const txtEntries = await withTimeout(dns.resolveTxt(domain), 4000)
     const allTxt = txtEntries.map(arr => arr.join('')).join(' ')
     if (allTxt.toLowerCase().includes('v=spf1')) {
       result.has_spf = true
@@ -91,9 +98,9 @@ export async function checkDomainDeliverability(domainOrEmail: string, simulate 
     }
   } catch {}
 
-  // 3. Resolve TXT records for DMARC (_dmarc.<domain>)
+  // 3. Resolve TXT records for DMARC (_dmarc.<domain>) with timeout
   try {
-    const dmarcEntries = await dns.resolveTxt(`_dmarc.${domain}`)
+    const dmarcEntries = await withTimeout(dns.resolveTxt(`_dmarc.${domain}`), 4000)
     const allDmarc = dmarcEntries.map(arr => arr.join('')).join(' ')
     if (allDmarc.toLowerCase().includes('v=dmarc1')) {
       result.has_dmarc = true
