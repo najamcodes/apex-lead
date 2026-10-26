@@ -1,0 +1,11 @@
+{
+  "id": "scraper-yellowpages",
+  "kind": "scraper",
+  "name": "YellowPages Scraper",
+  "version": "1.0.0",
+  "description": "Scrapes local businesses, phone numbers, addresses, years in business, and ratings from YellowPages.",
+  "author": "LeadHunter",
+  "main": "index.ts",
+  "enabledByDefault": true,
+  "tags": ["scraper", "yellowpages", "local", "directory", "built-in"]
+}

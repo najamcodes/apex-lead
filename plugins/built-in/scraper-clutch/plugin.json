@@ -1,0 +1,11 @@
+{
+  "id": "scraper-clutch",
+  "kind": "scraper",
+  "name": "Clutch B2B Agency Scraper",
+  "version": "1.0.0",
+  "description": "Scrapes B2B agencies, software firms, minimum project sizes, hourly rates, and verified reviews from Clutch.co.",
+  "author": "LeadHunter",
+  "main": "index.ts",
+  "enabledByDefault": true,
+  "tags": ["scraper", "clutch", "b2b", "agency", "directory", "built-in"]
+}

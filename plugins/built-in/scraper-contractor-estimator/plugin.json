@@ -1,0 +1,11 @@
+{
+  "id": "scraper-contractor-estimator",
+  "kind": "scraper",
+  "name": "Contractor Cost Estimator & Directory Scraper",
+  "version": "1.0.0",
+  "description": "Scrapes trade contractors (Roofing, HVAC, Solar, Plumbing) with job size estimates, license verification, and project price bands.",
+  "author": "LeadHunter",
+  "main": "index.ts",
+  "enabledByDefault": true,
+  "tags": ["scraper", "contractor", "estimator", "home-services", "trades", "built-in"]
+}

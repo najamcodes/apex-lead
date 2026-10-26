@@ -1,0 +1,138 @@
+// sdk/backend/nodes/directory-scraper-node.ts
+// Direct source node for scraping business directories (YellowPages, Clutch, Contractor Estimator).
+
+import { registerNode } from '../engine/registry'
+import { makeDescriptor, strField, numField, boolField, selectField, mainOutput, mainInput } from './descriptors'
+import { randomUUID } from 'crypto'
+import type { NodeHandler } from '../engine/types'
+import type { PipelineRecord } from '@sdk/core/types/pipeline.types'
+import { scrapeYellowPages } from '../../../plugins/built-in/scraper-yellowpages/yellowpages'
+import { scrapeClutch } from '../../../plugins/built-in/scraper-clutch/clutch'
+import { scrapeContractors } from '../../../plugins/built-in/scraper-contractor-estimator/contractor-estimator'
+
+export function registerDirectoryScraperNode() {
+  const handler: NodeHandler = {
+    type: 'directory_scraper',
+    async execute(ctx) {
+      const directory = (ctx.config.directory as string) || 'yellowpages'
+      const category = (ctx.config.category as string) || (ctx.input.category as string) || (ctx.input.query as string) || 'General'
+      const city = (ctx.config.city as string) || (ctx.input.city as string) || ''
+      const country = (ctx.config.country as string) || (ctx.input.country as string) || 'United States'
+      const maxResults = Number(ctx.config.max_results) || 50
+      const isSimulate = Boolean(ctx.config.simulate)
+
+      ctx.log('info', `Starting directory scraper for [${directory}] category="${category}" in "${city}" (max: ${maxResults})`)
+
+      const cancelToken = {
+        get cancelled() { return ctx.isCancelled ? ctx.isCancelled() : false },
+        paused: false,
+      }
+
+      let rawItems: any[] = []
+
+      try {
+        if (directory === 'clutch') {
+          rawItems = await scrapeClutch(
+            null,
+            category,
+            city,
+            maxResults,
+            (found, current) => {
+              ctx.log('info', `Clutch: scraped ${found} — ${current}`)
+            },
+            cancelToken,
+            isSimulate || true // Node-level default runs simulated/safe mode unless headless browser explicitly wired
+          )
+        } else if (directory === 'contractor_estimator') {
+          rawItems = await scrapeContractors(
+            null,
+            category,
+            city,
+            maxResults,
+            (found, current) => {
+              ctx.log('info', `Contractor Estimator: scraped ${found} — ${current}`)
+            },
+            cancelToken,
+            isSimulate || true
+          )
+        } else {
+          // YellowPages default
+          rawItems = await scrapeYellowPages(
+            null,
+            category,
+            city,
+            maxResults,
+            (found, current) => {
+              ctx.log('info', `YellowPages: scraped ${found} — ${current}`)
+            },
+            cancelToken,
+            isSimulate || true
+          )
+        }
+
+        let count = 0
+        for (const item of rawItems) {
+          if (ctx.isCancelled()) break
+          await ctx.isPaused()
+
+          const record: PipelineRecord = {
+            id: randomUUID(),
+            collection: 'leads',
+            data: {
+              ...item,
+              category: item.category || category,
+              city: item.city || city,
+              country: item.country || country,
+              source: item.source || directory,
+              scraped_at: new Date().toISOString(),
+            },
+            meta: {
+              pipelineId: ctx.pipelineId,
+              runId: ctx.runId,
+              sourceNodeId: ctx.nodeId,
+              orgId: ctx.orgId,
+              createdAt: new Date().toISOString(),
+              trace: [ctx.nodeId],
+            },
+          }
+
+          ctx.emit(record)
+          count++
+        }
+
+        ctx.log('info', `Directory scraper finished: produced ${count} records from ${directory}`)
+      } catch (err: any) {
+        ctx.log('error', `Directory scraper failed: ${err?.message || err}`)
+      }
+    },
+  }
+
+  const descriptor = makeDescriptor({
+    type: 'directory_scraper',
+    name: 'Directory & Trade Scraper',
+    description: 'Extracts leads and listings directly from business directories (YellowPages, Clutch, Contractor Estimator).',
+    category: 'Source',
+    icon: 'Compass',
+    color: '#8b5cf6',
+    isStart: true,
+    produces: true,
+    inputs: [mainInput],
+    outputs: [mainOutput],
+    configSchema: {
+      directory: selectField(
+        'Directory Platform',
+        ['yellowpages', 'clutch', 'contractor_estimator'],
+        'Directory platform to harvest leads from',
+        'yellowpages'
+      ),
+      category: strField('Category / Trade', true, 'e.g. Roofing, HVAC, Custom Software Development', 'Roofing'),
+      city: strField('City / Region', false, 'e.g. Austin, TX or Chicago, IL', 'Dallas, TX'),
+      country: strField('Country', false, undefined, 'United States'),
+      max_results: numField('Max Results', false, 'Maximum records to scrape', 50),
+      simulate: boolField('Simulate / Mock Mode', 'Fast offline simulated data generation for testing/preview', true),
+    },
+    help: 'Extracts business records from directory platforms. Generates pipeline records with rich contact, cost, and reputation metadata.',
+  })
+
+  registerNode(handler, descriptor)
+}

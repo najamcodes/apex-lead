@@ -93,4 +93,45 @@ describe("Built-in Plugins Compilation & Syntax", () => {
     expect(dnsPlugin.kind).toBe("enricher");
     expect(typeof dnsPlugin.enrich).toBe("function");
   });
+
+  it("should successfully import YellowPages Scraper plugin", async () => {
+    const ypMod = await import("../../../plugins/built-in/scraper-yellowpages/yellowpages");
+    expect(ypMod).toBeDefined();
+    expect(typeof ypMod.scrapeYellowPages).toBe("function");
+
+    const ypPluginMod = await import("../../../plugins/built-in/scraper-yellowpages/index");
+    const ypPlugin = ypPluginMod.default;
+    expect(ypPlugin).toBeDefined();
+    expect(ypPlugin.id).toBe("scraper-yellowpages");
+    expect(ypPlugin.kind).toBe("scraper");
+    expect(typeof ypPlugin.scrape).toBe("function");
+  });
+
+  it("should successfully import Clutch B2B Scraper plugin", async () => {
+    const clutchMod = await import("../../../plugins/built-in/scraper-clutch/clutch");
+    expect(clutchMod).toBeDefined();
+    expect(typeof clutchMod.scrapeClutch).toBe("function");
+
+    const clutchPluginMod = await import("../../../plugins/built-in/scraper-clutch/index");
+    const clutchPlugin = clutchPluginMod.default;
+    expect(clutchPlugin).toBeDefined();
+    expect(clutchPlugin.id).toBe("scraper-clutch");
+    expect(clutchPlugin.kind).toBe("scraper");
+    expect(typeof clutchPlugin.scrape).toBe("function");
+  });
+
+  it("should successfully import Contractor Estimator Scraper plugin", async () => {
+    const contractorMod = await import("../../../plugins/built-in/scraper-contractor-estimator/contractor-estimator");
+    expect(contractorMod).toBeDefined();
+    expect(typeof contractorMod.scrapeContractors).toBe("function");
+    expect(typeof contractorMod.resolveTradeBenchmark).toBe("function");
+
+    const contractorPluginMod = await import("../../../plugins/built-in/scraper-contractor-estimator/index");
+    const contractorPlugin = contractorPluginMod.default;
+    expect(contractorPlugin).toBeDefined();
+    expect(contractorPlugin.id).toBe("scraper-contractor-estimator");
+    expect(contractorPlugin.kind).toBe("scraper");
+    expect(typeof contractorPlugin.scrape).toBe("function");
+  });
 });
+

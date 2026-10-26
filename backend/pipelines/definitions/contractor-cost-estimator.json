@@ -1,0 +1,104 @@
+{
+  "id": "contractor-cost-estimator",
+  "name": "Contractor Cost Estimator & Quote Qualifier",
+  "description": "Scrapes trade contractors (Roofing, HVAC, Plumbing), evaluates average project cost and customer LTV, verifies license badges, and routes high-ticket quotes to direct voice SDR outreach.",
+  "collection": "leads",
+  "status": "active",
+  "nodes": [
+    {
+      "id": "scrape",
+      "type": "directory_scraper",
+      "label": "Scrape Trade Contractors",
+      "enabled": true,
+      "position": { "x": 50, "y": 200 },
+      "config": {
+        "directory": "contractor_estimator",
+        "category": "Roofing & Exterior Contractors",
+        "city": "Dallas, TX",
+        "max_results": 50,
+        "simulate": true
+      }
+    },
+    {
+      "id": "dedupe",
+      "type": "dedupe",
+      "label": "Deduplicate Listings",
+      "enabled": true,
+      "position": { "x": 350, "y": 200 },
+      "config": {
+        "strategy": "business_name"
+      }
+    },
+    {
+      "id": "estimator",
+      "type": "cost_estimator",
+      "label": "Job Size & LTV Estimator",
+      "enabled": true,
+      "position": { "x": 650, "y": 200 },
+      "config": {
+        "high_ticket_threshold": 15000,
+        "mid_market_threshold": 5000,
+        "project_size_field": "estimated_avg_job_cost",
+        "trade_multiplier": 1.2,
+        "annual_ltv_multiplier": 1.8
+      }
+    },
+    {
+      "id": "dns",
+      "type": "dns_check",
+      "label": "DNS & MX Verification",
+      "enabled": true,
+      "position": { "x": 950, "y": 250 },
+      "config": {
+        "field": "email",
+        "min_score": 65
+      }
+    },
+    {
+      "id": "voice-high-ticket",
+      "type": "voice_call",
+      "label": "VIP Voice SDR Outreach",
+      "enabled": true,
+      "position": { "x": 1250, "y": 100 },
+      "config": {
+        "campaign_name": "High Ticket Commercial Roofing VIP",
+        "objective": "Live Transfer to Senior Estimator"
+      }
+    },
+    {
+      "id": "outreach-email",
+      "type": "outreach",
+      "label": "Contractor Partnership Email",
+      "enabled": true,
+      "position": { "x": 1250, "y": 250 },
+      "config": {
+        "subject": "Subcontractor estimating partnerships in {{city}}",
+        "body": "Hi {{business_name}}, we noticed your excellent reputation for {{category}} projects in {{city}}..."
+      }
+    },
+    {
+      "id": "store-leads",
+      "type": "store",
+      "label": "Persist Qualified Leads",
+      "enabled": true,
+      "position": { "x": 1550, "y": 200 },
+      "config": {
+        "collection": "leads",
+        "mode": "upsert"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "scrape", "to": "dedupe", "mappings": [] },
+    { "id": "e2", "from": "dedupe", "to": "estimator", "mappings": [] },
+    { "id": "e3", "from": "estimator", "to": "voice-high-ticket", "fromPort": "high_ticket", "mappings": [] },
+    { "id": "e4", "from": "estimator", "to": "dns", "fromPort": "mid_market", "mappings": [] },
+    { "id": "e5", "from": "dns", "to": "outreach-email", "fromPort": "deliverable", "mappings": [] },
+    { "id": "e6", "from": "voice-high-ticket", "to": "store-leads", "mappings": [] },
+    { "id": "e7", "from": "outreach-email", "to": "store-leads", "mappings": [] }
+  ],
+  "trigger": {
+    "type": "manual"
+  },
+  "version": 1
+}

@@ -47,6 +47,8 @@ import { registerReplyClassifierNode } from './reply-classifier-node'
 import { registerEmailVerifierNode } from './email-verifier-node'
 import { registerPriceTrackerNode } from './price-tracker-node'
 import { registerDnsNode } from './dns-node'
+import { registerCostEstimatorNode } from './cost-estimator-node'
+import { registerDirectoryScraperNode } from './directory-scraper-node'
 
 let _initialized = false
 
@@ -60,6 +62,7 @@ export function registerBuiltInNodes(): void {
 
   // ── Sources ───────────────────────────────────────
   registerScraperNode()
+  registerDirectoryScraperNode() // directory listings (YellowPages, Clutch, Contractors)
   registerJobScraperNode()  // career boards & hiring intent signals
   registerHttpNode()       // isStart: true — can run with no upstream
   registerStoreNode()      // isStart: true — query mode
@@ -76,6 +79,7 @@ export function registerBuiltInNodes(): void {
   registerEmailVerifierNode()      // RFC syntax, disposable burner, role account hygiene
   registerPersonalizerNode()       // 1-to-1 dynamic cold outreach icebreakers & hooks
   registerPriceTrackerNode()       // e-commerce price monitoring, discount %, stock tracker
+  registerCostEstimatorNode()      // project cost estimation, annual LTV, high-ticket qualification
   registerReplyClassifierNode()    // inbound cold reply intent & sentiment classification
   registerSystemOneNode()          // OpenJev System-One probabilistic decision engine (Choice, Score, Noul)
   registerDecisionCascadeNode()    // 4-Tier decision cascade (Rules -> NLI -> SLM -> Cloud Fallback)
@@ -142,3 +146,5 @@ export { registerDecisionCascadeNode } from './decision-cascade-node'
 export { registerReplyClassifierNode } from './reply-classifier-node'
 export { registerEmailVerifierNode } from './email-verifier-node'
 export { registerPriceTrackerNode } from './price-tracker-node'
+export { registerCostEstimatorNode } from './cost-estimator-node'
+export { registerDirectoryScraperNode } from './directory-scraper-node'
