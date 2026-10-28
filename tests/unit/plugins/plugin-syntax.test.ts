@@ -2,7 +2,7 @@ import { describe, it, expect } from "bun:test";
 
 describe("Built-in Plugins Compilation & Syntax", () => {
   it("should successfully import Google Maps Scraper plugin", async () => {
-    const mapsPluginMod = await import("../../../plugins/built-in/scraper-google-maps/index");
+    const mapsPluginMod = await import("@sdk/plugins/built-in/scraper-google-maps/index");
     const mapsPlugin = mapsPluginMod.default;
     expect(mapsPlugin).toBeDefined();
     expect(mapsPlugin.id).toBe("google-maps");
@@ -11,11 +11,11 @@ describe("Built-in Plugins Compilation & Syntax", () => {
   });
 
   it("should successfully import Discord Connector plugin", async () => {
-    const discordMod = await import("../../../plugins/built-in/connector-discord/discord");
+    const discordMod = await import("@sdk/plugins/built-in/connector-discord/discord");
     expect(discordMod).toBeDefined();
     expect(typeof discordMod.sendDiscordAlert).toBe("function");
 
-    const discordPluginMod = await import("../../../plugins/built-in/connector-discord/index");
+    const discordPluginMod = await import("@sdk/plugins/built-in/connector-discord/index");
     const discordPlugin = discordPluginMod.default;
     expect(discordPlugin).toBeDefined();
     expect(discordPlugin.id).toBe("connector-discord");
@@ -24,7 +24,7 @@ describe("Built-in Plugins Compilation & Syntax", () => {
   });
 
   it("should successfully import Webhook Connector plugin", async () => {
-    const webhookPluginMod = await import("../../../plugins/built-in/connector-webhook/index");
+    const webhookPluginMod = await import("@sdk/plugins/built-in/connector-webhook/index");
     const webhookPlugin = webhookPluginMod.default;
     expect(webhookPlugin).toBeDefined();
     expect(webhookPlugin.id).toBe("connector-webhook");
@@ -33,7 +33,7 @@ describe("Built-in Plugins Compilation & Syntax", () => {
   });
 
   it("should successfully import Hunter Enricher plugin", async () => {
-    const hunterMod = await import("../../../plugins/built-in/enricher-hunter/index");
+    const hunterMod = await import("@sdk/plugins/built-in/enricher-hunter/index");
     const hunterPlugin = hunterMod.default;
     expect(hunterPlugin).toBeDefined();
     expect(hunterPlugin.id).toBe("enricher-hunter");
@@ -42,7 +42,7 @@ describe("Built-in Plugins Compilation & Syntax", () => {
   });
 
   it("should successfully import PageSpeed Enricher plugin", async () => {
-    const pageSpeedMod = await import("../../../plugins/built-in/enricher-pagespeed/index");
+    const pageSpeedMod = await import("@sdk/plugins/built-in/enricher-pagespeed/index");
     const pageSpeedPlugin = pageSpeedMod.default;
     expect(pageSpeedPlugin).toBeDefined();
     expect(pageSpeedPlugin.id).toBe("enricher-pagespeed");
@@ -51,7 +51,7 @@ describe("Built-in Plugins Compilation & Syntax", () => {
   });
 
   it("should successfully import SSL Enricher plugin", async () => {
-    const sslMod = await import("../../../plugins/built-in/enricher-ssl/index");
+    const sslMod = await import("@sdk/plugins/built-in/enricher-ssl/index");
     const sslPlugin = sslMod.default;
     expect(sslPlugin).toBeDefined();
     expect(sslPlugin.id).toBe("enricher-ssl");
@@ -60,7 +60,7 @@ describe("Built-in Plugins Compilation & Syntax", () => {
   });
 
   it("should successfully import AI Decision Maker Enricher plugin", async () => {
-    const aiMod = await import("../../../plugins/built-in/enricher-ai-decision-maker/index");
+    const aiMod = await import("@sdk/plugins/built-in/enricher-ai-decision-maker/index");
     const aiPlugin = aiMod.default;
     expect(aiPlugin).toBeDefined();
     expect(aiPlugin.id).toBe("enricher-ai-decision-maker");
@@ -69,11 +69,11 @@ describe("Built-in Plugins Compilation & Syntax", () => {
   });
 
   it("should successfully import Slack Connector plugin", async () => {
-    const slackMod = await import("../../../plugins/built-in/connector-slack/slack");
+    const slackMod = await import("@sdk/plugins/built-in/connector-slack/slack");
     expect(slackMod).toBeDefined();
     expect(typeof slackMod.sendSlackAlert).toBe("function");
 
-    const slackPluginMod = await import("../../../plugins/built-in/connector-slack/index");
+    const slackPluginMod = await import("@sdk/plugins/built-in/connector-slack/index");
     const slackPlugin = slackPluginMod.default;
     expect(slackPlugin).toBeDefined();
     expect(slackPlugin.id).toBe("connector-slack");
@@ -82,11 +82,11 @@ describe("Built-in Plugins Compilation & Syntax", () => {
   });
 
   it("should successfully import DNS Deliverability Enricher plugin", async () => {
-    const dnsMod = await import("../../../plugins/built-in/enricher-dns-deliverability/dns-checker");
+    const dnsMod = await import("@sdk/plugins/built-in/enricher-dns-deliverability/dns-checker");
     expect(dnsMod).toBeDefined();
     expect(typeof dnsMod.checkDomainDeliverability).toBe("function");
 
-    const dnsPluginMod = await import("../../../plugins/built-in/enricher-dns-deliverability/index");
+    const dnsPluginMod = await import("@sdk/plugins/built-in/enricher-dns-deliverability/index");
     const dnsPlugin = dnsPluginMod.default;
     expect(dnsPlugin).toBeDefined();
     expect(dnsPlugin.id).toBe("enricher-dns-deliverability");
@@ -95,11 +95,11 @@ describe("Built-in Plugins Compilation & Syntax", () => {
   });
 
   it("should successfully import YellowPages Scraper plugin", async () => {
-    const ypMod = await import("../../../plugins/built-in/scraper-yellowpages/yellowpages");
+    const ypMod = await import("@sdk/plugins/built-in/scraper-yellowpages/yellowpages");
     expect(ypMod).toBeDefined();
     expect(typeof ypMod.scrapeYellowPages).toBe("function");
 
-    const ypPluginMod = await import("../../../plugins/built-in/scraper-yellowpages/index");
+    const ypPluginMod = await import("@sdk/plugins/built-in/scraper-yellowpages/index");
     const ypPlugin = ypPluginMod.default;
     expect(ypPlugin).toBeDefined();
     expect(ypPlugin.id).toBe("scraper-yellowpages");
@@ -108,11 +108,11 @@ describe("Built-in Plugins Compilation & Syntax", () => {
   });
 
   it("should successfully import Clutch B2B Scraper plugin", async () => {
-    const clutchMod = await import("../../../plugins/built-in/scraper-clutch/clutch");
+    const clutchMod = await import("@sdk/plugins/built-in/scraper-clutch/clutch");
     expect(clutchMod).toBeDefined();
     expect(typeof clutchMod.scrapeClutch).toBe("function");
 
-    const clutchPluginMod = await import("../../../plugins/built-in/scraper-clutch/index");
+    const clutchPluginMod = await import("@sdk/plugins/built-in/scraper-clutch/index");
     const clutchPlugin = clutchPluginMod.default;
     expect(clutchPlugin).toBeDefined();
     expect(clutchPlugin.id).toBe("scraper-clutch");
@@ -121,12 +121,12 @@ describe("Built-in Plugins Compilation & Syntax", () => {
   });
 
   it("should successfully import Contractor Estimator Scraper plugin", async () => {
-    const contractorMod = await import("../../../plugins/built-in/scraper-contractor-estimator/contractor-estimator");
+    const contractorMod = await import("@sdk/plugins/built-in/scraper-contractor-estimator/contractor-estimator");
     expect(contractorMod).toBeDefined();
     expect(typeof contractorMod.scrapeContractors).toBe("function");
     expect(typeof contractorMod.resolveTradeBenchmark).toBe("function");
 
-    const contractorPluginMod = await import("../../../plugins/built-in/scraper-contractor-estimator/index");
+    const contractorPluginMod = await import("@sdk/plugins/built-in/scraper-contractor-estimator/index");
     const contractorPlugin = contractorPluginMod.default;
     expect(contractorPlugin).toBeDefined();
     expect(contractorPlugin.id).toBe("scraper-contractor-estimator");
@@ -135,11 +135,11 @@ describe("Built-in Plugins Compilation & Syntax", () => {
   });
 
   it("should successfully import ThomasNet Industrial Scraper plugin", async () => {
-    const thomasMod = await import("../../../plugins/built-in/scraper-thomasnet/thomasnet");
+    const thomasMod = await import("@sdk/plugins/built-in/scraper-thomasnet/thomasnet");
     expect(thomasMod).toBeDefined();
     expect(typeof thomasMod.scrapeThomasNet).toBe("function");
 
-    const thomasPluginMod = await import("../../../plugins/built-in/scraper-thomasnet/index");
+    const thomasPluginMod = await import("@sdk/plugins/built-in/scraper-thomasnet/index");
     const thomasPlugin = thomasPluginMod.default;
     expect(thomasPlugin).toBeDefined();
     expect(thomasPlugin.id).toBe("scraper-thomasnet");
@@ -148,11 +148,11 @@ describe("Built-in Plugins Compilation & Syntax", () => {
   });
 
   it("should successfully import Crunchbase Startup Scraper plugin", async () => {
-    const crunchMod = await import("../../../plugins/built-in/scraper-crunchbase/crunchbase");
+    const crunchMod = await import("@sdk/plugins/built-in/scraper-crunchbase/crunchbase");
     expect(crunchMod).toBeDefined();
     expect(typeof crunchMod.scrapeCrunchbase).toBe("function");
 
-    const crunchPluginMod = await import("../../../plugins/built-in/scraper-crunchbase/index");
+    const crunchPluginMod = await import("@sdk/plugins/built-in/scraper-crunchbase/index");
     const crunchPlugin = crunchPluginMod.default;
     expect(crunchPlugin).toBeDefined();
     expect(crunchPlugin.id).toBe("scraper-crunchbase");
@@ -161,11 +161,11 @@ describe("Built-in Plugins Compilation & Syntax", () => {
   });
 
   it("should successfully import G2 Software Scraper plugin", async () => {
-    const g2Mod = await import("../../../plugins/built-in/scraper-g2/g2");
+    const g2Mod = await import("@sdk/plugins/built-in/scraper-g2/g2");
     expect(g2Mod).toBeDefined();
     expect(typeof g2Mod.scrapeG2).toBe("function");
 
-    const g2PluginMod = await import("../../../plugins/built-in/scraper-g2/index");
+    const g2PluginMod = await import("@sdk/plugins/built-in/scraper-g2/index");
     const g2Plugin = g2PluginMod.default;
     expect(g2Plugin).toBeDefined();
     expect(g2Plugin.id).toBe("scraper-g2");

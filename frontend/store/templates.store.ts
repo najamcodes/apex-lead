@@ -1,5 +1,5 @@
 ﻿import { create } from 'zustand'
-import type { EmailTemplate } from '../../shared/types'
+import type { EmailTemplate } from '@sdk/core/types'
 import { api } from '../services/api'
 
 interface TemplatesState {

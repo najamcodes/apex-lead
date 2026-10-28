@@ -9,7 +9,7 @@
 Currently, backend logic is duplicated across:
 1. `backend/`: Legacy folder with re-exports and partial duplicates.
 2. `sdk/backend/`: Monorepo package containing the pipeline DAG engine and nodes.
-3. `server/`: Hono standalone server.
+3. `server/`: Katal standalone server.
 
 ### The Unified Target Mapping
 

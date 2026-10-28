@@ -1,6 +1,6 @@
-import { getDataSource, isDbInitialized } from '@sdk/backend/db'
-import { AuditLogEntity } from '@sdk/backend/db/entities/AuditLogEntity'
-import { getTenantId, getCurrentUserId } from '@sdk/backend/db/queries/tenant'
+import { getDataSource, isDbInitialized } from '../db'
+import { AuditLogEntity } from '../db/entities/AuditLogEntity'
+import { getTenantId, getCurrentUserId } from '../db/queries/tenant'
 
 export interface LogAuditParams {
   action: string

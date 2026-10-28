@@ -1,9 +1,9 @@
 // electron/ipc/server.ipc.ts
 import { ipcMain } from 'electron'
-import { IPC } from '../../shared/types'
+import { IPC } from '@sdk/core/types'
 import { serverManager } from '../server-manager'
 import { workerAgent } from '../worker/worker-agent'
-import { getSettings, saveSettings } from '../../backend/db/queries/settings.queries'
+import { getSettings, saveSettings } from '../db/queries/settings.queries'
 
 export function registerServerIpcHandlers(): void {
   // Get current server configuration

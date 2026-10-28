@@ -1,5 +1,5 @@
 ﻿import { X, Activity, Server, ShieldCheck, ShieldAlert, Calendar, Layout, Zap, Search } from 'lucide-react'
-import type { Lead } from '../../../shared/types'
+import type { Lead } from '@sdk/core/types'
 
 interface Props {
   lead: Lead | null

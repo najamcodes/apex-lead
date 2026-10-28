@@ -1,6 +1,6 @@
 ﻿// src/store/settings.store.ts
 import { create } from 'zustand'
-import type { AppSettings } from '../../shared/types'
+import type { AppSettings } from '@sdk/core/types'
 import { api } from '../services/api'
 
 interface SettingsState {

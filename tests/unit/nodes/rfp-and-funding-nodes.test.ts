@@ -1,9 +1,9 @@
 import { describe, it, expect } from "bun:test";
-import { registerRfpEstimatorNode } from "@sdk/backend/nodes/rfp-estimator-node";
-import { registerFundingIntentNode } from "@sdk/backend/nodes/funding-intent-node";
-import { registerDirectoryScraperNode } from "@sdk/backend/nodes/directory-scraper-node";
-import { getNodeHandler, getNodeTypeDescriptor } from "@sdk/backend/engine/registry";
-import type { NodeExecutionContext } from "@sdk/backend/engine/types";
+import { registerRfpEstimatorNode } from "@sdk/core/nodes/rfp-estimator-node";
+import { registerFundingIntentNode } from "@sdk/core/nodes/funding-intent-node";
+import { registerDirectoryScraperNode } from "@sdk/core/nodes/directory-scraper-node";
+import { getNodeHandler, getNodeTypeDescriptor } from "@sdk/core/engine/registry";
+import type { NodeExecutionContext } from "@sdk/core/engine/types";
 
 describe("RfpEstimatorNode & FundingIntentNode Test Suite", () => {
   describe("RfpEstimatorNode registration and execution", () => {

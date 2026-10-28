@@ -1,9 +1,9 @@
 import { describe, it, expect } from "bun:test";
-import { checkDomainDeliverability } from "../../../plugins/built-in/enricher-dns-deliverability/dns-checker";
-import dnsPlugin from "../../../plugins/built-in/enricher-dns-deliverability/index";
-import { registerDnsNode } from "@sdk/backend/nodes/dns-node";
-import { getNodeHandler } from "@sdk/backend/engine/registry";
-import type { NodeExecutionContext } from "@sdk/backend/engine/types";
+import { checkDomainDeliverability } from "@sdk/plugins/built-in/enricher-dns-deliverability/dns-checker";
+import dnsPlugin from "@sdk/plugins/built-in/enricher-dns-deliverability/index";
+import { registerDnsNode } from "@sdk/core/nodes/dns-node";
+import { getNodeHandler } from "@sdk/core/engine/registry";
+import type { NodeExecutionContext } from "@sdk/core/engine/types";
 
 describe("DNS & Deliverability Enricher & Node", () => {
   it("should have valid enricher plugin metadata", () => {

@@ -1,6 +1,6 @@
 // electron/preload.ts
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC } from '../shared/types'
+import { IPC } from '@sdk/core/types'
 
 contextBridge.exposeInMainWorld('api', {
   leads: {

@@ -18,8 +18,8 @@ import type {
   SystemOneQuestion,
   CascadePolicy,
 } from '@sdk/core/decision'
-import { getNodeHandler, getNodeTypeDescriptor } from '../../../sdk/backend/engine/registry'
-import { registerBuiltInNodes } from '../../../sdk/backend/nodes'
+import { getNodeHandler, getNodeTypeDescriptor } from '@sdk/core/engine/registry'
+import { registerBuiltInNodes } from '@sdk/core/nodes'
 import type { PipelineRecord } from '@sdk/core/types/pipeline.types'
 
 describe('OpenJev System-One Decision Suite', () => {

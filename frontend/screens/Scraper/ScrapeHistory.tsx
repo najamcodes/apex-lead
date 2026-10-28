@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { CheckCircle, XCircle, Clock, AlertCircle, Trash2, RefreshCw } from 'lucide-react'
 import { useScraperStore } from '../../store/scraper.store'
 import { Pagination } from '../../components/ui/Pagination'
-import type { ScrapeStatus } from '../../../shared/types/scraper.types'
+import type { ScrapeStatus } from '@sdk/core/types'
 
 const STATUS_ICON: Record<ScrapeStatus, React.ReactNode> = {
   completed: <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />,

@@ -1,7 +1,7 @@
 import '../../../server/polyfill';
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
-import { initDb, getDataSource } from '../../../backend/db/index';
-import { insertBatchLeads, getAllLeads } from '../../../backend/db/queries/leads.queries';
+import { initDb, getDataSource } from '@sdk/core/db';
+import { insertBatchLeads, getAllLeads } from '@sdk/core/db/queries/leads.queries';
 
 describe('Batch Leads Import Engine', () => {
   beforeAll(async () => {

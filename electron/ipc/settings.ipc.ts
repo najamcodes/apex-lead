@@ -1,8 +1,8 @@
 // electron/ipc/settings.ipc.ts
 import { ipcMain } from 'electron'
-import { IPC } from '../../shared/types'
-import { getSettings, saveSettings } from '../../backend/db/queries/settings.queries'
-import { requirePermission } from '../../backend/db/queries/tenant'
+import { IPC } from '@sdk/core/types'
+import { getSettings, saveSettings } from '../db/queries/settings.queries'
+import { requirePermission } from '../db/queries/tenant'
 import { initSmtp } from '@sdk/core/outreach'
 import { initScheduler } from '../scheduler'
 import { BrowserWindow } from 'electron'

@@ -5,9 +5,9 @@
 
 import os from 'os'
 import { randomUUID } from 'crypto'
-import { getSettings, saveSettings } from '../../backend/db/queries/settings.queries'
-import { executePipeline, getRunState } from '../../backend/engine/graph'
-import { registerBuiltInNodes } from '../../backend/nodes'
+import { getSettings, saveSettings } from '../db/queries/settings.queries'
+import { executePipeline, getRunState } from '@sdk/core/engine/graph'
+import { registerBuiltInNodes } from '@sdk/core/nodes'
 import type { WorkerAgentConfig, WorkerAgentStatus } from '@sdk/core/worker'
 
 export type { WorkerAgentConfig, WorkerAgentStatus }

@@ -1,6 +1,6 @@
 ﻿// src/store/scraper.store.ts
 import { create } from 'zustand'
-import type { ScrapeJob, ScrapeJobConfig, ScrapeProgressEvent } from '../../shared/types/scraper.types'
+import type { ScrapeJob, ScrapeJobConfig, ScrapeProgressEvent } from '@sdk/core/types'
 import { api } from '../services/api'
 
 interface ScraperState {

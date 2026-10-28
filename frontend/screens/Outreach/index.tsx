@@ -10,7 +10,7 @@ import { QueueDashboard } from './QueueDashboard'
 import { SchedulerStatusWidget } from './SchedulerStatusWidget'
 import { useOutreachStore } from '../../store/outreach.store'
 import { useLeadsStore } from '../../store/leads.store'
-import type { Lead } from '../../../shared/types'
+import type { Lead } from '@sdk/core/types'
 
 export function Outreach() {
   const { leads, fetchLeads } = useLeadsStore()

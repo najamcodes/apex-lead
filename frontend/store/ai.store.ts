@@ -1,6 +1,6 @@
 ﻿// src/store/ai.store.ts
 import { create } from 'zustand'
-import type { SiteScoreResult, OutreachDraft, AiTaskProgress } from '../../shared/types/ai.types'
+import type { SiteScoreResult, OutreachDraft, AiTaskProgress } from '@sdk/core/types'
 import { api } from '../services/api'
 
 interface AiState {

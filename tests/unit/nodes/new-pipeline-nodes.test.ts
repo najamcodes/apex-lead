@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { registerReplyClassifierNode } from '@sdk/backend/nodes/reply-classifier-node'
-import { registerEmailVerifierNode, auditEmailDeliverability } from '@sdk/backend/nodes/email-verifier-node'
-import { registerPriceTrackerNode, parsePriceString } from '@sdk/backend/nodes/price-tracker-node'
-import { getNodeHandler } from '@sdk/backend/engine/registry'
-import type { NodeExecutionContext } from '@sdk/backend/engine/types'
+import { registerReplyClassifierNode } from '@sdk/core/nodes/reply-classifier-node'
+import { registerEmailVerifierNode, auditEmailDeliverability } from '@sdk/core/nodes/email-verifier-node'
+import { registerPriceTrackerNode, parsePriceString } from '@sdk/core/nodes/price-tracker-node'
+import { getNodeHandler } from '@sdk/core/engine/registry'
+import type { NodeExecutionContext } from '@sdk/core/engine/types'
 
 describe('New Pipeline Nodes: ReplyClassifier, EmailVerifier, and PriceTracker', () => {
   describe('ReplyClassifierNode', () => {

@@ -36,7 +36,7 @@ The Electron app can run in two primary modes:
 
 ### Mode 2: Distributed Slave / Worker Node
 * Managed by [`worker/worker-agent.ts`](./worker/worker-agent.ts).
-* Connects over WebSocket (`ws://<SERVER_URL>/ws/worker`) to a central Hono server (`server/`).
+* Connects over WebSocket (`ws://<SERVER_URL>/ws/worker`) to a central Katal server (`server/`).
 * Receives distributed scraping tasks, executes Playwright stealth sessions locally through residential connections, and streams results back to the central hub.
 
 ---

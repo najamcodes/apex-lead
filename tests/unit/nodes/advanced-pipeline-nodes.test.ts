@@ -1,14 +1,14 @@
 import { describe, it, expect, vi } from 'vitest'
-import { registerWaterfallEnricherNode } from '@sdk/backend/nodes/waterfall-enricher-node'
-import { registerJobScraperNode } from '@sdk/backend/nodes/job-scraper-node'
-import { registerNewsRadarNode } from '@sdk/backend/nodes/news-radar-node'
-import { registerLinkedInNode } from '@sdk/backend/nodes/linkedin-node'
-import { registerVoiceCallNode } from '@sdk/backend/nodes/voice-call-node'
-import { registerCrmUpsertNode } from '@sdk/backend/nodes/crm-upsert-node'
-import { registerBatchNode } from '@sdk/backend/nodes/batch-node'
-import { getNodeHandler } from '@sdk/backend/engine/registry'
+import { registerWaterfallEnricherNode } from '@sdk/core/nodes/waterfall-enricher-node'
+import { registerJobScraperNode } from '@sdk/core/nodes/job-scraper-node'
+import { registerNewsRadarNode } from '@sdk/core/nodes/news-radar-node'
+import { registerLinkedInNode } from '@sdk/core/nodes/linkedin-node'
+import { registerVoiceCallNode } from '@sdk/core/nodes/voice-call-node'
+import { registerCrmUpsertNode } from '@sdk/core/nodes/crm-upsert-node'
+import { registerBatchNode } from '@sdk/core/nodes/batch-node'
+import { getNodeHandler } from '@sdk/core/engine/registry'
 import { waterfallEnrichmentService } from '@sdk/core/enrichment/waterfall-engine'
-import type { NodeExecutionContext } from '@sdk/backend/engine/types'
+import type { NodeExecutionContext } from '@sdk/core/engine/types'
 
 describe('Advanced DAG Workflow Nodes & GTM Capabilities', () => {
   describe('Waterfall Enrichment Service & Node', () => {

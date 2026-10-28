@@ -6,7 +6,7 @@ import { Badge } from '../../components/ui/Badge'
 import { useAiStore } from '../../store/ai.store'
 import { useNotesStore } from '../../store/notes.store'
 import { useActivityStore } from '../../store/activity.store'
-import type { Lead } from '../../../shared/types'
+import type { Lead } from '@sdk/core/types'
 
 interface LeadDrawerProps {
   lead: Lead | null

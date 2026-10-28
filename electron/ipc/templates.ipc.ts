@@ -1,9 +1,9 @@
 import { ipcMain } from 'electron'
-import { getDataSource } from '../../backend/db'
-import { getTenantId } from '../../backend/db/queries/tenant'
-import { EmailTemplateEntity } from '../../backend/db/entities/EmailTemplateEntity'
-import { IPC } from '../../shared/types'
-import { requirePermission } from '../../backend/db/queries/tenant'
+import { getDataSource } from '../db'
+import { getTenantId } from '../db/queries/tenant'
+import { EmailTemplateEntity } from '../db/entities/EmailTemplateEntity'
+import { IPC } from '@sdk/core/types'
+import { requirePermission } from '../db/queries/tenant'
 
 export function registerTemplatesIpc() {
   ipcMain.handle(IPC.TEMPLATES_GET_ALL, async () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { IPC } from "../../../shared/types";
+import { IPC } from '@sdk/core/types';
 
 describe("IPC Protocol & Channel Parity", () => {
   it("should have all defined IPC channels as non-empty strings", () => {

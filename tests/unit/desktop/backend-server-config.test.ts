@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { IPC } from '../../../shared/types'
+import { IPC } from '@sdk/core/types'
 import { ServerManager } from '../../../electron/server-manager'
 import { getWsUrlFromHttpUrl } from '../../../frontend/services/ws-client'
 

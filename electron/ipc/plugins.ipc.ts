@@ -1,18 +1,18 @@
-﻿// electron/ipc/plugins.ipc.ts
+// electron/ipc/plugins.ipc.ts
 // IPC handlers that give the Electron renderer access to the plugin system.
 // Mirrors the /api/plugins REST endpoints so plugin management works in
-// both the desktop app (via IPC) and the web app (via the Hono server).
+// both the desktop app (via IPC) and the web app (via the Katal server).
 
 import { ipcMain } from 'electron'
-import { IPC } from '../../shared/types'
+import { IPC } from '@sdk/core/types'
 import {
   getAllPlugins,
   getPlugin,
   setPluginEnabled,
   setPluginConfig,
-} from '../../plugins/registry'
-import { getTenantId } from '../../backend/db/queries/tenant'
-import type { ConnectorPlugin, LeadSnapshot } from '../../plugins/types'
+} from '@sdk/plugins/registry'
+import { getTenantId } from '../db/queries/tenant'
+import type { ConnectorPlugin, LeadSnapshot } from '@sdk/plugins/types'
 
 export function registerPluginIpcHandlers(): void {
   // ── List all plugins ─────────────────────────────────────────────

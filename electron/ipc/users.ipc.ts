@@ -1,6 +1,6 @@
 ﻿import { ipcMain } from 'electron'
-import { IPC } from '../../shared/types'
-import { getUsersInOrg, updateUserPermissions, deleteUser, createTeamMember } from '../../backend/db/queries/users.queries'
+import { IPC } from '@sdk/core/types'
+import { getUsersInOrg, updateUserPermissions, deleteUser, createTeamMember } from '../db/queries/users.queries'
 
 export function registerUsersHandlers() {
   ipcMain.handle(IPC.USERS_LIST, async () => {

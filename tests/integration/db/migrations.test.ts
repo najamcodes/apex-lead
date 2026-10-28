@@ -1,7 +1,7 @@
 import "../../../server/polyfill";
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { DataSource } from "typeorm";
-import { InitialBaseline1700000000000 } from "../../../backend/db/migrations/1700000000000-InitialBaseline";
+import { InitialBaseline1700000000000 } from "@sdk/core/db/migrations/1700000000000-InitialBaseline";
 
 describe("TypeORM Migrations Engine", () => {
   let ds: DataSource;

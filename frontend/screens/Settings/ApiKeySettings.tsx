@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { Input } from '../../components/ui/Input'
 import { api } from '../../services/api'
-import type { AppSettings } from '../../../shared/types'
+import type { AppSettings } from '@sdk/core/types'
 import { CheckCircle2, XCircle, RefreshCw, Sparkles, Server, Zap, Cpu } from 'lucide-react'
 import toast from 'react-hot-toast'
 

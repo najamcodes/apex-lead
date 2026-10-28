@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "ApexLead Prospector & Live Scraper",
+  "version": "1.0.0",
+  "description": "1-click lead capture and waterfall email verification for LinkedIn, Google Maps, and company websites.",
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://*.linkedin.com/*",
+    "https://*.google.com/maps/*",
+    "http://localhost:3000/*",
+    "http://localhost:3001/*"
+  ],
+  "background": {
+    "service_worker": "src/background/service-worker.ts",
+    "type": "module"
+  },
+  "side_panel": {
+    "default_path": "src/sidepanel/index.html"
+  },
+  "action": {
+    "default_title": "Open ApexLead Sidepanel"
+  }
+}

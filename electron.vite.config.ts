@@ -14,10 +14,10 @@ export default defineConfig({
     resolve: {
       alias: {
         '@sdk/core': resolve(__dirname, 'sdk/core'),
-        '@sdk/backend': resolve(__dirname, 'sdk/backend')
+        '@sdk/plugins': resolve(__dirname, 'sdk/plugins')
       }
     },
-    plugins: [externalizeDepsPlugin({ exclude: ['@sdk/core', '@sdk/backend'] })]
+    plugins: [externalizeDepsPlugin({ exclude: ['@sdk/core', '@sdk/plugins'] })]
   },
   preload: {
     build: {
@@ -30,10 +30,10 @@ export default defineConfig({
     resolve: {
       alias: {
         '@sdk/core': resolve(__dirname, 'sdk/core'),
-        '@sdk/backend': resolve(__dirname, 'sdk/backend')
+        '@sdk/plugins': resolve(__dirname, 'sdk/plugins')
       }
     },
-    plugins: [externalizeDepsPlugin({ exclude: ['@sdk/core', '@sdk/backend'] })]
+    plugins: [externalizeDepsPlugin({ exclude: ['@sdk/core', '@sdk/plugins'] })]
   },
   renderer: {
     root: 'frontend',

@@ -1,6 +1,6 @@
 ﻿// electron/ipc/analysis.ipc.ts
 import { ipcMain, BrowserWindow } from 'electron'
-import { IPC } from '../../shared/types'
+import { IPC } from '@sdk/core/types'
 import { analyzeLead, analyzeBatch } from '@sdk/core/analysis'
 
 export function registerAnalysisIpcHandlers(win: BrowserWindow): void {

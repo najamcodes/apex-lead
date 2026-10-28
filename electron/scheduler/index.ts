@@ -1,8 +1,8 @@
 // electron/scheduler/index.ts
 import * as cron from 'node-cron'
-import { getDataSource } from '../../backend/db'
-import { UserEntity } from '../../backend/db/entities/UserEntity'
-import { getSettings } from '../../backend/db/queries/settings.queries'
+import { getDataSource } from '../db'
+import { UserEntity } from '../db/entities/UserEntity'
+import { getSettings } from '../db/queries/settings.queries'
 import { processDueOutreach } from '@sdk/core/outreach'
 import { listenForImapReplies } from '@sdk/core/outreach/imap-listener'
 import { runWarmupCycle } from '@sdk/core/outreach/warmup-engine'

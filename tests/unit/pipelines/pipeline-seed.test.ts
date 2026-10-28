@@ -3,8 +3,7 @@ import { readFileSync, readdirSync, existsSync } from "fs";
 import { resolve, join } from "path";
 
 describe("Pipeline Template Definitions & Seeder Validation", () => {
-  const backendDefsDir = resolve(process.cwd(), "backend/pipelines/definitions");
-  const sdkDefsDir = resolve(process.cwd(), "sdk/backend/pipelines/definitions");
+  const coreDefsDir = resolve(process.cwd(), "sdk/core/pipelines/definitions");
 
   const expectedPipelines = [
     "lead-generation.json",
@@ -29,18 +28,9 @@ describe("Pipeline Template Definitions & Seeder Validation", () => {
     "saas-competitor-g2-displacement.json",
   ];
 
-  it("should have backend definitions directory with all 20 template JSON files", () => {
-    expect(existsSync(backendDefsDir)).toBe(true);
-    const files = readdirSync(backendDefsDir).filter(f => f.endsWith(".json"));
-    expect(files.length).toBeGreaterThanOrEqual(20);
-    for (const expected of expectedPipelines) {
-      expect(files).toContain(expected);
-    }
-  });
-
-  it("should have sdk backend definitions directory with all 20 template JSON files", () => {
-    expect(existsSync(sdkDefsDir)).toBe(true);
-    const files = readdirSync(sdkDefsDir).filter(f => f.endsWith(".json"));
+  it("should have core definitions directory with all 20 template JSON files", () => {
+    expect(existsSync(coreDefsDir)).toBe(true);
+    const files = readdirSync(coreDefsDir).filter(f => f.endsWith(".json"));
     expect(files.length).toBeGreaterThanOrEqual(20);
     for (const expected of expectedPipelines) {
       expect(files).toContain(expected);
@@ -48,10 +38,9 @@ describe("Pipeline Template Definitions & Seeder Validation", () => {
   });
 
   for (const file of expectedPipelines) {
-    it(`should parse ${file} cleanly and have valid DAG edges in both backend & sdk`, () => {
-      for (const dir of [backendDefsDir, sdkDefsDir]) {
-        const filePath = join(dir, file);
-        expect(existsSync(filePath)).toBe(true);
+    it(`should parse ${file} cleanly and have valid DAG edges in core definitions`, () => {
+      const filePath = join(coreDefsDir, file);
+      expect(existsSync(filePath)).toBe(true);
 
         const raw = readFileSync(filePath, "utf8");
         const sanitized = raw
@@ -88,7 +77,6 @@ describe("Pipeline Template Definitions & Seeder Validation", () => {
             expect(typeof edge.fromPort).toBe("string");
           }
         }
-      }
     });
   }
 });

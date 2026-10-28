@@ -8,7 +8,7 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { useOutreachStore } from '../../store/outreach.store'
 import { useAiStore } from '../../store/ai.store'
-import type { Lead } from '../../../shared/types'
+import type { Lead } from '@sdk/core/types'
 import { api } from '../../services/api'
 
 interface SendModalProps {

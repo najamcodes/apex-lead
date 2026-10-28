@@ -5,7 +5,7 @@ import { spawn, ChildProcess } from 'child_process'
 import path from 'path'
 import http from 'http'
 import https from 'https'
-import { getSettings } from '../backend/db/queries/settings.queries'
+import { getSettings } from './db/queries/settings.queries'
 
 export class ServerManager {
   private serverProcess: ChildProcess | null = null

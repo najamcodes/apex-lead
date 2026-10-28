@@ -6,7 +6,7 @@ import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { useScraperStore } from '../../store/scraper.store'
 import { useSettingsStore } from '../../store/settings.store'
-import type { ScrapeJobConfig } from '../../../shared/types/scraper.types'
+import type { ScrapeJobConfig } from '@sdk/core/types'
 
 const QUICK_QUERIES = [
   'restaurants',

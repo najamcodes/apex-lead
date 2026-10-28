@@ -1,13 +1,13 @@
 import { ipcMain } from 'electron'
-import { IPC } from '../../shared/types'
+import { IPC } from '@sdk/core/types'
 import {
   getAllSuppressions,
   addSuppression,
   batchAddSuppressions,
   removeSuppression,
   isSuppressed,
-} from '../../backend/db/queries/suppression.queries'
-import { requirePermission } from '../../backend/db/queries/tenant'
+} from '../db/queries/suppression.queries'
+import { requirePermission } from '../db/queries/tenant'
 
 export function registerSuppressionIpcHandlers(): void {
   ipcMain.handle(IPC.SUPPRESSION_GET_ALL, async (_event, pagination?: { page?: number; pageSize?: number; search?: string }) => {

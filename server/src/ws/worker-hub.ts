@@ -1,10 +1,10 @@
 // server/src/ws/worker-hub.ts
 // WebSocket hub and dispatch manager for child desktop worker farm nodes.
 
-import { getDataSource, isDbInitialized } from '@sdk/backend/db'
-import { WorkerNodeEntity } from '@sdk/backend/db/entities/WorkerNodeEntity'
-import { PipelineRunEntity } from '@sdk/backend/db/entities/PipelineRunEntity'
-import { storeRecord } from '@sdk/backend/collections/store'
+import { getDataSource, isDbInitialized } from '../db'
+import { WorkerNodeEntity } from '../db/entities/WorkerNodeEntity'
+import { PipelineRunEntity } from '../db/entities/PipelineRunEntity'
+import { storeRecord } from '@sdk/core/collections/store'
 import { wsHub } from './index'
 import type { ConnectedWorker } from '@sdk/core/worker'
 
@@ -15,12 +15,16 @@ const activeWorkers = new Map<string, ConnectedWorker>()
 
 export const workerHub = {
   /** Register a newly connected worker socket */
-  handleConnection(ws: any, ipAddress?: string) {
+  handleConnection(ws: ConnectedWorker['ws'], ipAddress?: string) {
     let currentWorkerId: string | null = null
 
-    const onMessage = async (raw: any) => {
+    const onMessage = async (raw: unknown) => {
       try {
-        const text = typeof raw === 'string' ? raw : (raw?.data ? raw.data.toString() : raw.toString())
+        const text = typeof raw === 'string'
+          ? raw
+          : (raw && typeof raw === 'object' && 'data' in raw && (raw as { data: unknown }).data
+              ? String((raw as { data: unknown }).data)
+              : String(raw))
         const msg = JSON.parse(text)
         const { type, data } = msg
 
@@ -162,18 +166,24 @@ export const workerHub = {
       }
     }
 
-    const onError = (err: any) => {
-      console.warn(`[WorkerHub] Worker connection error (${currentWorkerId}):`, err?.message || err)
+    const onError = (err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.warn(`[WorkerHub] Worker connection error (${currentWorkerId}):`, msg)
     }
 
-    if (typeof ws.on === 'function') {
-      ws.on('message', onMessage)
-      ws.on('close', onClose)
-      ws.on('error', onError)
-    } else if (typeof ws.addEventListener === 'function') {
-      ws.addEventListener('message', onMessage)
-      ws.addEventListener('close', onClose)
-      ws.addEventListener('error', onError)
+    const socket = ws as unknown as {
+      on?: (event: string, cb: (...args: unknown[]) => void) => void
+      addEventListener?: (event: string, cb: (...args: unknown[]) => void) => void
+    }
+
+    if (typeof socket.on === 'function') {
+      socket.on('message', onMessage)
+      socket.on('close', onClose)
+      socket.on('error', onError)
+    } else if (typeof socket.addEventListener === 'function') {
+      socket.addEventListener('message', onMessage)
+      socket.addEventListener('close', onClose)
+      socket.addEventListener('error', onError)
     }
   },
 
@@ -191,10 +201,10 @@ export const workerHub = {
     orgId: number,
     payload: {
       runId: string
-      pipeline: any
+      pipeline: Record<string, unknown>
       input: Record<string, unknown>
       targetWorkerId?: string
-      proxyConfig?: any
+      proxyConfig?: Record<string, unknown>
     }
   ): Promise<{ dispatched: boolean; workerId?: string; workerName?: string; error?: string }> {
     const orgWorkers = this.getLiveWorkers(orgId)

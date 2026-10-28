@@ -1,8 +1,8 @@
 import { describe, it, expect } from "bun:test";
-import yellowPagesPlugin from "../../../plugins/built-in/scraper-yellowpages/index";
-import clutchPlugin from "../../../plugins/built-in/scraper-clutch/index";
-import contractorEstimatorPlugin from "../../../plugins/built-in/scraper-contractor-estimator/index";
-import { resolveTradeBenchmark } from "../../../plugins/built-in/scraper-contractor-estimator/contractor-estimator";
+import yellowPagesPlugin from "@sdk/plugins/built-in/scraper-yellowpages/index";
+import clutchPlugin from "@sdk/plugins/built-in/scraper-clutch/index";
+import contractorEstimatorPlugin from "@sdk/plugins/built-in/scraper-contractor-estimator/index";
+import { resolveTradeBenchmark } from "@sdk/plugins/built-in/scraper-contractor-estimator/contractor-estimator";
 
 describe("New Scraper Plugins Execution & Yielding", () => {
   it("YellowPages plugin should yield well-formed directory leads", async () => {

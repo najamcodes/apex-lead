@@ -1,8 +1,8 @@
 import { describe, it, expect } from "bun:test";
-import { registerCostEstimatorNode } from "@sdk/backend/nodes/cost-estimator-node";
-import { registerDirectoryScraperNode } from "@sdk/backend/nodes/directory-scraper-node";
-import { getNodeHandler, getNodeTypeDescriptor } from "@sdk/backend/engine/registry";
-import type { NodeExecutionContext } from "@sdk/backend/engine/types";
+import { registerCostEstimatorNode } from "@sdk/core/nodes/cost-estimator-node";
+import { registerDirectoryScraperNode } from "@sdk/core/nodes/directory-scraper-node";
+import { getNodeHandler, getNodeTypeDescriptor } from "@sdk/core/engine/registry";
+import type { NodeExecutionContext } from "@sdk/core/engine/types";
 
 describe("CostEstimatorNode & DirectoryScraperNode Test Suite", () => {
   describe("CostEstimatorNode registration and execution", () => {

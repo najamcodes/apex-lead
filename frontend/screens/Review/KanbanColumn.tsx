@@ -1,7 +1,7 @@
 ﻿// src/screens/Review/KanbanColumn.tsx
 import { Droppable } from '@hello-pangea/dnd'
 import { LeadCard } from './LeadCard'
-import type { Lead, LeadStatus } from '../../../shared/types'
+import type { Lead, LeadStatus } from '@sdk/core/types'
 
 interface KanbanColumnProps {
   id: LeadStatus

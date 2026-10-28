@@ -1,9 +1,9 @@
 import "../../../server/polyfill";
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { AppDataSource } from "../../../backend/db/data-source";
-import { LeadEntity } from "../../../backend/db/entities/LeadEntity";
-import { AuditLogEntity } from "../../../backend/db/entities/AuditLogEntity";
-import { OrganizationEntity } from "../../../backend/db/entities/OrganizationEntity";
+import { AppDataSource } from "@sdk/core/db/data-source";
+import { LeadEntity } from "@sdk/core/db/entities/LeadEntity";
+import { AuditLogEntity } from "@sdk/core/db/entities/AuditLogEntity";
+import { OrganizationEntity } from "@sdk/core/db/entities/OrganizationEntity";
 import { logAuditEvent } from "../../../server/src/services/audit.service";
 import { getScopedRepository } from "../../../server/src/utils/tenant-repository";
 

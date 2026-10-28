@@ -1,6 +1,6 @@
 # ApexLead Standalone API Server (`server/`)
 
-The `server/` directory contains the **Hono-powered REST and WebSocket API Gateway**. It enables ApexLead to run as a multi-tenant cloud application, headless backend, or Dockerized home-server deployment.
+The `server/` directory contains the **Katal-powered REST and WebSocket API Gateway**. It enables ApexLead to run as a multi-tenant cloud application, headless backend, or Dockerized home-server deployment.
 
 ---
 
@@ -8,12 +8,11 @@ The `server/` directory contains the **Hono-powered REST and WebSocket API Gatew
 
 ```
 server/
-├── index.ts               # Hono app bootstrap, route mounting, OpenAPI spec & HTTP server
+├── index.ts               # Katal app bootstrap, route mounting & HTTP server
 ├── polyfill.ts            # Node/Bun runtime compatibility shims
 ├── src/
 │   ├── auth.ts            # JWT authentication and password hashing
 │   ├── context.ts         # AsyncLocalStorage request context (user/tenant tracking)
-│   ├── openapi.ts         # Swagger / OpenAPI v3 documentation generator
 │   ├── middleware/        # Request logging, rate limiting, and CORS
 │   ├── routes/            # REST API endpoints (leads, scraper, ai, outreach, orgs, workers)
 │   ├── utils/             # Pino structured logger & Sentry telemetry
@@ -26,7 +25,7 @@ server/
 
 ## 🔑 Key Capabilities
 
-1. **REST API + Swagger Documentation:** Exposes complete API surface at `/swagger` and `/doc`.
+1. **REST API Gateway:** Exposes modular REST endpoints for leads, scraping, enrichments, outreach, and multi-tenant operations.
 2. **Worker Farm Coordinator (`src/ws/worker-hub.ts`):** Orchestrates connected desktop worker nodes over WebSocket (`/ws/worker`), balancing scraping tasks across active instances.
 3. **Multi-Tenancy & RBAC:** Enforces organization boundaries (`org_id`) and roles (`super_admin`, `admin`, `member`, `viewer`).
 
@@ -45,7 +44,6 @@ bun install # or npm install
 bun run index.ts
 ```
 * **API Base:** `http://localhost:4000`
-* **Swagger UI:** `http://localhost:4000/swagger`
 * **Health Check:** `http://localhost:4000/health`
 
 ### 3. Environment Variables

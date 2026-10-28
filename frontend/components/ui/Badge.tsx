@@ -1,5 +1,5 @@
 ﻿// src/components/ui/Badge.tsx
-import type { LeadStatus, WebsiteStatus } from '../../../shared/types'
+import type { LeadStatus, WebsiteStatus } from '@sdk/core/types'
 
 const STATUS_STYLES: Record<LeadStatus, string> = {
   scraped: 'bg-zinc-800/80 text-zinc-300 border-zinc-700/50',

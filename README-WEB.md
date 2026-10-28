@@ -5,7 +5,7 @@ ApexLead now supports running as a web application on your local network, allowi
 ## Architecture
 - **Desktop (Electron)**: Unchanged. Continues to run as a native Windows/Mac app with an embedded DB.
 - **Web (Next.js)**: A thin frontend that reuses 100% of the UI code from the desktop app (`src/`).
-- **Backend (Bun + Hono)**: A lightweight API server that replaces the Electron IPC layer when running in web mode. It connects to the same `better-sqlite3` database logic.
+- **Backend (Bun + Katal)**: A lightweight API server that replaces the Electron IPC layer when running in web mode. It connects to the same `better-sqlite3` database logic.
 
 ## How to run locally (Development)
 1. Start the backend: `cd server && bun run index.ts`

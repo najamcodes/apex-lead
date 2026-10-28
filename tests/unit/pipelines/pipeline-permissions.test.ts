@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { roleLevel, hasPermission, canEditPipelines, canRunPipelines, canViewPipelines } from '@sdk/backend/db/queries/tenant'
+import { roleLevel, hasPermission, canEditPipelines, canRunPipelines, canViewPipelines } from '@sdk/core/db/queries/tenant'
 import { roleLevel as graphRoleLevel } from '@sdk/core/engine/graph'
 
 describe('Pipeline Permissions & Role Hierarchy', () => {

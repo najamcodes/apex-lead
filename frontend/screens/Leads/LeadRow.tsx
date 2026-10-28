@@ -2,7 +2,7 @@
 import { ExternalLink, Trash2, Star, Server, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Badge } from '../../components/ui/Badge'
 import { useLeadsStore } from '../../store/leads.store'
-import type { Lead } from '../../../shared/types'
+import type { Lead } from '@sdk/core/types'
 
 interface Props {
   lead: Lead

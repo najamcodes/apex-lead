@@ -1,13 +1,13 @@
 import '../../../server/polyfill';
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
-import { initDb, getDataSource } from '../../../backend/db/index';
+import { initDb, getDataSource } from '@sdk/core/db';
 import {
   isSuppressed,
   addSuppression,
   batchAddSuppressions,
   getAllSuppressions,
   removeSuppression,
-} from '../../../backend/db/queries/suppression.queries';
+} from '@sdk/core/db/queries/suppression.queries';
 import { sendOutreachRecord } from '@sdk/core/outreach/index';
 
 describe('Suppression & Do-Not-Contact (DNC) Engine', () => {

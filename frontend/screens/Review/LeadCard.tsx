@@ -1,7 +1,7 @@
 ﻿// src/screens/Review/LeadCard.tsx
 import { Draggable } from '@hello-pangea/dnd'
 import { Globe, Phone, Zap } from 'lucide-react'
-import type { Lead } from '../../../shared/types'
+import type { Lead } from '@sdk/core/types'
 
 interface LeadCardProps {
   lead: Lead

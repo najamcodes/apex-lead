@@ -6,8 +6,8 @@
     "paths": {
       "@sdk/core": ["./sdk/core/index.ts"],
       "@sdk/core/*": ["./sdk/core/*"],
-      "@sdk/backend": ["./sdk/backend/index.ts"],
-      "@sdk/backend/*": ["./sdk/backend/*"]
+      "@sdk/plugins": ["./sdk/plugins/index.ts"],
+      "@sdk/plugins/*": ["./sdk/plugins/*"]
     }
   },
   "files": [],

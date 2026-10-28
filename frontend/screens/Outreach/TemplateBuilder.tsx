@@ -3,7 +3,7 @@ import { Plus, Trash2, Edit2, Save, X } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { useTemplatesStore } from '../../store/templates.store'
-import type { EmailTemplate } from '../../../shared/types'
+import type { EmailTemplate } from '@sdk/core/types'
 
 export function TemplateBuilder() {
   const { templates, loading, fetchAll, create, update, remove } = useTemplatesStore()

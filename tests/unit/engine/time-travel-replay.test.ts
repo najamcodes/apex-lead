@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { ReplayEngine } from "../../../backend/engine/replay";
+import { ReplayEngine } from "@sdk/core/engine/replay";
 
 describe("DAG Time-Travel Replay & Snapshot Capture", () => {
   it("should capture and retrieve node execution snapshots", async () => {

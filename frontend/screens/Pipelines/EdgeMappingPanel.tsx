@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { FieldMapping, NodeEdge } from '../../../shared/types/pipeline.types'
+import type { FieldMapping, NodeEdge } from '@sdk/core/types'
 
 interface EdgeMappingPanelProps {
   edge: NodeEdge

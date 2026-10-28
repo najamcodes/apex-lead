@@ -1,7 +1,7 @@
 ﻿// src/screens/Dashboard/ActivityFeed.tsx
 import { useEffect, useState } from 'react'
 import { Activity } from 'lucide-react'
-import type { ActivityRecord } from '../../../shared/types/activity.types'
+import type { ActivityRecord } from '@sdk/core/types'
 import { api } from '../../services/api'
 
 type ActivityWithBusiness = ActivityRecord & { business_name: string }

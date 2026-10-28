@@ -6,7 +6,7 @@ import { KanbanColumn } from './KanbanColumn'
 import { LeadDrawer } from './LeadDrawer'
 import { Button } from '../../components/ui/Button'
 import { useLeadsStore } from '../../store/leads.store'
-import type { Lead, LeadStatus } from '../../../shared/types'
+import type { Lead, LeadStatus } from '@sdk/core/types'
 import { api } from '../../services/api'
 
 const COLUMNS: { id: LeadStatus; title: string; accent: string }[] = [

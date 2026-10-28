@@ -1,6 +1,6 @@
 ﻿// src/store/outreach.store.ts
 import { create } from 'zustand'
-import type { OutreachRecord, SequenceSummary } from '../../shared/types/outreach.types'
+import type { OutreachRecord, SequenceSummary } from '@sdk/core/types'
 import { api } from '../services/api'
 
 interface OutreachState {

@@ -1,16 +1,16 @@
 // electron/ipc/leads.ipc.ts
 import { ipcMain } from 'electron'
-import { IPC, LeadFilters } from '../../shared/types'
+import { IPC, LeadFilters } from '@sdk/core/types'
 import {
   getAllLeads,
   getLeadById,
   insertLead,
   updateLeadStatus,
   deleteLead
-} from '../../backend/db/queries/leads.queries'
-import { getDashboardStats, getCityRoiStats } from '../../backend/db/queries/stats.queries'
-import { logActivity } from '../../backend/db/queries/activity.queries'
-import { requirePermission } from '../../backend/db/queries/tenant'
+} from '../db/queries/leads.queries'
+import { getDashboardStats, getCityRoiStats } from '../db/queries/stats.queries'
+import { logActivity } from '../db/queries/activity.queries'
+import { requirePermission } from '../db/queries/tenant'
 
 export function registerLeadIpcHandlers(): void {
   ipcMain.handle(IPC.LEADS_GET_ALL, (_event, filters: LeadFilters) => {
@@ -27,7 +27,7 @@ export function registerLeadIpcHandlers(): void {
   })
   ipcMain.handle(IPC.LEADS_INSERT_BATCH, async (_event, data: any[]) => {
     requirePermission('manage_settings')
-    const { insertBatchLeads } = await import('../../backend/db/queries/leads.queries')
+    const { insertBatchLeads } = await import('../db/queries/leads.queries')
     return await insertBatchLeads(data)
   })
   ipcMain.handle(IPC.LEADS_UPDATE_STATUS, (_event, id, status, notes) => {

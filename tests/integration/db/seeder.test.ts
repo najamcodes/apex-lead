@@ -1,8 +1,8 @@
 import "../../../server/polyfill";
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { AppDataSource } from "../../../backend/db/data-source";
-import { LeadEntity } from "../../../backend/db/entities/LeadEntity";
-import { OrganizationEntity } from "../../../backend/db/entities/OrganizationEntity";
+import { AppDataSource } from "@sdk/core/db/data-source";
+import { LeadEntity } from "@sdk/core/db/entities/LeadEntity";
+import { OrganizationEntity } from "@sdk/core/db/entities/OrganizationEntity";
 
 describe("Database Seeder & Fixture Generation", () => {
   beforeEach(async () => {

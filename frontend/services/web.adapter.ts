@@ -1,5 +1,5 @@
 // src/services/web.adapter.ts
-// Web adapter — delegates to the Hono REST API via fetch()
+// Web adapter — delegates to the Katal REST API via fetch()
 // and uses WebSocket for real-time events.
 
 import type { IApiService } from './api.interface'

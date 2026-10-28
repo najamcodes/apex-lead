@@ -1,13 +1,13 @@
 import { ipcMain } from 'electron'
-import { IPC } from '../../shared/types'
+import { IPC } from '@sdk/core/types'
 import {
   getEmailAccounts,
   addEmailAccount,
   updateEmailAccount,
   deleteEmailAccount,
   getRawEmailAccountById
-} from '../../backend/db/queries/email-accounts.queries'
-import { requirePermission } from '../../backend/db/queries/tenant'
+} from '../db/queries/email-accounts.queries'
+import { requirePermission } from '../db/queries/tenant'
 import nodemailer from 'nodemailer'
 
 export function registerEmailAccountsIpc(): void {

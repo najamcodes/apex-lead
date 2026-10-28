@@ -15,11 +15,11 @@ import path from 'path'
 
 // Prevent GPU disk cache locked file errors on Windows
 app.commandLine.appendSwitch('disable-gpu-cache')
-import { initDb } from '../backend/db'
+import { initDb } from './db'
 import { registerAllIpcHandlers } from './ipc'
 import { initScheduler } from './scheduler'
 import { initSmtp } from '@sdk/core/outreach'
-import { initPluginRegistry } from '../plugins/registry'
+import { initPluginRegistry } from '@sdk/plugins/registry'
 import { workerAgent } from './worker/worker-agent'
 import { serverManager } from './server-manager'
 

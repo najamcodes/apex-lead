@@ -2,7 +2,7 @@
   "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
   "include": [
     "frontend/**/*",
-    "shared/types/**/*",
+    "electron/window.d.ts",
     "sdk/core/types/**/*"
   ],
   "compilerOptions": {

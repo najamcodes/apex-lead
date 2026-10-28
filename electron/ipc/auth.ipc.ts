@@ -1,8 +1,8 @@
 import { ipcMain } from 'electron'
-import { getDataSource } from '../../backend/db'
-import { UserEntity } from '../../backend/db/entities/UserEntity'
-import { OrganizationEntity } from '../../backend/db/entities/OrganizationEntity'
-import { UserOrganizationEntity } from '../../backend/db/entities/UserOrganizationEntity'
+import { getDataSource } from '../db'
+import { UserEntity } from '../db/entities/UserEntity'
+import { OrganizationEntity } from '../db/entities/OrganizationEntity'
+import { UserOrganizationEntity } from '../db/entities/UserOrganizationEntity'
 import { hashPassword, verifyPassword } from '@sdk/core/utils/crypto'
 
 export function registerAuthHandlers() {
@@ -15,7 +15,7 @@ export function registerAuthHandlers() {
         return { success: false, error: 'Invalid email or password' }
       }
 
-      if (!verifyPassword(args.password, user.password_hash)) {
+      if (!user.password_hash || !verifyPassword(args.password, user.password_hash)) {
         // Special case for our default admin user
         if (user.id === 1 && user.password_hash === 'local_admin_no_password_yet') {
           // Force update password for the first time

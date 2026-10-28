@@ -1,6 +1,6 @@
 import '../../server/polyfill'
 import { DataSource } from 'typeorm'
-import { allEntities } from '../../backend/db/data-source'
+import { allEntities } from '@sdk/core/db/data-source'
 
 export async function createTestDatabase(): Promise<DataSource> {
   const ds = new DataSource({

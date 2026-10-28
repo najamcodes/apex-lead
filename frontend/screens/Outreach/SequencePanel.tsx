@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import { Button } from '../../components/ui/Button'
 import { Pagination } from '../../components/ui/Pagination'
 import { useOutreachStore } from '../../store/outreach.store'
-import type { OutreachStatus } from '../../../shared/types/outreach.types'
+import type { OutreachStatus } from '@sdk/core/types'
 
 const STATUS_ICON: Record<OutreachStatus, React.ReactNode> = {
   queued: <Clock className="w-3.5 h-3.5 text-zinc-500" />,

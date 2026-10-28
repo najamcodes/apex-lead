@@ -18,7 +18,7 @@ export function getRequestUser(): RequestUser | undefined {
   return user
 }
 
-export function runWithUser(user: RequestUser, fn: () => Promise<void>) {
+export function runWithUser<R = unknown>(user: RequestUser, fn: () => R): R {
   const store = new Map<string, RequestUser>()
   store.set('user', user)
   return requestContext.run(store, fn)

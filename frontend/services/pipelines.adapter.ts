@@ -1,7 +1,7 @@
 // src/services/pipelines.adapter.ts
 // Shared server-backed implementation of the pipelines API namespace.
 // Used by both the electron and web adapters since pipelines always
-// run on the Hono server (not via IPC).
+// run on the Katal server (not via IPC).
 
 import { useAuthStore } from '../store/auth.store'
 

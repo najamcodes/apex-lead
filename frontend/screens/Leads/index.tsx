@@ -15,7 +15,7 @@ import { useState } from 'react'
 
 import { Pagination } from '../../components/ui/Pagination'
 import { WebsiteAuditDrawer } from './WebsiteAuditDrawer'
-import type { Lead } from '../../../shared/types'
+import type { Lead } from '@sdk/core/types'
 
 export function Leads() {
   const { leads, loading, fetchLeads, total, filters, setFilters } = useLeadsStore()

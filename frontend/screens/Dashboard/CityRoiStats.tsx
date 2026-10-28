@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from 'react'
 import { MapPin, Trophy } from 'lucide-react'
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import type { CityRoiStat } from '../../../shared/types'
+import type { CityRoiStat } from '@sdk/core/types'
 import { api } from '../../services/api'
 
 export function CityRoiStats() {

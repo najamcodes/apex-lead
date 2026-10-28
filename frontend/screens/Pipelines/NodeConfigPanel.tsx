@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { NodeTypeDescriptor, PipelineNode } from '../../../shared/types/pipeline.types'
+import type { NodeTypeDescriptor, PipelineNode } from '@sdk/core/types'
 import { api } from '../../services/api'
 import type { AIConnectionProfile } from '../../services/api.interface'
 

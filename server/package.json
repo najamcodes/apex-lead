@@ -17,11 +17,10 @@
   },
   "dependencies": {
     "@sdk/core": "link:../sdk/core",
-    "@sdk/backend": "link:../sdk/backend",
-    "@hono/node-server": "^2.0.8",
+    "@sdk/plugins": "link:../sdk/plugins",
     "better-sqlite3": "^12.11.1",
-    "hono": "^4.12.27",
     "jsonwebtoken": "^9.0.3",
+    "katal": "3.0.0",
     "pg": "^8.13.3",
     "tsx": "^4.23.0"
   }

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
-import { sendSlackAlert } from "../../../plugins/built-in/connector-slack/slack";
-import slackPlugin from "../../../plugins/built-in/connector-slack/index";
+import { sendSlackAlert } from "@sdk/plugins/built-in/connector-slack/slack";
+import slackPlugin from "@sdk/plugins/built-in/connector-slack/index";
 
 describe("Slack Connector Plugin & Block Kit Alerts", () => {
   it("should have valid connector metadata", () => {

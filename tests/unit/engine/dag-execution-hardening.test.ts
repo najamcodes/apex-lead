@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
-import { GraphExecutor } from "../../../backend/engine/graph";
-import type { DAGDefinition } from "../../../backend/engine/types";
+import { GraphExecutor } from "@sdk/core/engine/graph";
+import type { DAGDefinition } from "@sdk/core/engine/types";
 
 describe("DAG Workflow Execution Engine Hardening", () => {
   it("should detect cyclical graphs and throw an error before running", () => {

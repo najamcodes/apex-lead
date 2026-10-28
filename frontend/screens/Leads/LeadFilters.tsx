@@ -1,7 +1,7 @@
 // src/screens/Leads/LeadFilters.tsx
 import { Search } from 'lucide-react'
 import { useLeadsStore } from '../../store/leads.store'
-import type { LeadFilters as Filters } from '../../../shared/types'
+import type { LeadFilters as Filters } from '@sdk/core/types'
 
 export function LeadFilters() {
   const { filters, setFilters } = useLeadsStore()

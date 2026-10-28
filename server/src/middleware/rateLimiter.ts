@@ -1,4 +1,4 @@
-import { Context, Next } from 'hono'
+import type { RequestContext as Context, Next } from 'katal'
 
 interface RateLimitOptions {
   windowMs: number
@@ -57,31 +57,41 @@ export function rateLimiter(options: RateLimitOptions) {
     const remaining = Math.max(0, maxRequests - store[key].count)
     const resetTime = Math.ceil((store[key].resetTime - Date.now()) / 1000)
 
-    c.res.headers.set('X-RateLimit-Limit', maxRequests.toString())
-    c.res.headers.set('X-RateLimit-Remaining', remaining.toString())
-    c.res.headers.set('X-RateLimit-Reset', resetTime.toString())
+    if (typeof c.header === 'function') {
+      c.header('X-RateLimit-Limit', maxRequests.toString())
+      c.header('X-RateLimit-Remaining', remaining.toString())
+      c.header('X-RateLimit-Reset', resetTime.toString())
+    }
 
     if (store[key].count > maxRequests) {
-      return c.json(
-        { error: 'Too Many Requests', message: 'Rate limit exceeded. Please try again later.' },
-        429,
-        {
-          'Retry-After': resetTime.toString(),
-          'X-RateLimit-Limit': maxRequests.toString(),
-          'X-RateLimit-Remaining': '0',
-          'X-RateLimit-Reset': resetTime.toString(),
-        }
-      )
+      const body = { error: 'Too Many Requests', message: 'Rate limit exceeded. Please try again later.' }
+      const headers = {
+        'Content-Type': 'application/json',
+        'Retry-After': resetTime.toString(),
+        'X-RateLimit-Limit': maxRequests.toString(),
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': resetTime.toString(),
+      }
+      return typeof c.json === 'function' ? c.json(body, 429, headers) : new Response(JSON.stringify(body), { status: 429, headers })
     }
 
-    await next()
+    const res = await next()
+    const status = res?.status ?? c.res?.status ?? 200
+
+    if (res instanceof Response) {
+      res.headers.set('X-RateLimit-Limit', maxRequests.toString())
+      res.headers.set('X-RateLimit-Remaining', remaining.toString())
+      res.headers.set('X-RateLimit-Reset', resetTime.toString())
+    }
 
     // Optional: skip counting based on response status
-    if (skipSuccessfulRequests && c.res.status < 400) {
+    if (skipSuccessfulRequests && status < 400) {
       store[key].count--
     }
-    if (skipFailedRequests && c.res.status >= 400) {
+    if (skipFailedRequests && status >= 400) {
       store[key].count--
     }
+
+    return res
   }
 }

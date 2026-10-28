@@ -15,7 +15,7 @@ export const wsHub = {
     }
   },
 
-  broadcast(channel: string, data: any) {
+  broadcast(channel: string, data: unknown) {
     const subscribers = channels.get(channel)
     if (subscribers) {
       const msg = JSON.stringify({ channel, data })

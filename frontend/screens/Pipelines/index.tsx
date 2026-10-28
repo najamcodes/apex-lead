@@ -5,7 +5,7 @@ import { api } from '../../services/api'
 import { PipelineEditor } from './PipelineEditor'
 import { useAuthStore, canEditPipelines } from '../../store/auth.store'
 import toast from 'react-hot-toast'
-import type { NodeTypeDescriptor, PipelineDefinition, PipelineNode, NodeEdge, PipelineRun } from '../../../shared/types/pipeline.types'
+import type { NodeTypeDescriptor, PipelineDefinition, PipelineNode, NodeEdge, PipelineRun, PipelineStatus } from '@sdk/core/types'
 
 export function Pipelines() {
   const { role, permissions } = useAuthStore()
@@ -166,7 +166,7 @@ export function Pipelines() {
 
   const handleStatusToggle = async (p: PipelineDefinition, e?: React.MouseEvent) => {
     if (e) e.stopPropagation()
-    const nextStatus: import('../../../shared/types/pipeline.types').PipelineStatus = p.status === 'active' ? 'paused' : 'active'
+    const nextStatus: PipelineStatus = p.status === 'active' ? 'paused' : 'active'
     try {
       await api.pipelines.update(p.id, { status: nextStatus })
       const updated: PipelineDefinition = { ...p, status: nextStatus }

@@ -35,7 +35,7 @@ export function initSentry() {
   return Sentry
 }
 
-export function captureException(error: Error, context?: Record<string, any>) {
+export function captureException(error: Error, context?: Record<string, unknown>) {
   if (process.env.SENTRY_DSN) {
     Sentry.captureException(error, { extra: context })
   }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Trash2, Mail, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
-import type { EmailAccount, EmailAccountInsert } from '../../../shared/types'
+import type { EmailAccount, EmailAccountInsert } from '@sdk/core/types'
 import { api } from '../../services/api'
 
 export function EmailAccountsManager() {

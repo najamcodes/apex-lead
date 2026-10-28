@@ -1,4 +1,4 @@
-import { Context, Next } from 'hono'
+import type { RequestContext as Context, Next } from 'katal'
 import { z } from 'zod'
 
 export function validateBody<T extends z.ZodTypeAny>(schema: T) {

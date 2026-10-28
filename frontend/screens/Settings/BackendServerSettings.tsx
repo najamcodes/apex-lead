@@ -190,7 +190,7 @@ export function BackendServerSettings() {
               <div>
                 <p className="text-xs font-medium text-zinc-300">Auto-start Local Background Server</p>
                 <p className="text-[11px] text-zinc-500">
-                  Automatically spawn and manage the embedded Hono API server on desktop launch
+                  Automatically spawn and manage the embedded Katal API server on desktop launch
                 </p>
               </div>
               <input

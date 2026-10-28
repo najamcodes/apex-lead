@@ -1,6 +1,6 @@
 import { ipcMain, dialog } from 'electron'
 import fs from 'fs'
-import { IPC } from '../../shared/types'
+import { IPC, type PaginationParams } from '@sdk/core/types'
 import {
   sendOutreachRecord,
   processDueOutreach,
@@ -13,13 +13,13 @@ import {
   updateOutreachStatus,
   getSequenceSummaries,
   getPendingOutreachQueue
-} from '../../backend/db/queries/outreach.queries'
-import { getChartData, getFunnelData } from '../../backend/db/queries/stats.queries'
-import { logActivity } from '../../backend/db/queries/activity.queries'
+} from '../db/queries/outreach.queries'
+import { getChartData, getFunnelData } from '../db/queries/stats.queries'
+import { logActivity } from '../db/queries/activity.queries'
 
 import type { SequenceInput } from '@sdk/core/outreach/sequence-engine'
-import { getDataSource } from '../../backend/db'
-import { requirePermission } from '../../backend/db/queries/tenant'
+import { getDataSource } from '../db'
+import { requirePermission } from '../db/queries/tenant'
 
 export function registerOutreachIpcHandlers(): void {
   // Send a single outreach record
@@ -35,7 +35,7 @@ export function registerOutreachIpcHandlers(): void {
   })
 
   // Get all outreach records
-  ipcMain.handle(IPC.OUTREACH_GET_ALL, async (_event, status?: string, pagination?: import('../../shared/types').PaginationParams) => {
+  ipcMain.handle(IPC.OUTREACH_GET_ALL, async (_event, status?: string, pagination?: PaginationParams) => {
     return await getAllOutreach(status as any, pagination)
   })
 
@@ -86,7 +86,7 @@ export function registerOutreachIpcHandlers(): void {
   )
 
   // Get sequence summaries for all leads
-  ipcMain.handle(IPC.OUTREACH_GET_SEQUENCES, async (_event, pagination?: import('../../shared/types').PaginationParams) => {
+  ipcMain.handle(IPC.OUTREACH_GET_SEQUENCES, async (_event, pagination?: PaginationParams) => {
     return await getSequenceSummaries(pagination)
   })
 
@@ -124,7 +124,7 @@ export function registerOutreachIpcHandlers(): void {
       if (config) {
         return await verifySmtp(config)
       }
-      const { getEmailAccounts } = await import('../../backend/db/queries/email-accounts.queries')
+      const { getEmailAccounts } = await import('../db/queries/email-accounts.queries')
       const accounts = await getEmailAccounts()
       if (accounts.length === 0) {
         return { ok: false, error: 'No email accounts configured' }

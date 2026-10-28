@@ -5,7 +5,7 @@ import { X, Upload, Plus, FileText, CheckCircle, AlertCircle, Building2 } from '
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { useLeadsStore } from '../../store/leads.store'
-import type { LeadInsert } from '../../../shared/types'
+import type { LeadInsert } from '@sdk/core/types'
 
 interface Props {
   isOpen: boolean

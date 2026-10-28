@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test";
-import thomasNetPlugin from "../../../plugins/built-in/scraper-thomasnet/index";
-import crunchbasePlugin from "../../../plugins/built-in/scraper-crunchbase/index";
-import g2Plugin from "../../../plugins/built-in/scraper-g2/index";
+import thomasNetPlugin from "@sdk/plugins/built-in/scraper-thomasnet/index";
+import crunchbasePlugin from "@sdk/plugins/built-in/scraper-crunchbase/index";
+import g2Plugin from "@sdk/plugins/built-in/scraper-g2/index";
 
 describe("Industrial, Venture, and SaaS Scrapers Suite", () => {
   it("ThomasNet plugin should yield industrial manufacturers with revenue and ISO certs", async () => {

@@ -16,18 +16,18 @@ import type {
   EmailTemplate,
   EmailAccount,
   EmailAccountInsert
-} from '../../shared/types'
-import type { ScrapeJob, ScrapeJobConfig, ScrapeProgressEvent } from '../../shared/types/scraper.types'
-import type { SiteScoreResult, OutreachDraft } from '../../shared/types/ai.types'
-import type { AnalysisResult } from '../../shared/types/analysis.types'
-import type { OutreachRecord, SendResult, SequenceSummary } from '../../shared/types/outreach.types'
-import type { ActivityRecord, NoteRecord } from '../../shared/types/activity.types'
+} from '@sdk/core/types'
+import type { ScrapeJob, ScrapeJobConfig, ScrapeProgressEvent } from '@sdk/core/types'
+import type { SiteScoreResult, OutreachDraft } from '@sdk/core/types'
+import type { AnalysisResult } from '@sdk/core/types'
+import type { OutreachRecord, SendResult, SequenceSummary } from '@sdk/core/types'
+import type { ActivityRecord, NoteRecord } from '@sdk/core/types'
 import type {
   PipelineDefinition,
   PipelineRun,
   NodeTypeDescriptor,
-} from '../../shared/types/pipeline.types'
-import type { CollectionDefinition } from '../../shared/types/collection.types'
+} from '@sdk/core/types'
+import type { CollectionDefinition } from '@sdk/core/types'
 
 export interface IApiService {
   leads: {

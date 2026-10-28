@@ -29,13 +29,15 @@ const logger = pino(
   }
 )
 
+import type { RequestContext, Next } from 'katal'
+
 export { logger }
 
-export function createChildLogger(bindings: Record<string, any>) {
+export function createChildLogger(bindings: Record<string, unknown>) {
   return logger.child(bindings)
 }
 
-export function logRequest(c: any, next: any) {
+export function logRequest(c: RequestContext, next: Next) {
   const start = Date.now()
   const method = c.req.method
   const path = c.req.path
@@ -43,7 +45,7 @@ export function logRequest(c: any, next: any) {
 
   return next().then(() => {
     const duration = Date.now() - start
-    const status = c.res.status
+    const status = c.res?.status ?? 200
     const level = status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info'
 
     logger[level]({
@@ -57,18 +59,18 @@ export function logRequest(c: any, next: any) {
   })
 }
 
-export function logError(error: Error, context?: Record<string, any>) {
+export function logError(error: Error, context?: Record<string, unknown>) {
   logger.error({ err: error, ...context }, error.message)
 }
 
-export function logInfo(message: string, context?: Record<string, any>) {
+export function logInfo(message: string, context?: Record<string, unknown>) {
   logger.info(context, message)
 }
 
-export function logWarn(message: string, context?: Record<string, any>) {
+export function logWarn(message: string, context?: Record<string, unknown>) {
   logger.warn(context, message)
 }
 
-export function logDebug(message: string, context?: Record<string, any>) {
+export function logDebug(message: string, context?: Record<string, unknown>) {
   logger.debug(context, message)
 }

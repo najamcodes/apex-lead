@@ -2,13 +2,13 @@
 // Schedules and executes active pipelines that have a 'cron' trigger configured.
 
 import * as cron from 'node-cron'
-import { getDataSource } from '../../backend/db'
-import { PipelineDefinitionEntity } from '../../backend/db/entities/PipelineDefinitionEntity'
-import { PipelineRunEntity } from '../../backend/db/entities/PipelineRunEntity'
-import { executePipeline, getRunState } from '../../backend/engine/graph'
-import { registerBuiltInNodes } from '../../backend/nodes'
+import { getDataSource } from '../db'
+import { PipelineDefinitionEntity } from '../db/entities/PipelineDefinitionEntity'
+import { PipelineRunEntity } from '../db/entities/PipelineRunEntity'
+import { executePipeline, getRunState } from '@sdk/core/engine/graph'
+import { registerBuiltInNodes } from '@sdk/core/nodes'
 import { randomUUID } from 'crypto'
-import type { PipelineDefinition, PipelineNode, NodeEdge } from '../../shared/types/pipeline.types'
+import type { PipelineDefinition, PipelineNode, NodeEdge } from '@sdk/core/types'
 
 let pipelineTasks: cron.ScheduledTask[] = []
 

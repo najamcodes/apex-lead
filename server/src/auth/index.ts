@@ -7,7 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET ?? (() => {
   return 'dev_secret_leadhunter_2026'
 })()
 
-export async function createToken(payload: any) {
+export async function createToken(payload: string | Buffer | Record<string, unknown>) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' })
 }
 

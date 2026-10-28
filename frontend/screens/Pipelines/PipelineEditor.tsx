@@ -26,7 +26,7 @@ import { EdgeMappingPanel } from './EdgeMappingPanel'
 import { api } from '../../services/api'
 import { useAuthStore, canEditPipelines, canRunPipelines } from '../../store/auth.store'
 import type { WorkerNodeSummary } from '../../services/api.interface'
-import type { NodeTypeDescriptor, PipelineNode, NodeEdge, PipelineDefinition, NodeType, FieldMapping } from '../../../shared/types/pipeline.types'
+import type { NodeTypeDescriptor, PipelineNode, NodeEdge, PipelineDefinition, NodeType, FieldMapping } from '@sdk/core/types'
 
 interface PipelineEditorProps {
   pipeline: PipelineDefinition

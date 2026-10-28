@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from 'vitest'
-import { registerN8nBridgeNode } from '@sdk/backend/nodes/n8n-bridge-node'
-import { registerDedupeNode } from '@sdk/backend/nodes/dedupe-node'
-import { registerFormatNode, cleanJobTitle, toTitleCase, normalizePhoneNumber, extractDomainFromUrl } from '@sdk/backend/nodes/format-node'
-import { getNodeHandler } from '@sdk/backend/engine/registry'
-import type { NodeExecutionContext } from '@sdk/backend/engine/types'
+import { registerN8nBridgeNode } from '@sdk/core/nodes/n8n-bridge-node'
+import { registerDedupeNode } from '@sdk/core/nodes/dedupe-node'
+import { registerFormatNode, cleanJobTitle, toTitleCase, normalizePhoneNumber, extractDomainFromUrl } from '@sdk/core/nodes/format-node'
+import { getNodeHandler } from '@sdk/core/engine/registry'
+import type { NodeExecutionContext } from '@sdk/core/engine/types'
 
 describe('N8n Bridge, Dedupe, and Format Nodes', () => {
   it('should clean and normalize lead data using FormatNode utilities', () => {

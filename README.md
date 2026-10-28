@@ -13,7 +13,7 @@ lead-gen-desk/
 ├── backend/               # 🧠 Core domain logic, DB entities, scraping engines & AI pipelines
 ├── electron/              # 🖥️ Native Desktop runtime, IPC handlers, stealth scraper & worker agent
 ├── frontend/              # 🎨 Shared React 19 UI (screens, state stores, visual canvas & adapters)
-├── server/                # 🌐 Standalone Hono REST + WebSocket server (for web & cloud mode)
+├── server/                # 🌐 Standalone Katal REST + WebSocket server (for web & cloud mode)
 ├── web/                   # 📱 Next.js 15 Web Edition frontend
 ├── plugins/               # 🔌 Extensible plugin engine (Discord, Slack, Webhook, HubSpot)
 ├── shared/                # 📦 Shared TypeScript models, contracts, and IPC enums
@@ -27,7 +27,7 @@ lead-gen-desk/
 | [`backend/`](./backend/README.md) | Shared business logic, TypeORM entities (SQLite/Postgres), graph execution engine, AI agents, SMTP/IMAP outreach. | [backend/README.md](./backend/README.md) |
 | [`electron/`](./electron/README.md) | Desktop shell with direct OS access, Playwright stealth browser, embedded SQLite DB, and slave worker node. | [electron/README.md](./electron/README.md) |
 | [`frontend/`](./frontend/README.md) | Modern React 19 UI with dual IPC/HTTP adapters, Zustand stores, and visual workflow builder. | [frontend/README.md](./frontend/README.md) |
-| [`server/`](./server/README.md) | Hono REST API & WebSocket server with JWT auth, multi-tenancy, Swagger docs, and distributed worker coordinator. | [server/README.md](./server/README.md) |
+| [`server/`](./server/README.md) | Katal REST API & WebSocket server with JWT auth, multi-tenancy, Swagger docs, and distributed worker coordinator. | [server/README.md](./server/README.md) |
 | [`web/`](./web/README.md) | Standalone Next.js web application for browser access on local networks or the cloud. | [web/README.md](./web/README.md) |
 | [`plugins/`](./plugins/README.md) | Extensible event hook system for external CRM synchronization and notification alerts. | [plugins/README.md](./plugins/README.md) |
 | [`shared/`](./shared/README.md) | Cross-package TypeScript interfaces, schemas, and IPC channel definitions. | [shared/README.md](./shared/README.md) |
@@ -46,19 +46,19 @@ flowchart TB
     end
 
     subgraph Setup 2: Master-Slave Farm
-        CentralServer[Central Hono Server] <-->|WebSocket /ws/worker| Worker1[Desktop Worker 1]
+        CentralServer[Central Katal Server] <-->|WebSocket /ws/worker| Worker1[Desktop Worker 1]
         CentralServer <-->|WebSocket /ws/worker| Worker2[Desktop Worker 2]
     end
 
     subgraph Setup 3: Cloud Web / Docker
         DockerNginx[Docker / Reverse Proxy] --> WebUI[Next.js Web UI :3000]
-        DockerNginx --> APIServer[Hono API Server :4000]
+        DockerNginx --> APIServer[Katal API Server :4000]
         APIServer --> ServerDB[(PostgreSQL / SQLite)]
     end
 
     subgraph Setup 4: Local Web Dev Stack
         DevBrowser[Web Browser :3000] --> DevWeb[Next.js Dev Server]
-        DevWeb --> DevServer[Hono Dev Server :4000]
+        DevWeb --> DevServer[Katal Dev Server :4000]
     end
 ```
 
@@ -90,7 +90,7 @@ flowchart TB
 
 ### Setup 3: Cloud / Home Server Web Edition (Docker Compose)
 * **Best for:** Accessing ApexLead from any phone, tablet, or browser over your local network or VPS.
-* **Architecture:** Runs the Next.js frontend (`:3000`) and the Hono API server (`:4000`) in Docker containers.
+* **Architecture:** Runs the Next.js frontend (`:3000`) and the Katal API server (`:4000`) in Docker containers.
 * **How to run:**
   ```bash
   docker-compose up -d --build

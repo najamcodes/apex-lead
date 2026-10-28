@@ -1,24 +1,24 @@
 // electron/ipc/bulk.ipc.ts
 import { ipcMain } from 'electron'
-import { IPC } from '../../shared/types'
+import { IPC } from '@sdk/core/types'
 import { analyzeBatch } from '@sdk/core/analysis'
 import { scoreSite } from '@sdk/core/ai/tasks/score-site'
-import { getSettings } from '../../backend/db/queries/settings.queries'
-import { getDataSource } from '../../backend/db'
-import { getTenantId } from '../../backend/db/queries/tenant'
+import { getSettings } from '../db/queries/settings.queries'
+import { getDataSource } from '../db'
+import { getTenantId } from '../db/queries/tenant'
 import {
   logActivity,
   getActivityByLead,
   getRecentActivity
-} from '../../backend/db/queries/activity.queries'
-import { getNoteByLead, saveNote } from '../../backend/db/queries/notes.queries'
-import { EmailTemplateEntity } from '../../backend/db/entities/EmailTemplateEntity'
+} from '../db/queries/activity.queries'
+import { getNoteByLead, saveNote } from '../db/queries/notes.queries'
+import { EmailTemplateEntity } from '../db/entities/EmailTemplateEntity'
 import { runEmailFinderBatch, findEmailForLead, runEmailVerifierBatch } from '@sdk/core/email-finder'
 import { createSequenceForLead } from '@sdk/core/outreach'
 import { getSchedulerStatus } from '../scheduler'
 import { parseSpintax } from '@sdk/core/outreach/spintax'
 import { draftOutreach } from '@sdk/core/ai/tasks/draft-outreach'
-import { requirePermission } from '../../backend/db/queries/tenant'
+import { requirePermission } from '../db/queries/tenant'
 
 export function registerBulkIpcHandlers(): void {
   // NOTES

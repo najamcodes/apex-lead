@@ -1,6 +1,6 @@
 ﻿// src/store/notes.store.ts
 import { create } from 'zustand'
-import type { NoteRecord } from '../../shared/types/activity.types'
+import type { NoteRecord } from '@sdk/core/types'
 import { api } from '../services/api'
 
 interface NotesState {

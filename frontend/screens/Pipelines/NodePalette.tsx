@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api } from '../../services/api'
-import type { NodeTypeDescriptor, PipelineDefinition } from '../../../shared/types/pipeline.types'
+import type { NodeTypeDescriptor, PipelineDefinition } from '@sdk/core/types'
 import { Layers } from 'lucide-react'
 
 interface NodePaletteProps {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "bun:test";
-import { initPluginRegistry, listPlugins, getPlugin } from "../../../plugins/registry";
+import { initPluginRegistry, listPlugins, getPlugin } from "@sdk/plugins/registry";
 
 describe("Plugin Registry & Discovery Engine", () => {
   beforeAll(async () => {
@@ -37,7 +37,7 @@ describe("Plugin Registry & Discovery Engine", () => {
   });
 
   it("should filter enabled scrapers, enrichers and connectors by trigger", () => {
-    const { getEnabledScrapers, getEnabledEnrichers, getEnabledConnectors } = require("../../../plugins/registry");
+    const { getEnabledScrapers, getEnabledEnrichers, getEnabledConnectors } = require("@sdk/plugins/registry");
     const scrapers = getEnabledScrapers();
     expect(scrapers.length).toBe(7);
     expect(scrapers.some((s: any) => s.manifest.id === "google-maps")).toBe(true);
@@ -53,7 +53,7 @@ describe("Plugin Registry & Discovery Engine", () => {
   });
 
   it("should format a valid LeadSnapshot from raw database rows", () => {
-    const { makeLeadSnapshot } = require("../../../plugins/runner");
+    const { makeLeadSnapshot } = require("@sdk/plugins/runner");
     const rawRow = {
       id: 42,
       org_id: 1,

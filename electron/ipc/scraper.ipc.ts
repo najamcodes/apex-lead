@@ -1,10 +1,10 @@
 // electron/ipc/scraper.ipc.ts
 import { ipcMain, BrowserWindow } from 'electron'
-import { IPC } from '../../shared/types'
+import { IPC } from '@sdk/core/types'
 import { startPipelineJob, cancelPipelineJob, pausePipelineJob, resumePipelineJob } from '@sdk/core/pipelines'
-import { getAllScrapeJobs, deleteScrapeJob, deleteScrapeJobs } from '../../backend/db/queries/scrape-jobs.queries'
-import type { ScrapeJobConfig } from '../../shared/types/scraper.types'
-import { requirePermission } from '../../backend/db/queries/tenant'
+import { getAllScrapeJobs, deleteScrapeJob, deleteScrapeJobs } from '../db/queries/scrape-jobs.queries'
+import type { ScrapeJobConfig, PaginationParams } from '@sdk/core/types'
+import { requirePermission } from '../db/queries/tenant'
 
 export function registerScraperIpcHandlers(win: BrowserWindow): void {
   ipcMain.handle(IPC.SCRAPER_START, async (_event, config: ScrapeJobConfig) => {
@@ -43,7 +43,7 @@ export function registerScraperIpcHandlers(win: BrowserWindow): void {
     await deleteScrapeJobs(jobIds)
   })
 
-  ipcMain.handle(IPC.SCRAPER_GET_JOBS, (_event, pagination?: import('../../shared/types').PaginationParams) => {
+  ipcMain.handle(IPC.SCRAPER_GET_JOBS, (_event, pagination?: PaginationParams) => {
     return getAllScrapeJobs(pagination)
   })
 }

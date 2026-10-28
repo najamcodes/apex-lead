@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { evaluateTemplateExpression } from "../../../backend/engine/transformer";
+import { evaluateTemplateExpression } from "@sdk/core/engine/transformer";
 
 describe("Expression Transformer & Interpolation Engine", () => {
   it("should interpolate simple and nested object properties", () => {
